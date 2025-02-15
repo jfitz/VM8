@@ -26,8 +26,8 @@ typedef struct i8080 {
   uint8_t interrupt_delay;
 } i8080;
 
-void i8080_init(i8080* const c);
-void i8080_step(i8080* const c);
+extern "C" void i8080_init(i8080* const c);
+extern "C" void i8080_step(i8080* const c);
 void i8080_interrupt(i8080* const c, uint8_t opcode);
 void i8080_debug_output(i8080* const c, bool print_disassembly);
 
