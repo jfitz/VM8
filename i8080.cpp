@@ -700,7 +700,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
 }
 
 // initialises the emulator with default values
-void i8080_init(i8080* const c) {
+extern "C" void i8080_init(i8080* const c) {
   c->read_byte = NULL;
   c->write_byte = NULL;
   c->port_in = NULL;
@@ -734,7 +734,7 @@ void i8080_init(i8080* const c) {
 }
 
 // executes one instruction
-void i8080_step(i8080* const c) {
+extern "C" void i8080_step(i8080* const c) {
   // interrupt processing: if an interrupt is pending and IFF is set,
   // we execute the interrupt vector passed by the user.
   if (c->interrupt_pending && c->iff && c->interrupt_delay == 0) {

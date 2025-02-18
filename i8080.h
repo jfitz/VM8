@@ -5,7 +5,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct i8080 {
+typedef class i8080 {
+public:
   // memory + io interface
   uint8_t (*read_byte)(void*, uint16_t); // user function to read from memory
   void (*write_byte)(void*, uint16_t, uint8_t); // same for writing to memory
@@ -26,8 +27,8 @@ typedef struct i8080 {
   uint8_t interrupt_delay;
 } i8080;
 
-void i8080_init(i8080* const c);
-void i8080_step(i8080* const c);
+extern "C" void i8080_init(i8080* const c);
+extern "C" void i8080_step(i8080* const c);
 void i8080_interrupt(i8080* const c, uint8_t opcode);
 void i8080_debug_output(i8080* const c, bool print_disassembly);
 
