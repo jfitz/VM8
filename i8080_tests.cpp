@@ -117,7 +117,7 @@ static inline void run_test(
 }
 
 int main(void) {
-  memory = malloc(MEMORY_SIZE);
+  memory = (uint8_t*)malloc(MEMORY_SIZE);
   if (memory == NULL) {
     return 1;
   }

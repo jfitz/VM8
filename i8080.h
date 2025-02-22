@@ -6,7 +6,7 @@
 #include <stdbool.h>
 
 typedef class i8080 {
-public:
+ public:
   // memory + io interface
   uint8_t (*read_byte)(void*, uint16_t); // user function to read from memory
   void (*write_byte)(void*, uint16_t, uint8_t); // same for writing to memory
