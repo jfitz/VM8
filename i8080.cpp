@@ -121,20 +121,20 @@ void i8080::set_sp(uint16_t sp) {
   sp_ = sp;
 }
 
-uint16_t i8080::c() const
+uint8_t i8080::c() const
 {
   return c_;
 }
 
-void i8080::set_c(uint16_t c)
+void i8080::set_c(uint8_t c)
 {
   c_ = c;
 }
 
 // paired registers helpers (setters and getters)
-static inline void i8080_set_bc(i8080* const c, uint16_t val) {
-  c->b_ = val >> 8;
-  c->set_c(val & 0xFF);
+void i8080::set_bc(uint16_t val) {
+  b_ = val >> 8;
+  c_ = val & 0xFF;
 }
 
 static inline void i8080_set_de(i8080* const c, uint16_t val) {
@@ -147,8 +147,8 @@ static inline void i8080_set_hl(i8080* const c, uint16_t val) {
   c->l_ = val & 0xFF;
 }
 
-static inline uint16_t i8080_get_bc(i8080* const c) {
-  return (c->b_ << 8) | c->c();
+uint16_t i8080::bc() const {
+  return (b_ << 8) | c();
 }
 
 static inline uint16_t i8080_get_de(i8080* const c) {
@@ -421,7 +421,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x7D: c->a_ = c->l_; break; // MOV A,L
   case 0x7E: c->a_ = i8080_rb(c, i8080_get_hl(c)); break; // MOV A,M
 
-  case 0x0A: c->a_ = i8080_rb(c, i8080_get_bc(c)); break; // LDAX B
+  case 0x0A: c->a_ = i8080_rb(c, c->bc()); break; // LDAX B
   case 0x1A: c->a_ = i8080_rb(c, i8080_get_de(c)); break; // LDAX D
   case 0x3A: c->a_ = i8080_rb(c, i8080_next_word(c)); break; // LDA word
 
@@ -498,11 +498,11 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
     i8080_wb(c, i8080_get_hl(c), i8080_next_byte(c));
     break; // MVI M,byte
 
-  case 0x02: i8080_wb(c, i8080_get_bc(c), c->a_);    break; // STAX B
+  case 0x02: i8080_wb(c, c->bc(), c->a_);    break; // STAX B
   case 0x12: i8080_wb(c, i8080_get_de(c), c->a_);    break; // STAX D
   case 0x32: i8080_wb(c, i8080_next_word(c), c->a_); break; // STA word
 
-  case 0x01: i8080_set_bc(c, i8080_next_word(c)); break; // LXI B,word
+  case 0x01: c->set_bc(i8080_next_word(c)); break; // LXI B,word
   case 0x11: i8080_set_de(c, i8080_next_word(c)); break; // LXI D,word
   case 0x21: i8080_set_hl(c, i8080_next_word(c)); break; // LXI H,word
   case 0x31: c->set_sp(i8080_next_word(c));       break; // LXI SP,word
@@ -561,7 +561,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
     break; // SBB M
   case 0xDE: i8080_sub(c, &c->a_, i8080_next_byte(c), c->cf); break; // SBI byte
 
-  case 0x09: i8080_dad(c, i8080_get_bc(c)); break; // DAD B
+  case 0x09: i8080_dad(c, c->bc()); break; // DAD B
   case 0x19: i8080_dad(c, i8080_get_de(c)); break; // DAD D
   case 0x29: i8080_dad(c, i8080_get_hl(c)); break; // DAD H
   case 0x39: i8080_dad(c, c->sp()); break; // DAD SP
@@ -596,12 +596,12 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
     i8080_wb(c, i8080_get_hl(c), i8080_dcr(c, i8080_rb(c, i8080_get_hl(c))));
     break; // DCR M
 
-  case 0x03: i8080_set_bc(c, i8080_get_bc(c) + 1); break; // INX B
+  case 0x03: c->set_bc(c->bc() + 1); break; // INX B
   case 0x13: i8080_set_de(c, i8080_get_de(c) + 1); break; // INX D
   case 0x23: i8080_set_hl(c, i8080_get_hl(c) + 1); break; // INX H
   case 0x33: c->set_sp(c->sp() + 1);               break; // INX SP
 
-  case 0x0B: i8080_set_bc(c, i8080_get_bc(c) - 1); break; // DCX B
+  case 0x0B: c->set_bc(c->bc() - 1); break; // DCX B
   case 0x1B: i8080_set_de(c, i8080_get_de(c) - 1); break; // DCX D
   case 0x2B: i8080_set_hl(c, i8080_get_hl(c) - 1); break; // DCX H
   case 0x3B: c->set_sp(c->sp() - 1);               break; // DCX SP
@@ -628,7 +628,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
 
   case 0xAF: i8080_xra(c, c->a_); break; // XRA A
   case 0xA8: i8080_xra(c, c->b_); break; // XRA B
-  case 0xA9: i8080_xra(c, c->c_); break; // XRA C
+  case 0xA9: i8080_xra(c, c->c()); break; // XRA C
   case 0xAA: i8080_xra(c, c->d_); break; // XRA D
   case 0xAB: i8080_xra(c, c->e_); break; // XRA E
   case 0xAC: i8080_xra(c, c->h_); break; // XRA H
@@ -697,11 +697,11 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0xF7: i8080_call(c, 0x30); break; // RST 6
   case 0xFF: i8080_call(c, 0x38); break; // RST 7
 
-  case 0xC5: i8080_push_stack(c, i8080_get_bc(c)); break; // PUSH B
+  case 0xC5: i8080_push_stack(c, c->bc()); break; // PUSH B
   case 0xD5: i8080_push_stack(c, i8080_get_de(c)); break; // PUSH D
   case 0xE5: i8080_push_stack(c, i8080_get_hl(c)); break; // PUSH H
   case 0xF5: i8080_push_psw(c);                    break; // PUSH PSW
-  case 0xC1: i8080_set_bc(c, i8080_pop_stack(c));  break; // POP B
+  case 0xC1: c->set_bc(i8080_pop_stack(c));  break; // POP B
   case 0xD1: i8080_set_de(c, i8080_pop_stack(c));  break; // POP D
   case 0xE1: i8080_set_hl(c, i8080_pop_stack(c));  break; // POP H
   case 0xF1: i8080_pop_psw(c);                     break; // POP PSW
@@ -794,7 +794,7 @@ void i8080_debug_output(i8080* const c, bool print_disassembly) {
   f |= c->cf << 0;
 
   printf("PC: %04X, AF: %04X, BC: %04X, DE: %04X, HL: %04X, SP: %04X, CYC: %lu",
-	 c->pc(), c->a_ << 8 | f, i8080_get_bc(c), i8080_get_de(c), i8080_get_hl(c),
+	 c->pc(), c->a_ << 8 | f, c->bc(), i8080_get_de(c), i8080_get_hl(c),
 	 c->sp(), c->cyc);
 
   uint16_t pc = c->pc();
