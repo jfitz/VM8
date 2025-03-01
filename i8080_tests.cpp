@@ -86,7 +86,7 @@ static inline void run_test(
   }
   printf("*** TEST: %s\n", filename);
 
-  c->pc = 0x100;
+  c->set_pc(0x100);
 
   // inject "out 0,a" at 0x0000 (signal to stop the test)
   memory[0x0000] = 0xD3;

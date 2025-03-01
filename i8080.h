@@ -16,7 +16,12 @@ typedef class i8080 {
 
   unsigned long cyc; // cycle count
 
-  uint16_t pc, sp; // program counter, stack pointer
+  // program counter, stack pointer
+ private:
+  uint16_t pc_;
+  uint16_t sp_;
+
+ public:
   uint8_t a, b, c, d, e, h, l; // registers
   // flags: sign, zero, half-carry, parity, carry, interrupt flip-flop
   bool sf : 1, zf : 1, hf : 1, pf : 1, cf : 1, iff : 1;
@@ -25,6 +30,13 @@ typedef class i8080 {
   bool interrupt_pending : 1;
   uint8_t interrupt_vector;
   uint8_t interrupt_delay;
+
+ public:
+  uint16_t pc() const;
+  void set_pc(uint16_t pc);
+
+  uint16_t sp() const;
+  void set_sp(uint16_t sp);
 } i8080;
 
 extern "C" void i8080_init(i8080* const c);
