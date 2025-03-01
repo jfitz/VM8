@@ -22,7 +22,7 @@ typedef class i8080 {
   uint16_t sp_;
 
  public:
-  uint8_t a, b, c, d, e, h, l; // registers
+  uint8_t a_, b_, c_, d_, e_, h_, l_; // registers
   // flags: sign, zero, half-carry, parity, carry, interrupt flip-flop
   bool sf : 1, zf : 1, hf : 1, pf : 1, cf : 1, iff : 1;
   bool halted : 1;
@@ -37,6 +37,9 @@ typedef class i8080 {
 
   uint16_t sp() const;
   void set_sp(uint16_t sp);
+
+  uint16_t c() const;
+  void set_c(uint16_t c);
 } i8080;
 
 extern "C" void i8080_init(i8080* const c);
