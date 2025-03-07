@@ -168,8 +168,8 @@ uint8_t i8080::rb(uint16_t addr) {
 // ========================================
 // writes a byte to memory
 // ----------------------------------------
-static inline void i8080_wb(i8080* const c, uint16_t addr, uint8_t val) {
-  c->write_byte(c->userdata_, addr, val);
+void i8080::wb(uint16_t addr, uint8_t val) {
+  write_byte(userdata_, addr, val);
 }
 
 // ========================================
@@ -584,13 +584,13 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x6D: c->l_ = c->l_; break; // MOV L,L
   case 0x6E: c->l_ = c->rb(c->hl()); break; // MOV L,M
 
-  case 0x77: i8080_wb(c, c->hl(), c->a_); break; // MOV M,A
-  case 0x70: i8080_wb(c, c->hl(), c->b_); break; // MOV M,B
-  case 0x71: i8080_wb(c, c->hl(), c->c()); break; // MOV M,C
-  case 0x72: i8080_wb(c, c->hl(), c->d_); break; // MOV M,D
-  case 0x73: i8080_wb(c, c->hl(), c->e_); break; // MOV M,E
-  case 0x74: i8080_wb(c, c->hl(), c->h_); break; // MOV M,H
-  case 0x75: i8080_wb(c, c->hl(), c->l_); break; // MOV M,L
+  case 0x77: c->wb(c->hl(), c->a_); break; // MOV M,A
+  case 0x70: c->wb(c->hl(), c->b_); break; // MOV M,B
+  case 0x71: c->wb(c->hl(), c->c()); break; // MOV M,C
+  case 0x72: c->wb(c->hl(), c->d_); break; // MOV M,D
+  case 0x73: c->wb(c->hl(), c->e_); break; // MOV M,E
+  case 0x74: c->wb(c->hl(), c->h_); break; // MOV M,H
+  case 0x75: c->wb(c->hl(), c->l_); break; // MOV M,L
 
   case 0x3E: c->a_ = i8080_next_byte(c); break; // MVI A,byte
   case 0x06: c->b_ = i8080_next_byte(c); break; // MVI B,byte
@@ -600,12 +600,12 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x26: c->h_ = i8080_next_byte(c); break; // MVI H,byte
   case 0x2E: c->l_ = i8080_next_byte(c); break; // MVI L,byte
   case 0x36:
-    i8080_wb(c, c->hl(), i8080_next_byte(c));
+    c->wb(c->hl(), i8080_next_byte(c));
     break; // MVI M,byte
 
-  case 0x02: i8080_wb(c, c->bc(), c->a_);    break; // STAX B
-  case 0x12: i8080_wb(c, c->de(), c->a_);    break; // STAX D
-  case 0x32: i8080_wb(c, i8080_next_word(c), c->a_); break; // STA word
+  case 0x02: c->wb(c->bc(), c->a_);    break; // STAX B
+  case 0x12: c->wb(c->de(), c->a_);    break; // STAX D
+  case 0x32: c->wb(i8080_next_word(c), c->a_); break; // STA word
 
   case 0x01: c->set_bc(i8080_next_word(c)); break; // LXI B,word
   case 0x11: c->set_de(i8080_next_word(c)); break; // LXI D,word
@@ -687,7 +687,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x24: c->h_ = i8080_inr(c, c->h_); break; // INR H
   case 0x2C: c->l_ = i8080_inr(c, c->l_); break; // INR L
   case 0x34:
-    i8080_wb(c, c->hl(), i8080_inr(c, c->rb(c->hl())));
+    c->wb(c->hl(), i8080_inr(c, c->rb(c->hl())));
     break; // INR M
 
   case 0x3D: c->a_ = i8080_dcr(c, c->a_); break; // DCR A
@@ -698,7 +698,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x25: c->h_ = i8080_dcr(c, c->h_); break; // DCR H
   case 0x2D: c->l_ = i8080_dcr(c, c->l_); break; // DCR L
   case 0x35:
-    i8080_wb(c, c->hl(), i8080_dcr(c, c->rb(c->hl())));
+    c->wb(c->hl(), i8080_dcr(c, c->rb(c->hl())));
     break; // DCR M
 
   case 0x03: c->set_bc(c->bc() + 1); break; // INX B
