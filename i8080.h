@@ -38,17 +38,20 @@ typedef class i8080 {
   uint8_t interrupt_delay;
 
  public:
+  uint8_t c() const;
+  void set_c(uint8_t c);
+
   uint16_t pc() const;
   void set_pc(uint16_t pc);
 
   uint16_t sp() const;
   void set_sp(uint16_t sp);
 
-  uint8_t c() const;
-  void set_c(uint8_t c);
-
   uint16_t bc() const;
   void set_bc(uint16_t bc);
+
+  uint16_t de() const;
+  void set_de(uint16_t de);
 } i8080;
 
 extern "C" void i8080_init(i8080* const c);

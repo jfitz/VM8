@@ -105,69 +105,108 @@ static inline uint16_t i8080_next_word(i8080* const c) {
   return result;
 }
 
-uint16_t i8080::pc() const {
-  return pc_;
-}
-
-void i8080::set_pc(uint16_t pc) {
-  pc_ = pc;
-}
-
-uint16_t i8080::sp() const {
-  return sp_;
-}
-
-void i8080::set_sp(uint16_t sp) {
-  sp_ = sp;
-}
-
+// ========================================
+//
+// ----------------------------------------
 uint8_t i8080::c() const
 {
   return c_;
 }
 
+// ========================================
+//
+// ----------------------------------------
 void i8080::set_c(uint8_t c)
 {
   c_ = c;
 }
 
-// paired registers helpers (setters and getters)
+// ========================================
+//
+// ----------------------------------------
+uint16_t i8080::pc() const {
+  return pc_;
+}
+
+// ========================================
+//
+// ----------------------------------------
+void i8080::set_pc(uint16_t pc) {
+  pc_ = pc;
+}
+
+// ========================================
+//
+// ----------------------------------------
+uint16_t i8080::sp() const {
+  return sp_;
+}
+
+// ========================================
+//
+// ----------------------------------------
+void i8080::set_sp(uint16_t sp) {
+  sp_ = sp;
+}
+
+// ========================================
+//
+// ----------------------------------------
+uint16_t i8080::bc() const {
+  return (b_ << 8) | c();
+}
+
+// ========================================
+//
+// ----------------------------------------
 void i8080::set_bc(uint16_t val) {
   b_ = val >> 8;
   c_ = val & 0xFF;
 }
 
-static inline void i8080_set_de(i8080* const c, uint16_t val) {
-  c->d_ = val >> 8;
-  c->e_ = val & 0xFF;
+// ========================================
+//
+// ----------------------------------------
+uint16_t i8080::de() const {
+  return (d_ << 8) | e_;
 }
 
+// ========================================
+//
+// ----------------------------------------
+void i8080::set_de(uint16_t val) {
+  d_ = val >> 8;
+  e_ = val & 0xFF;
+}
+
+// ========================================
+//
+// ----------------------------------------
 static inline void i8080_set_hl(i8080* const c, uint16_t val) {
   c->h_ = val >> 8;
   c->l_ = val & 0xFF;
 }
 
-uint16_t i8080::bc() const {
-  return (b_ << 8) | c();
-}
-
-static inline uint16_t i8080_get_de(i8080* const c) {
-  return (c->d_ << 8) | c->e_;
-}
-
+// ========================================
+//
+// ----------------------------------------
 static inline uint16_t i8080_get_hl(i8080* const c) {
   return (c->h_ << 8) | c->l_;
 }
 
 // stack helpers
 
+// ========================================
 // pushes a value into the stack and updates the stack pointer
+// ----------------------------------------
 static inline void i8080_push_stack(i8080* const c, uint16_t val) {
   c->set_sp(c->sp() - 2);
   i8080_ww(c, c->sp(), val);
 }
 
+// ========================================
 // pops a value from the stack and updates the stack pointer
+// ----------------------------------------
 static inline uint16_t i8080_pop_stack(i8080* const c) {
   uint16_t val = i8080_rw(c, c->sp());
   c->set_sp(c->sp() + 2);
@@ -176,7 +215,9 @@ static inline uint16_t i8080_pop_stack(i8080* const c) {
 
 // opcodes
 
+// ========================================
 // returns the parity of byte: 0 if number of 1 bits in `val` is odd, else 1
+// ----------------------------------------
 static inline bool parity(uint8_t val) {
   uint8_t nb_one_bits = 0;
   for (int i = 0; i < 8; i++) {
@@ -186,15 +227,19 @@ static inline bool parity(uint8_t val) {
   return (nb_one_bits & 1) == 0;
 }
 
+// ========================================
 // returns if there was a carry between bit "bit_no" and "bit_no - 1" when
 // executing "a + b + cy"
+// ----------------------------------------
 static inline bool carry(int bit_no, uint8_t a, uint8_t b, bool cy) {
   int16_t result = a + b + cy;
   int16_t carry = result ^ a ^ b;
   return carry & (1 << bit_no);
 }
 
+// ========================================
 // adds a value (+ an optional carry flag) to a register
+// ----------------------------------------
 static inline void i8080_add(
     i8080* const c, uint8_t* const reg, uint8_t val, bool cy) {
   uint8_t result = *reg + val + cy;
@@ -204,21 +249,27 @@ static inline void i8080_add(
   *reg = result;
 }
 
-// substracts a byte (+ an optional carry flag) from a register
+// ========================================
+// subtracts a byte (+ an optional carry flag) from a register
 // see https://stackoverflow.com/a/8037485
+// ----------------------------------------
 static inline void i8080_sub(
     i8080* const c, uint8_t* const reg, uint8_t val, bool cy) {
   i8080_add(c, reg, ~val, !cy);
   c->cf = !c->cf;
 }
 
+// ========================================
 // adds a word to HL
+// ----------------------------------------
 static inline void i8080_dad(i8080* const c, uint16_t val) {
   c->cf = ((i8080_get_hl(c) + val) >> 16) & 1;
   i8080_set_hl(c, i8080_get_hl(c) + val);
 }
 
+// ========================================
 // increments a byte
+// ----------------------------------------
 static inline uint8_t i8080_inr(i8080* const c, uint8_t val) {
   uint8_t result = val + 1;
   c->hf = (result & 0xF) == 0;
@@ -226,7 +277,9 @@ static inline uint8_t i8080_inr(i8080* const c, uint8_t val) {
   return result;
 }
 
+// ========================================
 // decrements a byte
+// ----------------------------------------
 static inline uint8_t i8080_dcr(i8080* const c, uint8_t val) {
   uint8_t result = val - 1;
   c->hf = !((result & 0xF) == 0xF);
@@ -234,8 +287,10 @@ static inline uint8_t i8080_dcr(i8080* const c, uint8_t val) {
   return result;
 }
 
+// ========================================
 // executes a logic "and" between register A and a byte, then stores the
 // result in register A
+// ----------------------------------------
 static inline void i8080_ana(i8080* const c, uint8_t val) {
   uint8_t result = c->a_ & val;
   c->cf = 0;
@@ -244,8 +299,10 @@ static inline void i8080_ana(i8080* const c, uint8_t val) {
   c->a_ = result;
 }
 
+// ========================================
 // executes a logic "xor" between register A and a byte, then stores the
 // result in register A
+// ----------------------------------------
 static inline void i8080_xra(i8080* const c, uint8_t val) {
   c->a_ ^= val;
   c->cf = 0;
@@ -253,8 +310,10 @@ static inline void i8080_xra(i8080* const c, uint8_t val) {
   SET_ZSP(c, c->a_);
 }
 
+// ========================================
 // executes a logic "or" between register A and a byte, then stores the
 // result in register A
+// ----------------------------------------
 static inline void i8080_ora(i8080* const c, uint8_t val) {
   c->a_ |= val;
   c->cf = 0;
@@ -262,6 +321,9 @@ static inline void i8080_ora(i8080* const c, uint8_t val) {
   SET_ZSP(c, c->a_);
 }
 
+// ========================================
+//
+// ----------------------------------------
 // compares the register A to another byte
 static inline void i8080_cmp(i8080* const c, uint8_t val) {
   int16_t result = c->a_ - val;
@@ -270,13 +332,17 @@ static inline void i8080_cmp(i8080* const c, uint8_t val) {
   SET_ZSP(c, result & 0xFF);
 }
 
+// ========================================
 // sets the program counter to a given address
+// ----------------------------------------
 static inline void i8080_jmp(i8080* const c, uint16_t addr) {
   c->set_pc(addr);
 }
 
+// ========================================
 // jumps to next address pointed by the next word in memory if a condition
 // is met
+// ----------------------------------------
 static inline void i8080_cond_jmp(i8080* const c, bool condition) {
   uint16_t addr = i8080_next_word(c);
   if (condition) {
@@ -284,13 +350,17 @@ static inline void i8080_cond_jmp(i8080* const c, bool condition) {
   }
 }
 
+// ========================================
 // pushes the current pc to the stack, then jumps to an address
+// ----------------------------------------
 static inline void i8080_call(i8080* const c, uint16_t addr) {
   i8080_push_stack(c, c->pc());
   i8080_jmp(c, addr);
 }
 
+// ========================================
 // calls to next word in memory if a condition is met
+// ----------------------------------------
 static inline void i8080_cond_call(i8080* const c, bool condition) {
   uint16_t addr = i8080_next_word(c);
   if (condition) {
@@ -299,12 +369,16 @@ static inline void i8080_cond_call(i8080* const c, bool condition) {
   }
 }
 
+// ========================================
 // returns from subroutine
+// ----------------------------------------
 static inline void i8080_ret(i8080* const c) {
   c->set_pc(i8080_pop_stack(c));
 }
 
+// ========================================
 // returns from subroutine if a condition is met
+// ----------------------------------------
 static inline void i8080_cond_ret(i8080* const c, bool condition) {
   if (condition) {
     i8080_ret(c);
@@ -312,7 +386,9 @@ static inline void i8080_cond_ret(i8080* const c, bool condition) {
   }
 }
 
+// ========================================
 // pushes register A and the flags into the stack
+// ----------------------------------------
 static inline void i8080_push_psw(i8080* const c) {
   // note: bit 3 and 5 are always 0
   uint8_t psw = 0;
@@ -325,7 +401,9 @@ static inline void i8080_push_psw(i8080* const c) {
   i8080_push_stack(c, c->a_ << 8 | psw);
 }
 
+// ========================================
 // pops register A and the flags from the stack
+// ----------------------------------------
 static inline void i8080_pop_psw(i8080* const c) {
   uint16_t af = i8080_pop_stack(c);
   c->a_ = af >> 8;
@@ -338,35 +416,45 @@ static inline void i8080_pop_psw(i8080* const c) {
   c->cf = (psw >> 0) & 1;
 }
 
+// ========================================
 // rotate register A left
+// ----------------------------------------
 static inline void i8080_rlc(i8080* const c) {
   c->cf = c->a_ >> 7;
   c->a_ = (c->a_ << 1) | c->cf;
 }
 
+// ========================================
 // rotate register A right
+// ----------------------------------------
 static inline void i8080_rrc(i8080* const c) {
   c->cf = c->a_ & 1;
   c->a_ = (c->a_ >> 1) | (c->cf << 7);
 }
 
+// ========================================
 // rotate register A left with the carry flag
+// ----------------------------------------
 static inline void i8080_ral(i8080* const c) {
   bool cy = c->cf;
   c->cf = c->a_ >> 7;
   c->a_ = (c->a_ << 1) | cy;
 }
 
+// ========================================
 // rotate register A right with the carry flag
+// ----------------------------------------
 static inline void i8080_rar(i8080* const c) {
   bool cy = c->cf;
   c->cf = c->a_ & 1;
   c->a_ = (c->a_ >> 1) | (cy << 7);
 }
 
+// ========================================
 // Decimal Adjust Accumulator: the eight-bit number in register A is adjusted
 // to form two four-bit binary-coded-decimal digits.
 // For example, if A=$2B and DAA is executed, A becomes $31.
+// ----------------------------------------
 static inline void i8080_daa(i8080* const c) {
   bool cy = c->cf;
   uint8_t correction = 0;
@@ -387,21 +475,27 @@ static inline void i8080_daa(i8080* const c) {
   c->cf = cy;
 }
 
+// ========================================
 // switches the value of registers DE and HL
+// ----------------------------------------
 static inline void i8080_xchg(i8080* const c) {
-  uint16_t de = i8080_get_de(c);
-  i8080_set_de(c, i8080_get_hl(c));
+  uint16_t de = c->de();
+  c->set_de(i8080_get_hl(c));
   i8080_set_hl(c, de);
 }
 
+// ========================================
 // switches the value of a word at (sp) and HL
+// ----------------------------------------
 static inline void i8080_xthl(i8080* const c) {
   uint16_t val = i8080_rw(c, c->sp());
   i8080_ww(c, c->sp(), i8080_get_hl(c));
   i8080_set_hl(c, val);
 }
 
+// ========================================
 // executes one opcode
+// ----------------------------------------
 static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   c->cyc += OPCODES_CYCLES[opcode];
 
@@ -422,7 +516,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x7E: c->a_ = i8080_rb(c, i8080_get_hl(c)); break; // MOV A,M
 
   case 0x0A: c->a_ = i8080_rb(c, c->bc()); break; // LDAX B
-  case 0x1A: c->a_ = i8080_rb(c, i8080_get_de(c)); break; // LDAX D
+  case 0x1A: c->a_ = i8080_rb(c, c->de()); break; // LDAX D
   case 0x3A: c->a_ = i8080_rb(c, i8080_next_word(c)); break; // LDA word
 
   case 0x47: c->b_ = c->a_; break; // MOV B,A
@@ -499,11 +593,11 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
     break; // MVI M,byte
 
   case 0x02: i8080_wb(c, c->bc(), c->a_);    break; // STAX B
-  case 0x12: i8080_wb(c, i8080_get_de(c), c->a_);    break; // STAX D
+  case 0x12: i8080_wb(c, c->de(), c->a_);    break; // STAX D
   case 0x32: i8080_wb(c, i8080_next_word(c), c->a_); break; // STA word
 
   case 0x01: c->set_bc(i8080_next_word(c)); break; // LXI B,word
-  case 0x11: i8080_set_de(c, i8080_next_word(c)); break; // LXI D,word
+  case 0x11: c->set_de(i8080_next_word(c)); break; // LXI D,word
   case 0x21: i8080_set_hl(c, i8080_next_word(c)); break; // LXI H,word
   case 0x31: c->set_sp(i8080_next_word(c));       break; // LXI SP,word
   case 0x2A: i8080_set_hl(c, i8080_rw(c, i8080_next_word(c))); break; // LHLD
@@ -562,7 +656,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0xDE: i8080_sub(c, &c->a_, i8080_next_byte(c), c->cf); break; // SBI byte
 
   case 0x09: i8080_dad(c, c->bc()); break; // DAD B
-  case 0x19: i8080_dad(c, i8080_get_de(c)); break; // DAD D
+  case 0x19: i8080_dad(c, c->de()); break; // DAD D
   case 0x29: i8080_dad(c, i8080_get_hl(c)); break; // DAD H
   case 0x39: i8080_dad(c, c->sp()); break; // DAD SP
 
@@ -597,12 +691,12 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
     break; // DCR M
 
   case 0x03: c->set_bc(c->bc() + 1); break; // INX B
-  case 0x13: i8080_set_de(c, i8080_get_de(c) + 1); break; // INX D
+  case 0x13: c->set_de(c->de() + 1); break; // INX D
   case 0x23: i8080_set_hl(c, i8080_get_hl(c) + 1); break; // INX H
   case 0x33: c->set_sp(c->sp() + 1);               break; // INX SP
 
   case 0x0B: c->set_bc(c->bc() - 1); break; // DCX B
-  case 0x1B: i8080_set_de(c, i8080_get_de(c) - 1); break; // DCX D
+  case 0x1B: c->set_de(c->de() - 1); break; // DCX D
   case 0x2B: i8080_set_hl(c, i8080_get_hl(c) - 1); break; // DCX H
   case 0x3B: c->set_sp(c->sp() - 1);               break; // DCX SP
 
@@ -698,11 +792,11 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0xFF: i8080_call(c, 0x38); break; // RST 7
 
   case 0xC5: i8080_push_stack(c, c->bc()); break; // PUSH B
-  case 0xD5: i8080_push_stack(c, i8080_get_de(c)); break; // PUSH D
+  case 0xD5: i8080_push_stack(c, c->de()); break; // PUSH D
   case 0xE5: i8080_push_stack(c, i8080_get_hl(c)); break; // PUSH H
   case 0xF5: i8080_push_psw(c);                    break; // PUSH PSW
   case 0xC1: c->set_bc(i8080_pop_stack(c));  break; // POP B
-  case 0xD1: i8080_set_de(c, i8080_pop_stack(c));  break; // POP D
+  case 0xD1: c->set_de(i8080_pop_stack(c));  break; // POP D
   case 0xE1: i8080_set_hl(c, i8080_pop_stack(c));  break; // POP H
   case 0xF1: i8080_pop_psw(c);                     break; // POP PSW
 
@@ -727,7 +821,9 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   }
 }
 
-// initialises the emulator with default values
+// ========================================
+// initializes the emulator with default values
+// ----------------------------------------
 extern "C" void i8080_init(i8080* const c) {
   c->read_byte = NULL;
   c->write_byte = NULL;
@@ -761,7 +857,9 @@ extern "C" void i8080_init(i8080* const c) {
   c->interrupt_delay = 0;
 }
 
+// ========================================
 // executes one instruction
+// ----------------------------------------
 extern "C" void i8080_step(i8080* const c) {
   // interrupt processing: if an interrupt is pending and IFF is set,
   // we execute the interrupt vector passed by the user.
@@ -776,14 +874,18 @@ extern "C" void i8080_step(i8080* const c) {
   }
 }
 
+// ========================================
 // asks for an interrupt to be serviced
+// ----------------------------------------
 void i8080_interrupt(i8080* const c, uint8_t opcode) {
   c->interrupt_pending = 1;
   c->interrupt_vector = opcode;
 }
 
+// ========================================
 // outputs a debug trace of the emulator state to the standard output,
 // including registers and flags
+// ----------------------------------------
 void i8080_debug_output(i8080* const c, bool print_disassembly) {
   uint8_t f = 0;
   f |= c->sf << 7;
@@ -794,7 +896,7 @@ void i8080_debug_output(i8080* const c, bool print_disassembly) {
   f |= c->cf << 0;
 
   printf("PC: %04X, AF: %04X, BC: %04X, DE: %04X, HL: %04X, SP: %04X, CYC: %lu",
-	 c->pc(), c->a_ << 8 | f, c->bc(), i8080_get_de(c), i8080_get_hl(c),
+	 c->pc(), c->a_ << 8 | f, c->bc(), c->de(), i8080_get_hl(c),
 	 c->sp(), c->cyc);
 
   uint16_t pc = c->pc();
