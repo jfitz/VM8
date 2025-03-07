@@ -175,17 +175,17 @@ void i8080::wb(uint16_t addr, uint8_t val) {
 // ========================================
 // reads a word from memory
 // ----------------------------------------
-static inline uint16_t i8080_rw(i8080* const c, uint16_t addr) {
-  return c->read_byte(c->userdata_, addr + 1) << 8 |
-         c->read_byte(c->userdata_, addr);
+uint16_t i8080::rw(uint16_t addr) {
+  return read_byte(userdata_, addr + 1) << 8 |
+         read_byte(userdata_, addr);
 }
 
 // ========================================
 // writes a word to memory
 // ----------------------------------------
-static inline void i8080_ww(i8080* const c, uint16_t addr, uint16_t val) {
-  c->write_byte(c->userdata_, addr, val & 0xFF);
-  c->write_byte(c->userdata_, addr + 1, val >> 8);
+void i8080::ww(uint16_t addr, uint16_t val) {
+  write_byte(userdata_, addr, val & 0xFF);
+  write_byte(userdata_, addr + 1, val >> 8);
 }
 
 // ========================================
@@ -201,7 +201,7 @@ static inline uint8_t i8080_next_byte(i8080* const c) {
 // returns the next word in memory (and updates the program counter)
 // ----------------------------------------
 static inline uint16_t i8080_next_word(i8080* const c) {
-  uint16_t result = i8080_rw(c, c->pc());
+  uint16_t result = c->rw(c->pc());
   c->set_pc(c->pc() + 2);
   return result;
 }
@@ -213,14 +213,14 @@ static inline uint16_t i8080_next_word(i8080* const c) {
 // ----------------------------------------
 static inline void i8080_push_stack(i8080* const c, uint16_t val) {
   c->set_sp(c->sp() - 2);
-  i8080_ww(c, c->sp(), val);
+  c->ww(c->sp(), val);
 }
 
 // ========================================
 // pops a value from the stack and updates the stack pointer
 // ----------------------------------------
 static inline uint16_t i8080_pop_stack(i8080* const c) {
-  uint16_t val = i8080_rw(c, c->sp());
+  uint16_t val = c->rw(c->sp());
   c->set_sp(c->sp() + 2);
   return val;
 }
@@ -499,8 +499,8 @@ static inline void i8080_xchg(i8080* const c) {
 // switches the value of a word at (sp) and HL
 // ----------------------------------------
 static inline void i8080_xthl(i8080* const c) {
-  uint16_t val = i8080_rw(c, c->sp());
-  i8080_ww(c, c->sp(), c->hl());
+  uint16_t val = c->rw(c->sp());
+  c->ww(c->sp(), c->hl());
   c->set_hl(val);
 }
 
@@ -611,8 +611,8 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x11: c->set_de(i8080_next_word(c)); break; // LXI D,word
   case 0x21: c->set_hl(i8080_next_word(c)); break; // LXI H,word
   case 0x31: c->set_sp(i8080_next_word(c)); break; // LXI SP,word
-  case 0x2A: c->set_hl(i8080_rw(c, i8080_next_word(c))); break; // LHLD
-  case 0x22: i8080_ww(c, i8080_next_word(c), c->hl()); break; // SHLD
+  case 0x2A: c->set_hl(c->rw(i8080_next_word(c))); break; // LHLD
+  case 0x22: c->ww(i8080_next_word(c), c->hl()); break; // SHLD
   case 0xF9: c->set_sp(c->hl());                       break; // SPHL
 
   case 0xEB: i8080_xchg(c); break; // XCHG

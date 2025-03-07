@@ -58,6 +58,8 @@ typedef class i8080 {
 
   uint8_t rb(uint16_t addr);
   void wb(uint16_t addr, uint8_t val);
+  uint16_t rw(uint16_t addr);
+  void ww(uint16_t addr, uint16_t val);
 } i8080;
 
 extern "C" void i8080_init(i8080* const c);
