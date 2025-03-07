@@ -66,45 +66,6 @@ static const char* DISASSEMBLE_TABLE[] = {"nop", "lxi b,#", "stax b", "inx b",
     c->pf = parity(val); \
   } while (0)
 
-// memory helpers (the only four to use `read_byte` and `write_byte` function
-// pointers)
-
-// reads a byte from memory
-static inline uint8_t i8080_rb(i8080* const c, uint16_t addr) {
-  return c->read_byte(c->userdata, addr);
-}
-
-// writes a byte to memory
-static inline void i8080_wb(i8080* const c, uint16_t addr, uint8_t val) {
-  c->write_byte(c->userdata, addr, val);
-}
-
-// reads a word from memory
-static inline uint16_t i8080_rw(i8080* const c, uint16_t addr) {
-  return c->read_byte(c->userdata, addr + 1) << 8 |
-         c->read_byte(c->userdata, addr);
-}
-
-// writes a word to memory
-static inline void i8080_ww(i8080* const c, uint16_t addr, uint16_t val) {
-  c->write_byte(c->userdata, addr, val & 0xFF);
-  c->write_byte(c->userdata, addr + 1, val >> 8);
-}
-
-// returns the next byte in memory (and updates the program counter)
-static inline uint8_t i8080_next_byte(i8080* const c) {
-  uint16_t result = i8080_rb(c, c->pc());
-  c->set_pc(c->pc() + 1);
-  return result;
-}
-
-// returns the next word in memory (and updates the program counter)
-static inline uint16_t i8080_next_word(i8080* const c) {
-  uint16_t result = i8080_rw(c, c->pc());
-  c->set_pc(c->pc() + 2);
-  return result;
-}
-
 // ========================================
 //
 // ----------------------------------------
@@ -192,6 +153,57 @@ uint16_t i8080::hl() const {
 void i8080::set_hl(uint16_t val) {
   h_ = val >> 8;
   l_ = val & 0xFF;
+}
+
+// memory helpers (the only four to use `read_byte` and `write_byte` function
+// pointers)
+
+// ========================================
+// reads a byte from memory
+// ----------------------------------------
+uint8_t i8080::rb(uint16_t addr) {
+  return read_byte(userdata_, addr);
+}
+
+// ========================================
+// writes a byte to memory
+// ----------------------------------------
+static inline void i8080_wb(i8080* const c, uint16_t addr, uint8_t val) {
+  c->write_byte(c->userdata_, addr, val);
+}
+
+// ========================================
+// reads a word from memory
+// ----------------------------------------
+static inline uint16_t i8080_rw(i8080* const c, uint16_t addr) {
+  return c->read_byte(c->userdata_, addr + 1) << 8 |
+         c->read_byte(c->userdata_, addr);
+}
+
+// ========================================
+// writes a word to memory
+// ----------------------------------------
+static inline void i8080_ww(i8080* const c, uint16_t addr, uint16_t val) {
+  c->write_byte(c->userdata_, addr, val & 0xFF);
+  c->write_byte(c->userdata_, addr + 1, val >> 8);
+}
+
+// ========================================
+// returns the next byte in memory (and updates the program counter)
+// ----------------------------------------
+static inline uint8_t i8080_next_byte(i8080* const c) {
+  uint16_t result = c->rb(c->pc());
+  c->set_pc(c->pc() + 1);
+  return result;
+}
+
+// ========================================
+// returns the next word in memory (and updates the program counter)
+// ----------------------------------------
+static inline uint16_t i8080_next_word(i8080* const c) {
+  uint16_t result = i8080_rw(c, c->pc());
+  c->set_pc(c->pc() + 2);
+  return result;
 }
 
 // stack helpers
@@ -322,9 +334,8 @@ static inline void i8080_ora(i8080* const c, uint8_t val) {
 }
 
 // ========================================
-//
-// ----------------------------------------
 // compares the register A to another byte
+// ----------------------------------------
 static inline void i8080_cmp(i8080* const c, uint8_t val) {
   int16_t result = c->a_ - val;
   c->cf = result >> 8;
@@ -513,11 +524,11 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x7B: c->a_ = c->e_; break; // MOV A,E
   case 0x7C: c->a_ = c->h_; break; // MOV A,H
   case 0x7D: c->a_ = c->l_; break; // MOV A,L
-  case 0x7E: c->a_ = i8080_rb(c, c->hl()); break; // MOV A,M
+  case 0x7E: c->a_ = c->rb(c->hl()); break; // MOV A,M
 
-  case 0x0A: c->a_ = i8080_rb(c, c->bc()); break; // LDAX B
-  case 0x1A: c->a_ = i8080_rb(c, c->de()); break; // LDAX D
-  case 0x3A: c->a_ = i8080_rb(c, i8080_next_word(c)); break; // LDA word
+  case 0x0A: c->a_ = c->rb(c->bc()); break; // LDAX B
+  case 0x1A: c->a_ = c->rb(c->de()); break; // LDAX D
+  case 0x3A: c->a_ = c->rb(i8080_next_word(c)); break; // LDA word
 
   case 0x47: c->b_ = c->a_; break; // MOV B,A
   case 0x40: c->b_ = c->b_; break; // MOV B,B
@@ -526,7 +537,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x43: c->b_ = c->e_; break; // MOV B,E
   case 0x44: c->b_ = c->h_; break; // MOV B,H
   case 0x45: c->b_ = c->l_; break; // MOV B,L
-  case 0x46: c->b_ = i8080_rb(c, c->hl()); break; // MOV B,M
+  case 0x46: c->b_ = c->rb(c->hl()); break; // MOV B,M
 
   case 0x4F: c->set_c(c->a_); break; // MOV C,A
   case 0x48: c->set_c(c->b_); break; // MOV C,B
@@ -535,7 +546,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x4B: c->set_c(c->e_); break; // MOV C,E
   case 0x4C: c->set_c(c->h_); break; // MOV C,H
   case 0x4D: c->set_c(c->l_); break; // MOV C,L
-  case 0x4E: c->set_c(i8080_rb(c, c->hl())); break; // MOV C,M
+  case 0x4E: c->set_c(c->rb(c->hl())); break; // MOV C,M
 
   case 0x57: c->d_ = c->a_; break; // MOV D,A
   case 0x50: c->d_ = c->b_; break; // MOV D,B
@@ -544,7 +555,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x53: c->d_ = c->e_; break; // MOV D,E
   case 0x54: c->d_ = c->h_; break; // MOV D,H
   case 0x55: c->d_ = c->l_; break; // MOV D,L
-  case 0x56: c->d_ = i8080_rb(c, c->hl()); break; // MOV D,M
+  case 0x56: c->d_ = c->rb(c->hl()); break; // MOV D,M
 
   case 0x5F: c->e_ = c->a_; break; // MOV E,A
   case 0x58: c->e_ = c->b_; break; // MOV E,B
@@ -553,7 +564,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x5B: c->e_ = c->e_; break; // MOV E,E
   case 0x5C: c->e_ = c->h_; break; // MOV E,H
   case 0x5D: c->e_ = c->l_; break; // MOV E,L
-  case 0x5E: c->e_ = i8080_rb(c, c->hl()); break; // MOV E,M
+  case 0x5E: c->e_ = c->rb(c->hl()); break; // MOV E,M
 
   case 0x67: c->h_ = c->a_; break; // MOV H,A
   case 0x60: c->h_ = c->b_; break; // MOV H,B
@@ -562,7 +573,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x63: c->h_ = c->e_; break; // MOV H,E
   case 0x64: c->h_ = c->h_; break; // MOV H,H
   case 0x65: c->h_ = c->l_; break; // MOV H,L
-  case 0x66: c->h_ = i8080_rb(c, c->hl()); break; // MOV H,M
+  case 0x66: c->h_ = c->rb(c->hl()); break; // MOV H,M
 
   case 0x6F: c->l_ = c->a_; break; // MOV L,A
   case 0x68: c->l_ = c->b_; break; // MOV L,B
@@ -571,7 +582,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x6B: c->l_ = c->e_; break; // MOV L,E
   case 0x6C: c->l_ = c->h_; break; // MOV L,H
   case 0x6D: c->l_ = c->l_; break; // MOV L,L
-  case 0x6E: c->l_ = i8080_rb(c, c->hl()); break; // MOV L,M
+  case 0x6E: c->l_ = c->rb(c->hl()); break; // MOV L,M
 
   case 0x77: i8080_wb(c, c->hl(), c->a_); break; // MOV M,A
   case 0x70: i8080_wb(c, c->hl(), c->b_); break; // MOV M,B
@@ -615,7 +626,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x84: i8080_add(c, &c->a_, c->h_, 0); break; // ADD H
   case 0x85: i8080_add(c, &c->a_, c->l_, 0); break; // ADD L
   case 0x86:
-    i8080_add(c, &c->a_, i8080_rb(c, c->hl()), 0);
+    i8080_add(c, &c->a_, c->rb(c->hl()), 0);
     break; // ADD M
   case 0xC6: i8080_add(c, &c->a_, i8080_next_byte(c), 0); break; // ADI byte
 
@@ -627,7 +638,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x8C: i8080_add(c, &c->a_, c->h_, c->cf); break; // ADC H
   case 0x8D: i8080_add(c, &c->a_, c->l_, c->cf); break; // ADC L
   case 0x8E:
-    i8080_add(c, &c->a_, i8080_rb(c, c->hl()), c->cf);
+    i8080_add(c, &c->a_, c->rb(c->hl()), c->cf);
     break; // ADC M
   case 0xCE: i8080_add(c, &c->a_, i8080_next_byte(c), c->cf); break; // ACI byte
 
@@ -639,7 +650,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x94: i8080_sub(c, &c->a_, c->h_, 0); break; // SUB H
   case 0x95: i8080_sub(c, &c->a_, c->l_, 0); break; // SUB L
   case 0x96:
-    i8080_sub(c, &c->a_, i8080_rb(c, c->hl()), 0);
+    i8080_sub(c, &c->a_, c->rb(c->hl()), 0);
     break; // SUB M
   case 0xD6: i8080_sub(c, &c->a_, i8080_next_byte(c), 0); break; // SUI byte
 
@@ -651,7 +662,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x9C: i8080_sub(c, &c->a_, c->h_, c->cf); break; // SBB H
   case 0x9D: i8080_sub(c, &c->a_, c->l_, c->cf); break; // SBB L
   case 0x9E:
-    i8080_sub(c, &c->a_, i8080_rb(c, c->hl()), c->cf);
+    i8080_sub(c, &c->a_, c->rb(c->hl()), c->cf);
     break; // SBB M
   case 0xDE: i8080_sub(c, &c->a_, i8080_next_byte(c), c->cf); break; // SBI byte
 
@@ -676,7 +687,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x24: c->h_ = i8080_inr(c, c->h_); break; // INR H
   case 0x2C: c->l_ = i8080_inr(c, c->l_); break; // INR L
   case 0x34:
-    i8080_wb(c, c->hl(), i8080_inr(c, i8080_rb(c, c->hl())));
+    i8080_wb(c, c->hl(), i8080_inr(c, c->rb(c->hl())));
     break; // INR M
 
   case 0x3D: c->a_ = i8080_dcr(c, c->a_); break; // DCR A
@@ -687,7 +698,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x25: c->h_ = i8080_dcr(c, c->h_); break; // DCR H
   case 0x2D: c->l_ = i8080_dcr(c, c->l_); break; // DCR L
   case 0x35:
-    i8080_wb(c, c->hl(), i8080_dcr(c, i8080_rb(c, c->hl())));
+    i8080_wb(c, c->hl(), i8080_dcr(c, c->rb(c->hl())));
     break; // DCR M
 
   case 0x03: c->set_bc(c->bc() + 1); break; // INX B
@@ -717,7 +728,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0xA3: i8080_ana(c, c->e_); break; // ANA E
   case 0xA4: i8080_ana(c, c->h_); break; // ANA H
   case 0xA5: i8080_ana(c, c->l_); break; // ANA L
-  case 0xA6: i8080_ana(c, i8080_rb(c, c->hl())); break; // ANA M
+  case 0xA6: i8080_ana(c, c->rb(c->hl())); break; // ANA M
   case 0xE6: i8080_ana(c, i8080_next_byte(c)); break; // ANI byte
 
   case 0xAF: i8080_xra(c, c->a_); break; // XRA A
@@ -727,7 +738,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0xAB: i8080_xra(c, c->e_); break; // XRA E
   case 0xAC: i8080_xra(c, c->h_); break; // XRA H
   case 0xAD: i8080_xra(c, c->l_); break; // XRA L
-  case 0xAE: i8080_xra(c, i8080_rb(c, c->hl())); break; // XRA M
+  case 0xAE: i8080_xra(c, c->rb(c->hl())); break; // XRA M
   case 0xEE: i8080_xra(c, i8080_next_byte(c)); break; // XRI byte
 
   case 0xB7: i8080_ora(c, c->a_); break; // ORA A
@@ -737,7 +748,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0xB3: i8080_ora(c, c->e_); break; // ORA E
   case 0xB4: i8080_ora(c, c->h_); break; // ORA H
   case 0xB5: i8080_ora(c, c->l_); break; // ORA L
-  case 0xB6: i8080_ora(c, i8080_rb(c, c->hl())); break; // ORA M
+  case 0xB6: i8080_ora(c, c->rb(c->hl())); break; // ORA M
   case 0xF6: i8080_ora(c, i8080_next_byte(c)); break; // ORI byte
 
   case 0xBF: i8080_cmp(c, c->a_); break; // CMP A
@@ -747,7 +758,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0xBB: i8080_cmp(c, c->e_); break; // CMP E
   case 0xBC: i8080_cmp(c, c->h_); break; // CMP H
   case 0xBD: i8080_cmp(c, c->l_); break; // CMP L
-  case 0xBE: i8080_cmp(c, i8080_rb(c, c->hl())); break; // CMP M
+  case 0xBE: i8080_cmp(c, c->rb(c->hl())); break; // CMP M
   case 0xFE: i8080_cmp(c, i8080_next_byte(c));           break; // CPI byte
 
   case 0xC3: i8080_jmp(c, i8080_next_word(c)); break; // JMP
@@ -800,8 +811,8 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0xE1: c->set_hl(i8080_pop_stack(c));  break; // POP H
   case 0xF1: i8080_pop_psw(c);               break; // POP PSW
 
-  case 0xDB: c->a_ = c->port_in(c->userdata, i8080_next_byte(c)); break; // IN
-  case 0xD3: c->port_out(c->userdata, i8080_next_byte(c), c->a_); break; // OUT
+  case 0xDB: c->a_ = c->port_in(c->userdata_, i8080_next_byte(c)); break; // IN
+  case 0xD3: c->port_out(c->userdata_, i8080_next_byte(c), c->a_); break; // OUT
 
   case 0x08:
   case 0x10:
@@ -829,7 +840,7 @@ extern "C" void i8080_init(i8080* const c) {
   c->write_byte = NULL;
   c->port_in = NULL;
   c->port_out = NULL;
-  c->userdata = NULL;
+  c->userdata_ = NULL;
 
   c->cyc = 0;
 
@@ -900,11 +911,11 @@ void i8080_debug_output(i8080* const c, bool print_disassembly) {
 
   uint16_t pc = c->pc();
 
-  printf("\t(%02X %02X %02X %02X)", i8080_rb(c, pc), i8080_rb(c, pc + 1),
-	 i8080_rb(c, pc + 2), i8080_rb(c, pc + 3));
+  printf("\t(%02X %02X %02X %02X)", c->rb(pc), c->rb(pc + 1),
+	 c->rb(pc + 2), c->rb(pc + 3));
 
   if (print_disassembly) {
-    printf(" - %s", DISASSEMBLE_TABLE[i8080_rb(c, pc)]);
+    printf(" - %s", DISASSEMBLE_TABLE[c->rb(pc)]);
   }
 
   printf("\n");

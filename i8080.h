@@ -12,7 +12,7 @@ typedef class i8080 {
   void (*write_byte)(void*, uint16_t, uint8_t); // same for writing to memory
   uint8_t (*port_in)(void*, uint8_t); // user function to read from port
   void (*port_out)(void*, uint8_t, uint8_t); // same for writing to port
-  void* userdata; // user custom pointer
+  void* userdata_; // user custom pointer
 
   unsigned long cyc; // cycle count
 
@@ -55,6 +55,8 @@ typedef class i8080 {
 
   uint16_t hl() const;
   void set_hl(uint16_t de);
+
+  uint8_t rb(uint16_t addr);
 } i8080;
 
 extern "C" void i8080_init(i8080* const c);
