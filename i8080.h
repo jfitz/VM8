@@ -52,6 +52,9 @@ typedef class i8080 {
 
   uint16_t de() const;
   void set_de(uint16_t de);
+
+  uint16_t hl() const;
+  void set_hl(uint16_t de);
 } i8080;
 
 extern "C" void i8080_init(i8080* const c);
