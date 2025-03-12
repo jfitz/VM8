@@ -63,8 +63,8 @@ typedef class i8080 {
 
   void init();
 
-  uint8_t next_byte();
-  uint16_t next_word();
+  uint8_t pc_next_byte();
+  uint16_t pc_next_word();
 } i8080;
 
 
