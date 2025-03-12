@@ -62,6 +62,9 @@ typedef class i8080 {
   void ww(uint16_t addr, uint16_t val);
 
   void init();
+
+  uint8_t next_byte();
+  uint16_t next_word();
 } i8080;
 
 
