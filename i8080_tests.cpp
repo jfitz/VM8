@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
 #include "i8080.h"
 
 // memory callbacks
@@ -73,8 +74,8 @@ static inline int load_file(const char* filename, uint16_t addr) {
 
 static inline void run_test(
     i8080* const c, const char* filename, unsigned long cyc_expected) {
-  i8080_init(c);
-  c->userdata = c;
+  c->init();
+  c->userdata_ = c;
   c->read_byte = rb;
   c->write_byte = wb;
   c->port_in = port_in;
@@ -100,6 +101,7 @@ static inline void run_test(
   long nb_instructions = 0;
 
   test_finished = 0;
+
   while (!test_finished) {
     nb_instructions += 1;
 

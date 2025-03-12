@@ -835,37 +835,37 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
 // ========================================
 // initializes the emulator with default values
 // ----------------------------------------
-extern "C" void i8080_init(i8080* const c) {
-  c->read_byte = NULL;
-  c->write_byte = NULL;
-  c->port_in = NULL;
-  c->port_out = NULL;
-  c->userdata_ = NULL;
+void i8080::init() {
+  read_byte = NULL;
+  write_byte = NULL;
+  port_in = NULL;
+  port_out = NULL;
+  userdata_ = NULL;
 
-  c->cyc = 0;
+  cyc = 0;
 
-  c->set_pc(0);
-  c->set_sp(0);
+  pc_ = 0;
+  sp_ = 0;
 
-  c->a_ = 0;
-  c->b_ = 0;
-  c->set_c(0);
-  c->d_ = 0;
-  c->e_ = 0;
-  c->h_ = 0;
-  c->l_ = 0;
+  a_ = 0;
+  b_ = 0;
+  c_ = 0;
+  d_ = 0;
+  e_ = 0;
+  h_ = 0;
+  l_ = 0;
 
-  c->sf = 0;
-  c->zf = 0;
-  c->hf = 0;
-  c->pf = 0;
-  c->cf = 0;
-  c->iff = 0;
+  sf = 0;
+  zf = 0;
+  hf = 0;
+  pf = 0;
+  cf = 0;
+  iff = 0;
 
-  c->halted = 0;
-  c->interrupt_pending = 0;
-  c->interrupt_vector = 0;
-  c->interrupt_delay = 0;
+  halted = 0;
+  interrupt_pending = 0;
+  interrupt_vector = 0;
+  interrupt_delay = 0;
 }
 
 // ========================================

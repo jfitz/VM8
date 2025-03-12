@@ -60,9 +60,11 @@ typedef class i8080 {
   void wb(uint16_t addr, uint8_t val);
   uint16_t rw(uint16_t addr);
   void ww(uint16_t addr, uint16_t val);
+
+  void init();
 } i8080;
 
-extern "C" void i8080_init(i8080* const c);
+
 extern "C" void i8080_step(i8080* const c);
 void i8080_interrupt(i8080* const c, uint8_t opcode);
 void i8080_debug_output(i8080* const c, bool print_disassembly);
