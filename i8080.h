@@ -74,6 +74,7 @@ typedef class i8080 {
   static bool parity(uint8_t val);
   
   void add(uint8_t* const reg, uint8_t val, bool cy);
+  void sub(uint8_t* const reg, uint8_t val, bool cy);
 
 } i8080;
 

@@ -291,10 +291,10 @@ void i8080::add(uint8_t* const reg, uint8_t val, bool cy) {
 // subtracts a byte (+ an optional carry flag) from a register
 // see https://stackoverflow.com/a/8037485
 // ----------------------------------------
-static inline void i8080_sub(
-    i8080* const c, uint8_t* const reg, uint8_t val, bool cy) {
-  c->add(reg, ~val, !cy);
-  c->cf = !c->cf;
+void i8080::sub(uint8_t* const reg, uint8_t val, bool cy) {
+  // call add() which will set flags
+  add(reg, ~val, !cy);
+  cf = !cf;
 }
 
 // ========================================
@@ -670,29 +670,29 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
     break; // ADC M
   case 0xCE: c->add(&c->a_, c->pc_next_byte(), c->cf); break; // ACI byte
 
-  case 0x97: i8080_sub(c, &c->a_, c->a_, 0); break; // SUB A
-  case 0x90: i8080_sub(c, &c->a_, c->b_, 0); break; // SUB B
-  case 0x91: i8080_sub(c, &c->a_, c->c(), 0); break; // SUB C
-  case 0x92: i8080_sub(c, &c->a_, c->d_, 0); break; // SUB D
-  case 0x93: i8080_sub(c, &c->a_, c->e_, 0); break; // SUB E
-  case 0x94: i8080_sub(c, &c->a_, c->h_, 0); break; // SUB H
-  case 0x95: i8080_sub(c, &c->a_, c->l_, 0); break; // SUB L
+  case 0x97: c->sub(&c->a_, c->a_, 0); break; // SUB A
+  case 0x90: c->sub(&c->a_, c->b_, 0); break; // SUB B
+  case 0x91: c->sub(&c->a_, c->c(), 0); break; // SUB C
+  case 0x92: c->sub(&c->a_, c->d_, 0); break; // SUB D
+  case 0x93: c->sub(&c->a_, c->e_, 0); break; // SUB E
+  case 0x94: c->sub(&c->a_, c->h_, 0); break; // SUB H
+  case 0x95: c->sub(&c->a_, c->l_, 0); break; // SUB L
   case 0x96:
-    i8080_sub(c, &c->a_, c->rb(c->hl()), 0);
+    c->sub(&c->a_, c->rb(c->hl()), 0);
     break; // SUB M
-  case 0xD6: i8080_sub(c, &c->a_, c->pc_next_byte(), 0); break; // SUI byte
+  case 0xD6: c->sub(&c->a_, c->pc_next_byte(), 0); break; // SUI byte
 
-  case 0x9F: i8080_sub(c, &c->a_, c->a_, c->cf); break; // SBB A
-  case 0x98: i8080_sub(c, &c->a_, c->b_, c->cf); break; // SBB B
-  case 0x99: i8080_sub(c, &c->a_, c->c(), c->cf); break; // SBB C
-  case 0x9A: i8080_sub(c, &c->a_, c->d_, c->cf); break; // SBB D
-  case 0x9B: i8080_sub(c, &c->a_, c->e_, c->cf); break; // SBB E
-  case 0x9C: i8080_sub(c, &c->a_, c->h_, c->cf); break; // SBB H
-  case 0x9D: i8080_sub(c, &c->a_, c->l_, c->cf); break; // SBB L
+  case 0x9F: c->sub(&c->a_, c->a_, c->cf); break; // SBB A
+  case 0x98: c->sub(&c->a_, c->b_, c->cf); break; // SBB B
+  case 0x99: c->sub(&c->a_, c->c(), c->cf); break; // SBB C
+  case 0x9A: c->sub(&c->a_, c->d_, c->cf); break; // SBB D
+  case 0x9B: c->sub(&c->a_, c->e_, c->cf); break; // SBB E
+  case 0x9C: c->sub(&c->a_, c->h_, c->cf); break; // SBB H
+  case 0x9D: c->sub(&c->a_, c->l_, c->cf); break; // SBB L
   case 0x9E:
-    i8080_sub(c, &c->a_, c->rb(c->hl()), c->cf);
+    c->sub(&c->a_, c->rb(c->hl()), c->cf);
     break; // SBB M
-  case 0xDE: i8080_sub(c, &c->a_, c->pc_next_byte(), c->cf); break; // SBI byte
+  case 0xDE: c->sub(&c->a_, c->pc_next_byte(), c->cf); break; // SBI byte
 
   case 0x09: i8080_dad(c, c->bc()); break; // DAD B
   case 0x19: i8080_dad(c, c->de()); break; // DAD D
