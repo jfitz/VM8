@@ -213,17 +213,18 @@ uint16_t i8080::pc_next_word() {
 // ========================================
 // pushes a value into the stack and updates the stack pointer
 // ----------------------------------------
-static inline void i8080_push_stack(i8080* const c, uint16_t val) {
-  c->set_sp(c->sp() - 2);
-  c->ww(c->sp(), val);
+void i8080::push_stack(uint16_t val) {
+  sp_ -= 2;
+  ww(sp_, val);
 }
 
 // ========================================
 // pops a value from the stack and updates the stack pointer
 // ----------------------------------------
-static inline uint16_t i8080_pop_stack(i8080* const c) {
-  uint16_t val = c->rw(c->sp());
-  c->set_sp(c->sp() + 2);
+uint16_t i8080::pop_stack() {
+  uint16_t val = rw(sp_);
+  sp_ += 2;
+
   return val;
 }
 
@@ -368,7 +369,7 @@ static inline void i8080_cond_jmp(i8080* const c, bool condition) {
 // pushes the current pc to the stack, then jumps to an address
 // ----------------------------------------
 static inline void i8080_call(i8080* const c, uint16_t addr) {
-  i8080_push_stack(c, c->pc());
+  c->push_stack(c->pc());
   i8080_jmp(c, addr);
 }
 
@@ -388,7 +389,7 @@ static inline void i8080_cond_call(i8080* const c, bool condition) {
 // returns from subroutine
 // ----------------------------------------
 static inline void i8080_ret(i8080* const c) {
-  c->set_pc(i8080_pop_stack(c));
+  c->set_pc(c->pop_stack());
 }
 
 // ========================================
@@ -413,14 +414,14 @@ static inline void i8080_push_psw(i8080* const c) {
   psw |= c->pf << 2;
   psw |= 1 << 1; // bit 1 is always 1
   psw |= c->cf << 0;
-  i8080_push_stack(c, c->a_ << 8 | psw);
+  c->push_stack(c->a_ << 8 | psw);
 }
 
 // ========================================
 // pops register A and the flags from the stack
 // ----------------------------------------
 static inline void i8080_pop_psw(i8080* const c) {
-  uint16_t af = i8080_pop_stack(c);
+  uint16_t af = c->pop_stack();
   c->a_ = af >> 8;
   uint8_t psw = af & 0xFF;
 
@@ -617,7 +618,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x31: c->set_sp(c->pc_next_word()); break; // LXI SP,word
   case 0x2A: c->set_hl(c->rw(c->pc_next_word())); break; // LHLD
   case 0x22: c->ww(c->pc_next_word(), c->hl()); break; // SHLD
-  case 0xF9: c->set_sp(c->hl());                       break; // SPHL
+  case 0xF9: c->set_sp(c->hl());                break; // SPHL
 
   case 0xEB: i8080_xchg(c); break; // XCHG
   case 0xE3: i8080_xthl(c); break; // XTHL
@@ -806,13 +807,13 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0xF7: i8080_call(c, 0x30); break; // RST 6
   case 0xFF: i8080_call(c, 0x38); break; // RST 7
 
-  case 0xC5: i8080_push_stack(c, c->bc()); break; // PUSH B
-  case 0xD5: i8080_push_stack(c, c->de()); break; // PUSH D
-  case 0xE5: i8080_push_stack(c, c->hl()); break; // PUSH H
+  case 0xC5: c->push_stack(c->bc()); break; // PUSH B
+  case 0xD5: c->push_stack(c->de()); break; // PUSH D
+  case 0xE5: c->push_stack(c->hl()); break; // PUSH H
   case 0xF5: i8080_push_psw(c);            break; // PUSH PSW
-  case 0xC1: c->set_bc(i8080_pop_stack(c));  break; // POP B
-  case 0xD1: c->set_de(i8080_pop_stack(c));  break; // POP D
-  case 0xE1: c->set_hl(i8080_pop_stack(c));  break; // POP H
+  case 0xC1: c->set_bc(c->pop_stack());  break; // POP B
+  case 0xD1: c->set_de(c->pop_stack());  break; // POP D
+  case 0xE1: c->set_hl(c->pop_stack());  break; // POP H
   case 0xF1: i8080_pop_psw(c);               break; // POP PSW
 
   case 0xDB: c->a_ = c->port_in(c->userdata_, c->pc_next_byte()); break; // IN

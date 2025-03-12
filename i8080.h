@@ -65,6 +65,9 @@ typedef class i8080 {
 
   uint8_t pc_next_byte();
   uint16_t pc_next_word();
+
+  void push_stack(uint16_t val);
+  uint16_t pop_stack();
 } i8080;
 
 
