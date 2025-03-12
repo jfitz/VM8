@@ -69,6 +69,16 @@ static const char* DISASSEMBLE_TABLE[] = {"nop", "lxi b,#", "stax b", "inx b",
 // ========================================
 //
 // ----------------------------------------
+void i8080::set_zsp_flags(uint8_t val)
+{
+  zf = (val) == 0;
+  sf = (val) >> 7;
+  pf = parity(val);
+}
+
+// ========================================
+//
+// ----------------------------------------
 uint8_t i8080::c() const
 {
   return c_;
@@ -235,6 +245,20 @@ uint16_t i8080::pop_stack() {
 // ----------------------------------------
 static inline bool parity(uint8_t val) {
   uint8_t nb_one_bits = 0;
+
+  for (int i = 0; i < 8; i++) {
+    nb_one_bits += ((val >> i) & 1);
+  }
+
+  return (nb_one_bits & 1) == 0;
+}
+
+// ========================================
+// returns the parity of byte: 0 if number of 1 bits in `val` is odd, else 1
+// ----------------------------------------
+bool i8080::parity(uint8_t val) {
+  uint8_t nb_one_bits = 0;
+
   for (int i = 0; i < 8; i++) {
     nb_one_bits += ((val >> i) & 1);
   }
@@ -255,12 +279,11 @@ static inline bool carry(int bit_no, uint8_t a, uint8_t b, bool cy) {
 // ========================================
 // adds a value (+ an optional carry flag) to a register
 // ----------------------------------------
-static inline void i8080_add(
-    i8080* const c, uint8_t* const reg, uint8_t val, bool cy) {
+void i8080::add(uint8_t* const reg, uint8_t val, bool cy) {
   uint8_t result = *reg + val + cy;
-  c->cf = carry(8, *reg, val, cy);
-  c->hf = carry(4, *reg, val, cy);
-  SET_ZSP(c, result);
+  cf = carry(8, *reg, val, cy);
+  hf = carry(4, *reg, val, cy);
+  set_zsp_flags(result);
   *reg = result;
 }
 
@@ -270,7 +293,7 @@ static inline void i8080_add(
 // ----------------------------------------
 static inline void i8080_sub(
     i8080* const c, uint8_t* const reg, uint8_t val, bool cy) {
-  i8080_add(c, reg, ~val, !cy);
+  c->add(reg, ~val, !cy);
   c->cf = !c->cf;
 }
 
@@ -487,7 +510,7 @@ static inline void i8080_daa(i8080* const c) {
     cy = 1;
   }
 
-  i8080_add(c, &c->a_, correction, 0);
+  c->add(&c->a_, correction, 0);
   c->cf = cy;
 }
 
@@ -623,29 +646,29 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0xEB: i8080_xchg(c); break; // XCHG
   case 0xE3: i8080_xthl(c); break; // XTHL
 
-  case 0x87: i8080_add(c, &c->a_, c->a_, 0); break; // ADD A
-  case 0x80: i8080_add(c, &c->a_, c->b_, 0); break; // ADD B
-  case 0x81: i8080_add(c, &c->a_, c->c(), 0); break; // ADD C
-  case 0x82: i8080_add(c, &c->a_, c->d_, 0); break; // ADD D
-  case 0x83: i8080_add(c, &c->a_, c->e_, 0); break; // ADD E
-  case 0x84: i8080_add(c, &c->a_, c->h_, 0); break; // ADD H
-  case 0x85: i8080_add(c, &c->a_, c->l_, 0); break; // ADD L
+  case 0x87: c->add(&c->a_, c->a_, 0); break; // ADD A
+  case 0x80: c->add(&c->a_, c->b_, 0); break; // ADD B
+  case 0x81: c->add(&c->a_, c->c(), 0); break; // ADD C
+  case 0x82: c->add(&c->a_, c->d_, 0); break; // ADD D
+  case 0x83: c->add(&c->a_, c->e_, 0); break; // ADD E
+  case 0x84: c->add(&c->a_, c->h_, 0); break; // ADD H
+  case 0x85: c->add(&c->a_, c->l_, 0); break; // ADD L
   case 0x86:
-    i8080_add(c, &c->a_, c->rb(c->hl()), 0);
+    c->add(&c->a_, c->rb(c->hl()), 0);
     break; // ADD M
-  case 0xC6: i8080_add(c, &c->a_, c->pc_next_byte(), 0); break; // ADI byte
+  case 0xC6: c->add(&c->a_, c->pc_next_byte(), 0); break; // ADI byte
 
-  case 0x8F: i8080_add(c, &c->a_, c->a_, c->cf); break; // ADC A
-  case 0x88: i8080_add(c, &c->a_, c->b_, c->cf); break; // ADC B
-  case 0x89: i8080_add(c, &c->a_, c->c(), c->cf); break; // ADC C
-  case 0x8A: i8080_add(c, &c->a_, c->d_, c->cf); break; // ADC D
-  case 0x8B: i8080_add(c, &c->a_, c->e_, c->cf); break; // ADC E
-  case 0x8C: i8080_add(c, &c->a_, c->h_, c->cf); break; // ADC H
-  case 0x8D: i8080_add(c, &c->a_, c->l_, c->cf); break; // ADC L
+  case 0x8F: c->add(&c->a_, c->a_, c->cf); break; // ADC A
+  case 0x88: c->add(&c->a_, c->b_, c->cf); break; // ADC B
+  case 0x89: c->add(&c->a_, c->c(), c->cf); break; // ADC C
+  case 0x8A: c->add(&c->a_, c->d_, c->cf); break; // ADC D
+  case 0x8B: c->add(&c->a_, c->e_, c->cf); break; // ADC E
+  case 0x8C: c->add(&c->a_, c->h_, c->cf); break; // ADC H
+  case 0x8D: c->add(&c->a_, c->l_, c->cf); break; // ADC L
   case 0x8E:
-    i8080_add(c, &c->a_, c->rb(c->hl()), c->cf);
+    c->add(&c->a_, c->rb(c->hl()), c->cf);
     break; // ADC M
-  case 0xCE: i8080_add(c, &c->a_, c->pc_next_byte(), c->cf); break; // ACI byte
+  case 0xCE: c->add(&c->a_, c->pc_next_byte(), c->cf); break; // ACI byte
 
   case 0x97: i8080_sub(c, &c->a_, c->a_, 0); break; // SUB A
   case 0x90: i8080_sub(c, &c->a_, c->b_, 0); break; // SUB B

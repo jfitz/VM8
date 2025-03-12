@@ -63,11 +63,18 @@ typedef class i8080 {
 
   void init();
 
+  void set_zsp_flags(uint8_t val);
+  
   uint8_t pc_next_byte();
   uint16_t pc_next_word();
 
   void push_stack(uint16_t val);
   uint16_t pop_stack();
+
+  static bool parity(uint8_t val);
+  
+  void add(uint8_t* const reg, uint8_t val, bool cy);
+
 } i8080;
 
 
