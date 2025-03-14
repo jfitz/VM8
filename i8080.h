@@ -24,9 +24,7 @@ typedef class i8080 {
  public:
   // registers
   uint8_t a_, b_;
- private:
   uint8_t c_;
- public:
   uint8_t d_, e_, h_, l_;
 
   // flags: sign, zero, half-carry, parity, carry, interrupt flip-flop
@@ -38,9 +36,6 @@ typedef class i8080 {
   uint8_t interrupt_delay;
 
  public:
-  uint8_t c() const;
-  void set_c(uint8_t c);
-
   uint16_t pc() const;
   void set_pc(uint16_t pc);
 

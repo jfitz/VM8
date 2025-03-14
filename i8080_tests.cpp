@@ -31,7 +31,7 @@ static void port_out(void* userdata, uint8_t port, uint8_t value) {
   if (port == 0) {
     test_finished = 1;
   } else if (port == 1) {
-    uint8_t operation = c->c();
+    uint8_t operation = c->c_;
 
     if (operation == 2) { // print a character stored in E
       printf("%c", c->e_);
