@@ -28,7 +28,7 @@ typedef class i8080 {
   uint8_t d_, e_, h_, l_;
 
   // flags: sign, zero, half-carry, parity, carry, interrupt flip-flop
-  bool sf : 1, zf : 1, hf : 1, pf : 1, cf : 1, iff : 1;
+  bool sf_ : 1, zf_ : 1, hf_ : 1, pf_ : 1, cf_ : 1, iff_ : 1;
   bool halted : 1;
 
   bool interrupt_pending : 1;
