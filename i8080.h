@@ -79,6 +79,10 @@ typedef class i8080 {
   void dad(uint16_t val);
   uint8_t inr(uint8_t val);
   uint8_t dcr(uint8_t val);
+
+  void ana(uint8_t val);
+  void xra(uint8_t val);
+  void ora(uint8_t val);
 } i8080;
 
 

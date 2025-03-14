@@ -331,34 +331,37 @@ uint8_t i8080::dcr(uint8_t val) {
 // executes a logic "and" between register A and a byte, then stores the
 // result in register A
 // ----------------------------------------
-static inline void i8080_ana(i8080* const c, uint8_t val) {
-  uint8_t result = c->a_ & val;
-  c->cf = 0;
-  c->hf = ((c->a_ | val) & 0x08) != 0;
-  SET_ZSP(c, result);
-  c->a_ = result;
+void i8080::ana(uint8_t val) {
+  uint8_t result = a_ & val;
+  cf = 0;
+  hf = ((a_ | val) & 0x08) != 0;
+
+  set_zsp_flags(result);
+  a_ = result;
 }
 
 // ========================================
 // executes a logic "xor" between register A and a byte, then stores the
 // result in register A
 // ----------------------------------------
-static inline void i8080_xra(i8080* const c, uint8_t val) {
-  c->a_ ^= val;
-  c->cf = 0;
-  c->hf = 0;
-  SET_ZSP(c, c->a_);
+void i8080::xra(uint8_t val) {
+  a_ ^= val;
+  cf = 0;
+  hf = 0;
+
+  set_zsp_flags(a_);
 }
 
 // ========================================
 // executes a logic "or" between register A and a byte, then stores the
 // result in register A
 // ----------------------------------------
-static inline void i8080_ora(i8080* const c, uint8_t val) {
-  c->a_ |= val;
-  c->cf = 0;
-  c->hf = 0;
-  SET_ZSP(c, c->a_);
+void i8080::ora(uint8_t val) {
+  a_ |= val;
+  cf = 0;
+  hf = 0;
+
+  set_zsp_flags(a_);
 }
 
 // ========================================
@@ -751,35 +754,35 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x17: i8080_ral(c); break; // RAL
   case 0x1F: i8080_rar(c); break; // RAR
 
-  case 0xA7: i8080_ana(c, c->a_); break; // ANA A
-  case 0xA0: i8080_ana(c, c->b_); break; // ANA B
-  case 0xA1: i8080_ana(c, c->c()); break; // ANA C
-  case 0xA2: i8080_ana(c, c->d_); break; // ANA D
-  case 0xA3: i8080_ana(c, c->e_); break; // ANA E
-  case 0xA4: i8080_ana(c, c->h_); break; // ANA H
-  case 0xA5: i8080_ana(c, c->l_); break; // ANA L
-  case 0xA6: i8080_ana(c, c->rb(c->hl())); break; // ANA M
-  case 0xE6: i8080_ana(c, c->pc_next_byte()); break; // ANI byte
+  case 0xA7: c->ana(c->a_); break; // ANA A
+  case 0xA0: c->ana(c->b_); break; // ANA B
+  case 0xA1: c->ana(c->c()); break; // ANA C
+  case 0xA2: c->ana(c->d_); break; // ANA D
+  case 0xA3: c->ana(c->e_); break; // ANA E
+  case 0xA4: c->ana(c->h_); break; // ANA H
+  case 0xA5: c->ana(c->l_); break; // ANA L
+  case 0xA6: c->ana(c->rb(c->hl())); break; // ANA M
+  case 0xE6: c->ana(c->pc_next_byte()); break; // ANI byte
 
-  case 0xAF: i8080_xra(c, c->a_); break; // XRA A
-  case 0xA8: i8080_xra(c, c->b_); break; // XRA B
-  case 0xA9: i8080_xra(c, c->c()); break; // XRA C
-  case 0xAA: i8080_xra(c, c->d_); break; // XRA D
-  case 0xAB: i8080_xra(c, c->e_); break; // XRA E
-  case 0xAC: i8080_xra(c, c->h_); break; // XRA H
-  case 0xAD: i8080_xra(c, c->l_); break; // XRA L
-  case 0xAE: i8080_xra(c, c->rb(c->hl())); break; // XRA M
-  case 0xEE: i8080_xra(c, c->pc_next_byte()); break; // XRI byte
+  case 0xAF: c->xra(c->a_); break; // XRA A
+  case 0xA8: c->xra(c->b_); break; // XRA B
+  case 0xA9: c->xra(c->c()); break; // XRA C
+  case 0xAA: c->xra(c->d_); break; // XRA D
+  case 0xAB: c->xra(c->e_); break; // XRA E
+  case 0xAC: c->xra(c->h_); break; // XRA H
+  case 0xAD: c->xra(c->l_); break; // XRA L
+  case 0xAE: c->xra(c->rb(c->hl())); break; // XRA M
+  case 0xEE: c->xra(c->pc_next_byte()); break; // XRI byte
 
-  case 0xB7: i8080_ora(c, c->a_); break; // ORA A
-  case 0xB0: i8080_ora(c, c->b_); break; // ORA B
-  case 0xB1: i8080_ora(c, c->c()); break; // ORA C
-  case 0xB2: i8080_ora(c, c->d_); break; // ORA D
-  case 0xB3: i8080_ora(c, c->e_); break; // ORA E
-  case 0xB4: i8080_ora(c, c->h_); break; // ORA H
-  case 0xB5: i8080_ora(c, c->l_); break; // ORA L
-  case 0xB6: i8080_ora(c, c->rb(c->hl())); break; // ORA M
-  case 0xF6: i8080_ora(c, c->pc_next_byte()); break; // ORI byte
+  case 0xB7: c->ora(c->a_); break; // ORA A
+  case 0xB0: c->ora(c->b_); break; // ORA B
+  case 0xB1: c->ora(c->c()); break; // ORA C
+  case 0xB2: c->ora(c->d_); break; // ORA D
+  case 0xB3: c->ora(c->e_); break; // ORA E
+  case 0xB4: c->ora(c->h_); break; // ORA H
+  case 0xB5: c->ora(c->l_); break; // ORA L
+  case 0xB6: c->ora(c->rb(c->hl())); break; // ORA M
+  case 0xF6: c->ora(c->pc_next_byte()); break; // ORI byte
 
   case 0xBF: i8080_cmp(c, c->a_); break; // CMP A
   case 0xB8: i8080_cmp(c, c->b_); break; // CMP B
