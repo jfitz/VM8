@@ -76,6 +76,9 @@ typedef class i8080 {
   void add(uint8_t* const reg, uint8_t val, bool cy);
   void sub(uint8_t* const reg, uint8_t val, bool cy);
 
+  void dad(uint16_t val);
+  uint8_t inr(uint8_t val);
+  uint8_t dcr(uint8_t val);
 } i8080;
 
 

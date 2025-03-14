@@ -300,28 +300,30 @@ void i8080::sub(uint8_t* const reg, uint8_t val, bool cy) {
 // ========================================
 // adds a word to HL
 // ----------------------------------------
-static inline void i8080_dad(i8080* const c, uint16_t val) {
-  c->cf = ((c->hl() + val) >> 16) & 1;
-  c->set_hl(c->hl() + val);
+void i8080::dad(uint16_t val) {
+  cf = ((hl() + val) >> 16) & 1;
+  set_hl(hl() + val);
 }
 
 // ========================================
 // increments a byte
 // ----------------------------------------
-static inline uint8_t i8080_inr(i8080* const c, uint8_t val) {
+uint8_t i8080::inr(uint8_t val) {
   uint8_t result = val + 1;
-  c->hf = (result & 0xF) == 0;
-  SET_ZSP(c, result);
+  hf = (result & 0xF) == 0;
+  set_zsp_flags(result);
+
   return result;
 }
 
 // ========================================
 // decrements a byte
 // ----------------------------------------
-static inline uint8_t i8080_dcr(i8080* const c, uint8_t val) {
+uint8_t i8080::dcr(uint8_t val) {
   uint8_t result = val - 1;
-  c->hf = !((result & 0xF) == 0xF);
-  SET_ZSP(c, result);
+  hf = !((result & 0xF) == 0xF);
+  set_zsp_flags(result);
+
   return result;
 }
 
@@ -694,10 +696,10 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
     break; // SBB M
   case 0xDE: c->sub(&c->a_, c->pc_next_byte(), c->cf); break; // SBI byte
 
-  case 0x09: i8080_dad(c, c->bc()); break; // DAD B
-  case 0x19: i8080_dad(c, c->de()); break; // DAD D
-  case 0x29: i8080_dad(c, c->hl()); break; // DAD H
-  case 0x39: i8080_dad(c, c->sp()); break; // DAD SP
+  case 0x09: c->dad(c->bc()); break; // DAD B
+  case 0x19: c->dad(c->de()); break; // DAD D
+  case 0x29: c->dad(c->hl()); break; // DAD H
+  case 0x39: c->dad(c->sp()); break; // DAD SP
 
   case 0xF3: c->iff = 0; break; // DI
   case 0xFB:
@@ -707,26 +709,26 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x00: break; // NOP
   case 0x76: c->halted = 1; break; // HLT
 
-  case 0x3C: c->a_ = i8080_inr(c, c->a_); break; // INR A
-  case 0x04: c->b_ = i8080_inr(c, c->b_); break; // INR B
-  case 0x0C: c->set_c(i8080_inr(c, c->c())); break; // INR C
-  case 0x14: c->d_ = i8080_inr(c, c->d_); break; // INR D
-  case 0x1C: c->e_ = i8080_inr(c, c->e_); break; // INR E
-  case 0x24: c->h_ = i8080_inr(c, c->h_); break; // INR H
-  case 0x2C: c->l_ = i8080_inr(c, c->l_); break; // INR L
+  case 0x3C: c->a_ = c->inr(c->a_); break; // INR A
+  case 0x04: c->b_ = c->inr(c->b_); break; // INR B
+  case 0x0C: c->set_c(c->inr(c->c())); break; // INR C
+  case 0x14: c->d_ = c->inr(c->d_); break; // INR D
+  case 0x1C: c->e_ = c->inr(c->e_); break; // INR E
+  case 0x24: c->h_ = c->inr(c->h_); break; // INR H
+  case 0x2C: c->l_ = c->inr(c->l_); break; // INR L
   case 0x34:
-    c->wb(c->hl(), i8080_inr(c, c->rb(c->hl())));
+    c->wb(c->hl(), c->inr(c->rb(c->hl())));
     break; // INR M
 
-  case 0x3D: c->a_ = i8080_dcr(c, c->a_); break; // DCR A
-  case 0x05: c->b_ = i8080_dcr(c, c->b_); break; // DCR B
-  case 0x0D: c->set_c(i8080_dcr(c, c->c())); break; // DCR C
-  case 0x15: c->d_ = i8080_dcr(c, c->d_); break; // DCR D
-  case 0x1D: c->e_ = i8080_dcr(c, c->e_); break; // DCR E
-  case 0x25: c->h_ = i8080_dcr(c, c->h_); break; // DCR H
-  case 0x2D: c->l_ = i8080_dcr(c, c->l_); break; // DCR L
+  case 0x3D: c->a_ = c->dcr(c->a_); break; // DCR A
+  case 0x05: c->b_ = c->dcr(c->b_); break; // DCR B
+  case 0x0D: c->set_c(c->dcr(c->c())); break; // DCR C
+  case 0x15: c->d_ = c->dcr(c->d_); break; // DCR D
+  case 0x1D: c->e_ = c->dcr(c->e_); break; // DCR E
+  case 0x25: c->h_ = c->dcr(c->h_); break; // DCR H
+  case 0x2D: c->l_ = c->dcr(c->l_); break; // DCR L
   case 0x35:
-    c->wb(c->hl(), i8080_dcr(c, c->rb(c->hl())));
+    c->wb(c->hl(), c->dcr(c->rb(c->hl())));
     break; // DCR M
 
   case 0x03: c->set_bc(c->bc() + 1); break; // INX B
