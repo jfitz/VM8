@@ -353,66 +353,66 @@ void i8080::ora(uint8_t val) {
 // ========================================
 // compares the register A to another byte
 // ----------------------------------------
-static inline void i8080_cmp(i8080* const c, uint8_t val) {
-  int16_t result = c->a_ - val;
-  c->cf = result >> 8;
-  c->hf = ~(c->a_ ^ result ^ val) & 0x10;
-  SET_ZSP(c, result & 0xFF);
+void i8080::cmp(uint8_t val) {
+  int16_t result = a_ - val;
+  cf = result >> 8;
+  hf = ~(a_ ^ result ^ val) & 0x10;
+  set_zsp_flags(result & 0xFF);
 }
 
 // ========================================
 // sets the program counter to a given address
 // ----------------------------------------
-static inline void i8080_jmp(i8080* const c, uint16_t addr) {
-  c->set_pc(addr);
+void i8080::jmp(uint16_t addr) {
+  set_pc(addr);
 }
 
 // ========================================
 // jumps to next address pointed by the next word in memory if a condition
 // is met
 // ----------------------------------------
-static inline void i8080_cond_jmp(i8080* const c, bool condition) {
-  uint16_t addr = c->pc_next_word();
+void i8080::cond_jmp(bool condition) {
+  uint16_t addr = pc_next_word();
 
   if (condition) {
-    c->set_pc(addr);
+    set_pc(addr);
   }
 }
 
 // ========================================
 // pushes the current pc to the stack, then jumps to an address
 // ----------------------------------------
-static inline void i8080_call(i8080* const c, uint16_t addr) {
-  c->push_stack(c->pc());
-  i8080_jmp(c, addr);
+void i8080::call(uint16_t addr) {
+  push_stack(pc());
+  jmp(addr);
 }
 
 // ========================================
 // calls to next word in memory if a condition is met
 // ----------------------------------------
-static inline void i8080_cond_call(i8080* const c, bool condition) {
-  uint16_t addr = c->pc_next_word();
+void i8080::cond_call(bool condition) {
+  uint16_t addr = pc_next_word();
 
   if (condition) {
-    i8080_call(c, addr);
-    c->cyc += 6;
+    call(addr);
+    cyc += 6;
   }
 }
 
 // ========================================
 // returns from subroutine
 // ----------------------------------------
-static inline void i8080_ret(i8080* const c) {
-  c->set_pc(c->pop_stack());
+void i8080::ret() {
+  set_pc(pop_stack());
 }
 
 // ========================================
 // returns from subroutine if a condition is met
 // ----------------------------------------
-static inline void i8080_cond_ret(i8080* const c, bool condition) {
+void i8080::cond_ret(bool condition) {
   if (condition) {
-    i8080_ret(c);
-    c->cyc += 6;
+    ret();
+    cyc += 6;
   }
 }
 
@@ -770,56 +770,56 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0xB6: c->ora(c->rb(c->hl())); break; // ORA M
   case 0xF6: c->ora(c->pc_next_byte()); break; // ORI byte
 
-  case 0xBF: i8080_cmp(c, c->a_); break; // CMP A
-  case 0xB8: i8080_cmp(c, c->b_); break; // CMP B
-  case 0xB9: i8080_cmp(c, c->c_); break; // CMP C
-  case 0xBA: i8080_cmp(c, c->d_); break; // CMP D
-  case 0xBB: i8080_cmp(c, c->e_); break; // CMP E
-  case 0xBC: i8080_cmp(c, c->h_); break; // CMP H
-  case 0xBD: i8080_cmp(c, c->l_); break; // CMP L
-  case 0xBE: i8080_cmp(c, c->rb(c->hl())); break; // CMP M
-  case 0xFE: i8080_cmp(c, c->pc_next_byte());           break; // CPI byte
+  case 0xBF: c->cmp(c->a_); break; // CMP A
+  case 0xB8: c->cmp(c->b_); break; // CMP B
+  case 0xB9: c->cmp(c->c_); break; // CMP C
+  case 0xBA: c->cmp(c->d_); break; // CMP D
+  case 0xBB: c->cmp(c->e_); break; // CMP E
+  case 0xBC: c->cmp(c->h_); break; // CMP H
+  case 0xBD: c->cmp(c->l_); break; // CMP L
+  case 0xBE: c->cmp(c->rb(c->hl())); break; // CMP M
+  case 0xFE: c->cmp(c->pc_next_byte());           break; // CPI byte
 
-  case 0xC3: i8080_jmp(c, c->pc_next_word()); break; // JMP
-  case 0xC2: i8080_cond_jmp(c, c->zf == 0);    break; // JNZ
-  case 0xCA: i8080_cond_jmp(c, c->zf == 1);    break; // JZ
-  case 0xD2: i8080_cond_jmp(c, c->cf == 0);    break; // JNC
-  case 0xDA: i8080_cond_jmp(c, c->cf == 1);    break; // JC
-  case 0xE2: i8080_cond_jmp(c, c->pf == 0);    break; // JPO
-  case 0xEA: i8080_cond_jmp(c, c->pf == 1);    break; // JPE
-  case 0xF2: i8080_cond_jmp(c, c->sf == 0);    break; // JP
-  case 0xFA: i8080_cond_jmp(c, c->sf == 1);    break; // JM
+  case 0xC3: c->jmp(c->pc_next_word());  break; // JMP
+  case 0xC2: c->cond_jmp(c->zf == 0);    break; // JNZ
+  case 0xCA: c->cond_jmp(c->zf == 1);    break; // JZ
+  case 0xD2: c->cond_jmp(c->cf == 0);    break; // JNC
+  case 0xDA: c->cond_jmp(c->cf == 1);    break; // JC
+  case 0xE2: c->cond_jmp(c->pf == 0);    break; // JPO
+  case 0xEA: c->cond_jmp(c->pf == 1);    break; // JPE
+  case 0xF2: c->cond_jmp(c->sf == 0);    break; // JP
+  case 0xFA: c->cond_jmp(c->sf == 1);    break; // JM
 
-  case 0xE9: c->set_pc(c->hl());        break; // PCHL
-  case 0xCD: i8080_call(c, c->pc_next_word()); break; // CALL
+  case 0xE9: c->set_pc(c->hl());         break; // PCHL
+  case 0xCD: c->call(c->pc_next_word()); break; // CALL
 
-  case 0xC4: i8080_cond_call(c, c->zf == 0); break; // CNZ
-  case 0xCC: i8080_cond_call(c, c->zf == 1); break; // CZ
-  case 0xD4: i8080_cond_call(c, c->cf == 0); break; // CNC
-  case 0xDC: i8080_cond_call(c, c->cf == 1); break; // CC
-  case 0xE4: i8080_cond_call(c, c->pf == 0); break; // CPO
-  case 0xEC: i8080_cond_call(c, c->pf == 1); break; // CPE
-  case 0xF4: i8080_cond_call(c, c->sf == 0); break; // CP
-  case 0xFC: i8080_cond_call(c, c->sf == 1); break; // CM
+  case 0xC4: c->cond_call(c->zf == 0); break; // CNZ
+  case 0xCC: c->cond_call(c->zf == 1); break; // CZ
+  case 0xD4: c->cond_call(c->cf == 0); break; // CNC
+  case 0xDC: c->cond_call(c->cf == 1); break; // CC
+  case 0xE4: c->cond_call(c->pf == 0); break; // CPO
+  case 0xEC: c->cond_call(c->pf == 1); break; // CPE
+  case 0xF4: c->cond_call(c->sf == 0); break; // CP
+  case 0xFC: c->cond_call(c->sf == 1); break; // CM
 
-  case 0xC9: i8080_ret(c);                  break; // RET
-  case 0xC0: i8080_cond_ret(c, c->zf == 0); break; // RNZ
-  case 0xC8: i8080_cond_ret(c, c->zf == 1); break; // RZ
-  case 0xD0: i8080_cond_ret(c, c->cf == 0); break; // RNC
-  case 0xD8: i8080_cond_ret(c, c->cf == 1); break; // RC
-  case 0xE0: i8080_cond_ret(c, c->pf == 0); break; // RPO
-  case 0xE8: i8080_cond_ret(c, c->pf == 1); break; // RPE
-  case 0xF0: i8080_cond_ret(c, c->sf == 0); break; // RP
-  case 0xF8: i8080_cond_ret(c, c->sf == 1); break; // RM
+  case 0xC9: c->ret();                break; // RET
+  case 0xC0: c->cond_ret(c->zf == 0); break; // RNZ
+  case 0xC8: c->cond_ret(c->zf == 1); break; // RZ
+  case 0xD0: c->cond_ret(c->cf == 0); break; // RNC
+  case 0xD8: c->cond_ret(c->cf == 1); break; // RC
+  case 0xE0: c->cond_ret(c->pf == 0); break; // RPO
+  case 0xE8: c->cond_ret(c->pf == 1); break; // RPE
+  case 0xF0: c->cond_ret(c->sf == 0); break; // RP
+  case 0xF8: c->cond_ret(c->sf == 1); break; // RM
 
-  case 0xC7: i8080_call(c, 0x00); break; // RST 0
-  case 0xCF: i8080_call(c, 0x08); break; // RST 1
-  case 0xD7: i8080_call(c, 0x10); break; // RST 2
-  case 0xDF: i8080_call(c, 0x18); break; // RST 3
-  case 0xE7: i8080_call(c, 0x20); break; // RST 4
-  case 0xEF: i8080_call(c, 0x28); break; // RST 5
-  case 0xF7: i8080_call(c, 0x30); break; // RST 6
-  case 0xFF: i8080_call(c, 0x38); break; // RST 7
+  case 0xC7: c->call(0x00); break; // RST 0
+  case 0xCF: c->call(0x08); break; // RST 1
+  case 0xD7: c->call(0x10); break; // RST 2
+  case 0xDF: c->call(0x18); break; // RST 3
+  case 0xE7: c->call(0x20); break; // RST 4
+  case 0xEF: c->call(0x28); break; // RST 5
+  case 0xF7: c->call(0x30); break; // RST 6
+  case 0xFF: c->call(0x38); break; // RST 7
 
   case 0xC5: c->push_stack(c->bc()); break; // PUSH B
   case 0xD5: c->push_stack(c->de()); break; // PUSH D
@@ -841,13 +841,13 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x30:
   case 0x38: break; // undocumented NOPs
 
-  case 0xD9: i8080_ret(c);                      break; // undocumented RET
+  case 0xD9: c->ret();                   break; // undocumented RET
 
   case 0xDD:
   case 0xED:
-  case 0xFD: i8080_call(c, c->pc_next_word()); break; // undocumented CALLs
+  case 0xFD: c->call(c->pc_next_word()); break; // undocumented CALLs
 
-  case 0xCB: i8080_jmp(c, c->pc_next_word());  break; // undocumented JMP
+  case 0xCB: c->jmp(c->pc_next_word());  break; // undocumented JMP
   }
 }
 
