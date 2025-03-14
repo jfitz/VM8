@@ -357,6 +357,7 @@ void i8080::cmp(uint8_t val) {
   int16_t result = a_ - val;
   cf_ = result >> 8;
   hf_ = ~(a_ ^ result ^ val) & 0x10;
+
   set_zsp_flags(result & 0xFF);
 }
 
@@ -395,7 +396,7 @@ void i8080::cond_call(bool condition) {
 
   if (condition) {
     call(addr);
-    cyc += 6;
+    cyc_ += 6;
   }
 }
 
@@ -412,7 +413,7 @@ void i8080::ret() {
 void i8080::cond_ret(bool condition) {
   if (condition) {
     ret();
-    cyc += 6;
+    cyc_ += 6;
   }
 }
 
@@ -527,12 +528,12 @@ static inline void i8080_xthl(i8080* const c) {
 // executes one opcode
 // ----------------------------------------
 static inline void i8080_execute(i8080* const c, uint8_t opcode) {
-  c->cyc += OPCODES_CYCLES[opcode];
+  c->cyc_ += OPCODES_CYCLES[opcode];
 
   // when DI is executed, interrupts won't be serviced
   // until the end of next instruction:
-  if (c->interrupt_delay > 0) {
-    c->interrupt_delay -= 1;
+  if (c->interrupt_delay_ > 0) {
+    c->interrupt_delay_ -= 1;
   }
 
   switch (opcode) {
@@ -693,10 +694,10 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0xF3: c->iff_ = 0; break; // DI
   case 0xFB:
     c->iff_ = 1;
-    c->interrupt_delay = 1;
+    c->interrupt_delay_ = 1;
     break; // EI
   case 0x00: break; // NOP
-  case 0x76: c->halted = 1; break; // HLT
+  case 0x76: c->halted_ = 1; break; // HLT
 
   case 0x3C: c->a_ = c->inr(c->a_); break; // INR A
   case 0x04: c->b_ = c->inr(c->b_); break; // INR B
@@ -861,7 +862,7 @@ void i8080::init() {
   port_out = NULL;
   userdata_ = NULL;
 
-  cyc = 0;
+  cyc_ = 0;
 
   pc_ = 0;
   sp_ = 0;
@@ -881,10 +882,10 @@ void i8080::init() {
   cf_ = 0;
   iff_ = 0;
 
-  halted = 0;
-  interrupt_pending = 0;
-  interrupt_vector = 0;
-  interrupt_delay = 0;
+  halted_ = 0;
+  interrupt_pending_ = 0;
+  interrupt_vector_ = 0;
+  interrupt_delay_ = 0;
 }
 
 // ========================================
@@ -893,13 +894,13 @@ void i8080::init() {
 extern "C" void i8080_step(i8080* const c) {
   // interrupt processing: if an interrupt is pending and IFF is set,
   // we execute the interrupt vector passed by the user.
-  if (c->interrupt_pending && c->iff_ && c->interrupt_delay == 0) {
-    c->interrupt_pending = 0;
+  if (c->interrupt_pending_ && c->iff_ && c->interrupt_delay_ == 0) {
+    c->interrupt_pending_ = 0;
     c->iff_ = 0;
-    c->halted = 0;
+    c->halted_ = 0;
 
-    i8080_execute(c, c->interrupt_vector);
-  } else if (!c->halted) {
+    i8080_execute(c, c->interrupt_vector_);
+  } else if (!c->halted_) {
     i8080_execute(c, c->pc_next_byte());
   }
 }
@@ -908,8 +909,8 @@ extern "C" void i8080_step(i8080* const c) {
 // asks for an interrupt to be serviced
 // ----------------------------------------
 void i8080_interrupt(i8080* const c, uint8_t opcode) {
-  c->interrupt_pending = 1;
-  c->interrupt_vector = opcode;
+  c->interrupt_pending_ = 1;
+  c->interrupt_vector_ = opcode;
 }
 
 // ========================================
@@ -926,7 +927,7 @@ void i8080_debug_output(i8080* const c, bool print_disassembly) {
   f |= c->cf_ << 0;
 
   printf("PC: %04X, AF: %04X, BC: %04X, DE: %04X, HL: %04X, SP: %04X, CYC: %lu",
-	 c->pc(), c->a_ << 8 | f, c->bc(), c->de(), c->hl(), c->sp(), c->cyc);
+	 c->pc(), c->a_ << 8 | f, c->bc(), c->de(), c->hl(), c->sp(), c->cyc_);
 
   uint16_t pc = c->pc();
 

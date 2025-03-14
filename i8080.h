@@ -10,11 +10,13 @@ typedef class i8080 {
   // memory + io interface
   uint8_t (*read_byte)(void*, uint16_t); // user function to read from memory
   void (*write_byte)(void*, uint16_t, uint8_t); // same for writing to memory
+
   uint8_t (*port_in)(void*, uint8_t); // user function to read from port
   void (*port_out)(void*, uint8_t, uint8_t); // same for writing to port
+
   void* userdata_; // user custom pointer
 
-  unsigned long cyc; // cycle count
+  unsigned long cyc_; // cycle count
 
   // program counter, stack pointer
  private:
@@ -29,11 +31,11 @@ typedef class i8080 {
 
   // flags: sign, zero, half-carry, parity, carry, interrupt flip-flop
   bool sf_ : 1, zf_ : 1, hf_ : 1, pf_ : 1, cf_ : 1, iff_ : 1;
-  bool halted : 1;
+  bool halted_ : 1;
 
-  bool interrupt_pending : 1;
-  uint8_t interrupt_vector;
-  uint8_t interrupt_delay;
+  bool interrupt_pending_ : 1;
+  uint8_t interrupt_vector_;
+  uint8_t interrupt_delay_;
 
  public:
   uint16_t pc() const;
