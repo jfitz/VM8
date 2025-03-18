@@ -25,9 +25,9 @@ typedef class i8080 {
 
  public:
   // registers
-  uint8_t a_, b_;
-  uint8_t c_;
-  uint8_t d_, e_, h_, l_;
+  uint8_t r_a_, r_b_;
+  uint8_t r_c_;
+  uint8_t r_d_, r_e_, r_h_, r_l_;
 
   // flags: sign, zero, half-carry, parity, carry, interrupt flip-flop
   bool sf_ : 1, zf_ : 1, hf_ : 1, pf_ : 1, cf_ : 1, iff_ : 1;
