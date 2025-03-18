@@ -81,12 +81,16 @@ typedef class i8080 {
   void xra(uint8_t val);
   void ora(uint8_t val);
   void cmp(uint8_t val);
+
   void jmp(uint16_t addr);
   void cond_jmp(bool condition);
   void call(uint16_t addr);
   void cond_call(bool condition);
   void ret();
   void cond_ret(bool condition);
+
+  void push_psw();
+  void pop_psw();
 } i8080;
 
 

@@ -420,31 +420,33 @@ void i8080::cond_ret(bool condition) {
 // ========================================
 // pushes register A and the flags into the stack
 // ----------------------------------------
-static inline void i8080_push_psw(i8080* const c) {
+void i8080::push_psw() {
   // note: bit 3 and 5 are always 0
   uint8_t psw = 0;
-  psw |= c->sf_ << 7;
-  psw |= c->zf_ << 6;
-  psw |= c->hf_ << 4;
-  psw |= c->pf_ << 2;
+
+  psw |= sf_ << 7;
+  psw |= zf_ << 6;
+  psw |= hf_ << 4;
+  psw |= pf_ << 2;
   psw |= 1 << 1; // bit 1 is always 1
-  psw |= c->cf_ << 0;
-  c->push_stack(c->a_ << 8 | psw);
+  psw |= cf_ << 0;
+
+  push_stack(a_ << 8 | psw);
 }
 
 // ========================================
 // pops register A and the flags from the stack
 // ----------------------------------------
-static inline void i8080_pop_psw(i8080* const c) {
-  uint16_t af = c->pop_stack();
-  c->a_ = af >> 8;
+void i8080::pop_psw() {
+  uint16_t af = pop_stack();
+  a_ = af >> 8;
   uint8_t psw = af & 0xFF;
 
-  c->sf_ = (psw >> 7) & 1;
-  c->zf_ = (psw >> 6) & 1;
-  c->hf_ = (psw >> 4) & 1;
-  c->pf_ = (psw >> 2) & 1;
-  c->cf_ = (psw >> 0) & 1;
+  sf_ = (psw >> 7) & 1;
+  zf_ = (psw >> 6) & 1;
+  hf_ = (psw >> 4) & 1;
+  pf_ = (psw >> 2) & 1;
+  cf_ = (psw >> 0) & 1;
 }
 
 // ========================================
@@ -825,11 +827,11 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0xC5: c->push_stack(c->bc()); break; // PUSH B
   case 0xD5: c->push_stack(c->de()); break; // PUSH D
   case 0xE5: c->push_stack(c->hl()); break; // PUSH H
-  case 0xF5: i8080_push_psw(c);            break; // PUSH PSW
+  case 0xF5: c->push_psw();          break; // PUSH PSW
   case 0xC1: c->set_bc(c->pop_stack());  break; // POP B
   case 0xD1: c->set_de(c->pop_stack());  break; // POP D
   case 0xE1: c->set_hl(c->pop_stack());  break; // POP H
-  case 0xF1: i8080_pop_psw(c);               break; // POP PSW
+  case 0xF1: c->pop_psw();               break; // POP PSW
 
   case 0xDB: c->a_ = c->port_in(c->userdata_, c->pc_next_byte()); break; // IN
   case 0xD3: c->port_out(c->userdata_, c->pc_next_byte(), c->a_); break; // OUT
