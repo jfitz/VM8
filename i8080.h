@@ -82,8 +82,8 @@ typedef class i8080 {
   void op_ora(uint8_t val);
   void op_cmp(uint8_t val);
 
-  void jmp(uint16_t addr);
-  void cond_jmp(bool condition);
+  void jump(uint16_t addr);
+  void cond_jump(bool condition);
   void call(uint16_t addr);
   void cond_call(bool condition);
   void op_ret();

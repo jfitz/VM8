@@ -364,7 +364,7 @@ void i8080::op_cmp(uint8_t val) {
 // ========================================
 // sets the program counter to a given address
 // ----------------------------------------
-void i8080::jmp(uint16_t addr) {
+void i8080::jump(uint16_t addr) {
   set_pc(addr);
 }
 
@@ -372,7 +372,7 @@ void i8080::jmp(uint16_t addr) {
 // jumps to next address pointed by the next word in memory if a condition
 // is met
 // ----------------------------------------
-void i8080::cond_jmp(bool condition) {
+void i8080::cond_jump(bool condition) {
   uint16_t addr = pc_next_word();
 
   if (condition) {
@@ -385,7 +385,7 @@ void i8080::cond_jmp(bool condition) {
 // ----------------------------------------
 void i8080::call(uint16_t addr) {
   push_stack(pc());
-  jmp(addr);
+  jump(addr);
 }
 
 // ========================================
@@ -791,15 +791,15 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0xBE: c->op_cmp(c->rb(c->hl())); break; // CMP M
   case 0xFE: c->op_cmp(c->pc_next_byte());           break; // CPI byte
 
-  case 0xC3: c->jmp(c->pc_next_word());  break; // JMP
-  case 0xC2: c->cond_jmp(c->f_z_ == 0);    break; // JNZ
-  case 0xCA: c->cond_jmp(c->f_z_ == 1);    break; // JZ
-  case 0xD2: c->cond_jmp(c->f_c_ == 0);    break; // JNC
-  case 0xDA: c->cond_jmp(c->f_c_ == 1);    break; // JC
-  case 0xE2: c->cond_jmp(c->f_p_ == 0);    break; // JPO
-  case 0xEA: c->cond_jmp(c->f_p_ == 1);    break; // JPE
-  case 0xF2: c->cond_jmp(c->f_s_ == 0);    break; // JP
-  case 0xFA: c->cond_jmp(c->f_s_ == 1);    break; // JM
+  case 0xC3: c->jump(c->pc_next_word());  break; // JMP
+  case 0xC2: c->cond_jump(c->f_z_ == 0);    break; // JNZ
+  case 0xCA: c->cond_jump(c->f_z_ == 1);    break; // JZ
+  case 0xD2: c->cond_jump(c->f_c_ == 0);    break; // JNC
+  case 0xDA: c->cond_jump(c->f_c_ == 1);    break; // JC
+  case 0xE2: c->cond_jump(c->f_p_ == 0);    break; // JPO
+  case 0xEA: c->cond_jump(c->f_p_ == 1);    break; // JPE
+  case 0xF2: c->cond_jump(c->f_s_ == 0);    break; // JP
+  case 0xFA: c->cond_jump(c->f_s_ == 1);    break; // JM
 
   case 0xE9: c->set_pc(c->hl());         break; // PCHL
   case 0xCD: c->call(c->pc_next_word()); break; // CALL
@@ -858,7 +858,7 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0xED:
   case 0xFD: c->call(c->pc_next_word()); break; // undocumented CALLs
 
-  case 0xCB: c->jmp(c->pc_next_word());  break; // undocumented JMP
+  case 0xCB: c->jump(c->pc_next_word());  break; // undocumented JMP
   }
 }
 
