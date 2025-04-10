@@ -901,51 +901,51 @@ void i8080::init() {
 // ========================================
 // executes one instruction
 // ----------------------------------------
-extern "C" void i8080_step(i8080* const c) {
+void i8080::exec_step() {
   // interrupt processing: if an interrupt is pending and IFF is set,
   // we execute the interrupt vector passed by the user.
-  if (c->interrupt_pending_ && c->f_i_ && c->interrupt_delay_ == 0) {
-    c->interrupt_pending_ = 0;
-    c->f_i_ = 0;
-    c->halted_ = 0;
+  if (interrupt_pending_ && f_i_ && interrupt_delay_ == 0) {
+    interrupt_pending_ = 0;
+    f_i_ = 0;
+    halted_ = 0;
 
-    i8080_execute(c, c->interrupt_vector_);
-  } else if (!c->halted_) {
-    i8080_execute(c, c->pc_next_byte());
+    i8080_execute(this, interrupt_vector_);
+  } else if (!halted_) {
+    i8080_execute(this, pc_next_byte());
   }
 }
 
 // ========================================
 // asks for an interrupt to be serviced
 // ----------------------------------------
-void i8080_interrupt(i8080* const c, uint8_t opcode) {
-  c->interrupt_pending_ = 1;
-  c->interrupt_vector_ = opcode;
+void i8080::exec_interrupt(uint8_t opcode) {
+  interrupt_pending_ = 1;
+  interrupt_vector_ = opcode;
 }
 
 // ========================================
 // outputs a debug trace of the emulator state to the standard output,
 // including registers and flags
 // ----------------------------------------
-void i8080_debug_output(i8080* const c, bool print_disassembly) {
+void i8080::debug_output(bool print_disassembly) {
   uint8_t f = 0;
-  f |= c->f_s_ << 7;
-  f |= c->f_z_ << 6;
-  f |= c->f_h_ << 4;
-  f |= c->f_p_ << 2;
-  f |= 1 << 1; // bit 1 is always 1
-  f |= c->f_c_ << 0;
+  f |= f_s_ << 7;
+  f |= f_z_ << 6;
+  f |= f_h_ << 4;
+  f |= f_p_ << 2;
+  f |= 1    << 1; // bit 1 is always 1
+  f |= f_c_ << 0;
 
   printf("PC: %04X, AF: %04X, BC: %04X, DE: %04X, HL: %04X, SP: %04X, CYC: %lu",
-	 c->pc(), c->r_a_ << 8 | f, c->bc(), c->de(), c->hl(), c->sp(), c->cyc_);
+	 pc(), r_a_ << 8 | f, bc(), de(), hl(), sp(), cyc_);
 
-  uint16_t pc = c->pc();
+  uint16_t my_pc = pc();
 
-  printf("\t(%02X %02X %02X %02X)", c->rb(pc), c->rb(pc + 1),
-	 c->rb(pc + 2), c->rb(pc + 3));
+  printf("\t(%02X %02X %02X %02X)", rb(my_pc), rb(my_pc + 1),
+	 rb(my_pc + 2), rb(my_pc + 3));
 
   if (print_disassembly) {
-    printf(" - %s", DISASSEMBLE_TABLE[c->rb(pc)]);
+    printf(" - %s", DISASSEMBLE_TABLE[rb(my_pc)]);
   }
 
   printf("\n");

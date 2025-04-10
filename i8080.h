@@ -101,11 +101,11 @@ typedef class i8080 {
 
   void op_xchg();
   void op_xthl();
+
+  void exec_step();
+  void exec_interrupt(uint8_t opcode);
+  void debug_output(bool print_disassembly);
 } i8080;
 
-
-extern "C" void i8080_step(i8080* const c);
-void i8080_interrupt(i8080* const c, uint8_t opcode);
-void i8080_debug_output(i8080* const c, bool print_disassembly);
 
 #endif // I8080_I8080_H_

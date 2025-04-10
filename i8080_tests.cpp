@@ -31,12 +31,12 @@ static void port_out(void* userdata, uint8_t port, uint8_t value) {
   if (port == 0) {
     test_finished = 1;
   } else if (port == 1) {
-    uint8_t operation = c->c_;
+    uint8_t operation = c->r_c_;
 
     if (operation == 2) { // print a character stored in E
-      printf("%c", c->e_);
+      printf("%c", c->r_e_);
     } else if (operation == 9) { // print from memory at (DE) until '$' char
-      uint16_t addr = (c->d_ << 8) | c->e_;
+      uint16_t addr = (c->r_d_ << 8) | c->r_e_;
       do {
         printf("%c", rb(c, addr++));
       } while (rb(c, addr) != '$');
@@ -107,15 +107,15 @@ static inline void run_test(
 
     // uncomment following line to have a debug output of machine state
     // warning: will output multiple GB of data for the whole test suite
-    // i8080_debug_output(c, false);
+    // c->debug_output(false);
 
-    i8080_step(c);
+    c->exec_step();
   }
 
-  long long diff = cyc_expected - c->cyc;
+  long long diff = cyc_expected - c->cyc_;
   printf("\n*** %lu instructions executed on %lu cycles"
          " (expected=%lu, diff=%lld)\n\n",
-      nb_instructions, c->cyc, cyc_expected, diff);
+      nb_instructions, c->cyc_, cyc_expected, diff);
 }
 
 int main(void) {
