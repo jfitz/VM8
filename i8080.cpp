@@ -452,35 +452,35 @@ void i8080::op_pop_psw() {
 // ========================================
 // rotate register A left
 // ----------------------------------------
-static inline void i8080_rlc(i8080* const c) {
-  c->f_c_ = c->r_a_ >> 7;
-  c->r_a_ = (c->r_a_ << 1) | c->f_c_;
+void i8080::op_rlc() {
+  f_c_ = r_a_ >> 7;
+  r_a_ = (r_a_ << 1) | f_c_;
 }
 
 // ========================================
 // rotate register A right
 // ----------------------------------------
-static inline void i8080_rrc(i8080* const c) {
-  c->f_c_ = c->r_a_ & 1;
-  c->r_a_ = (c->r_a_ >> 1) | (c->f_c_ << 7);
+void i8080::op_rrc() {
+  f_c_ = r_a_ & 1;
+  r_a_ = (r_a_ >> 1) | (f_c_ << 7);
 }
 
 // ========================================
 // rotate register A left with the carry flag
 // ----------------------------------------
-static inline void i8080_ral(i8080* const c) {
-  bool cy = c->f_c_;
-  c->f_c_ = c->r_a_ >> 7;
-  c->r_a_ = (c->r_a_ << 1) | cy;
+void i8080::op_ral() {
+  bool cy = f_c_;
+  f_c_ = r_a_ >> 7;
+  r_a_ = (r_a_ << 1) | cy;
 }
 
 // ========================================
 // rotate register A right with the carry flag
 // ----------------------------------------
-static inline void i8080_rar(i8080* const c) {
-  bool cy = c->f_c_;
-  c->f_c_ = c->r_a_ & 1;
-  c->r_a_ = (c->r_a_ >> 1) | (cy << 7);
+void i8080::op_rar() {
+  bool cy = f_c_;
+  f_c_ = r_a_ & 1;
+  r_a_ = (r_a_ >> 1) | (cy << 7);
 }
 
 // ========================================
@@ -488,24 +488,24 @@ static inline void i8080_rar(i8080* const c) {
 // to form two four-bit binary-coded-decimal digits.
 // For example, if A=$2B and DAA is executed, A becomes $31.
 // ----------------------------------------
-static inline void i8080_daa(i8080* const c) {
-  bool cy = c->f_c_;
+void i8080::op_daa() {
+  bool cy = f_c_;
   uint8_t correction = 0;
 
-  uint8_t lsb = c->r_a_ & 0x0F;
-  uint8_t msb = c->r_a_ >> 4;
+  uint8_t lsb = r_a_ & 0x0F;
+  uint8_t msb = r_a_ >> 4;
 
-  if (c->f_h_ || lsb > 9) {
+  if (f_h_ || lsb > 9) {
     correction += 0x06;
   }
 
-  if (c->f_c_ || msb > 9 || (msb >= 9 && lsb > 9)) {
+  if (f_c_ || msb > 9 || (msb >= 9 && lsb > 9)) {
     correction += 0x60;
     cy = 1;
   }
 
-  c->add(&c->r_a_, correction, 0);
-  c->f_c_ = cy;
+  add(&r_a_, correction, 0);
+  f_c_ = cy;
 }
 
 // ========================================
@@ -738,15 +738,15 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x2B: c->set_hl(c->hl() - 1); break; // DCX H
   case 0x3B: c->set_sp(c->sp() - 1); break; // DCX SP
 
-  case 0x27: i8080_daa(c);     break; // DAA
+  case 0x27: c->op_daa();          break; // DAA
   case 0x2F: c->r_a_ = ~c->r_a_;   break; // CMA
-  case 0x37: c->f_c_ = 1;       break; // STC
-  case 0x3F: c->f_c_ = !c->f_c_; break; // CMC
+  case 0x37: c->f_c_ = 1;          break; // STC
+  case 0x3F: c->f_c_ = !c->f_c_;   break; // CMC
 
-  case 0x07: i8080_rlc(c); break; // RLC (rotate left)
-  case 0x0F: i8080_rrc(c); break; // RRC (rotate right)
-  case 0x17: i8080_ral(c); break; // RAL
-  case 0x1F: i8080_rar(c); break; // RAR
+  case 0x07: c->op_rlc(); break; // RLC (rotate left)
+  case 0x0F: c->op_rrc(); break; // RRC (rotate right)
+  case 0x17: c->op_ral(); break; // RAL
+  case 0x1F: c->op_rar(); break; // RAR
 
   case 0xA7: c->op_ana(c->r_a_); break; // ANA A
   case 0xA0: c->op_ana(c->r_b_); break; // ANA B

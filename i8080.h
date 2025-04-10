@@ -91,6 +91,13 @@ typedef class i8080 {
 
   void op_push_psw();
   void op_pop_psw();
+
+  void op_rlc();
+  void op_rrc();
+  void op_ral();
+  void op_rar();
+
+  void op_daa();
 } i8080;
 
 
