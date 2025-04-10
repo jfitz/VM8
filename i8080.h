@@ -98,6 +98,9 @@ typedef class i8080 {
   void op_rar();
 
   void op_daa();
+
+  void op_xchg();
+  void op_xthl();
 } i8080;
 
 

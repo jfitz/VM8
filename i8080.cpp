@@ -511,19 +511,19 @@ void i8080::op_daa() {
 // ========================================
 // switches the value of registers DE and HL
 // ----------------------------------------
-static inline void i8080_xchg(i8080* const c) {
-  uint16_t de = c->de();
-  c->set_de(c->hl());
-  c->set_hl(de);
+void i8080::op_xchg() {
+  uint16_t val = de();
+  set_de(hl());
+  set_hl(val);
 }
 
 // ========================================
 // switches the value of a word at (sp) and HL
 // ----------------------------------------
-static inline void i8080_xthl(i8080* const c) {
-  uint16_t val = c->rw(c->sp());
-  c->ww(c->sp(), c->hl());
-  c->set_hl(val);
+void i8080::op_xthl() {
+  uint16_t val = rw(sp());
+  ww(sp(), hl());
+  set_hl(val);
 }
 
 // ========================================
@@ -637,8 +637,8 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x22: c->ww(c->pc_next_word(), c->hl()); break; // SHLD
   case 0xF9: c->set_sp(c->hl());                break; // SPHL
 
-  case 0xEB: i8080_xchg(c); break; // XCHG
-  case 0xE3: i8080_xthl(c); break; // XTHL
+  case 0xEB: c->op_xchg(); break; // XCHG
+  case 0xE3: c->op_xthl(); break; // XTHL
 
   case 0x87: c->add(&c->r_a_, c->r_a_, 0); break; // ADD A
   case 0x80: c->add(&c->r_a_, c->r_b_, 0); break; // ADD B
