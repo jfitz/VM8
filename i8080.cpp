@@ -25,7 +25,8 @@ static const uint8_t OPCODES_CYCLES[256] = {
 };
 // clang-format on
 
-static const char* DISASSEMBLE_TABLE[] = {"nop", "lxi b,#", "stax b", "inx b",
+static const char* DISASSEMBLE_TABLE[] = {
+    "nop", "lxi b,#", "stax b", "inx b",
     "inr b", "dcr b", "mvi b,#", "rlc", "ill", "dad b", "ldax b", "dcx b",
     "inr c", "dcr c", "mvi c,#", "rrc", "ill", "lxi d,#", "stax d", "inx d",
     "inr d", "dcr d", "mvi d,#", "ral", "ill", "dad d", "ldax d", "dcx d",
@@ -57,14 +58,8 @@ static const char* DISASSEMBLE_TABLE[] = {"nop", "lxi b,#", "stax b", "inx b",
     "ill", "sbi #", "rst 3", "rpo", "pop h", "jpo $", "xthl", "cpo $", "push h",
     "ani #", "rst 4", "rpe", "pchl", "jpe $", "xchg", "cpe $", "ill", "xri #",
     "rst 5", "rp", "pop psw", "jp $", "di", "cp $", "push psw", "ori #",
-    "rst 6", "rm", "sphl", "jm $", "ei", "cm $", "ill", "cpi #", "rst 7"};
-
-#define SET_ZSP(c, val) \
-  do { \
-    c->f_z_ = (val) == 0; \
-    c->f_s_ = (val) >> 7; \
-    c->f_p_ = parity(val); \
-  } while (0)
+    "rst 6", "rm", "sphl", "jm $", "ei", "cm $", "ill", "cpi #", "rst 7"
+};
 
 // ========================================
 //
@@ -950,5 +945,3 @@ void i8080::debug_output(bool print_disassembly) {
 
   printf("\n");
 }
-
-#undef SET_ZSP
