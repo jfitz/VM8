@@ -222,19 +222,6 @@ uint16_t i8080::pop_stack() {
 // ========================================
 // returns the parity of byte: 0 if number of 1 bits in `val` is odd, else 1
 // ----------------------------------------
-static inline bool parity(uint8_t val) {
-  uint8_t nb_one_bits = 0;
-
-  for (int i = 0; i < 8; i++) {
-    nb_one_bits += ((val >> i) & 1);
-  }
-
-  return (nb_one_bits & 1) == 0;
-}
-
-// ========================================
-// returns the parity of byte: 0 if number of 1 bits in `val` is odd, else 1
-// ----------------------------------------
 bool i8080::parity(uint8_t val) {
   uint8_t nb_one_bits = 0;
 
@@ -249,23 +236,24 @@ bool i8080::parity(uint8_t val) {
 // returns if there was a carry between bit "bit_no" and "bit_no - 1" when
 // executing "a + b + cy"
 // ----------------------------------------
-static inline bool carry(int bit_no, uint8_t a, uint8_t b, bool cy) {
-  int16_t result = a + b + cy;
-  int16_t carry = result ^ a ^ b;
+bool i8080::carry(int bit_no, uint8_t a, uint8_t b, int16_t result16) {
 
-  return carry & (1 << bit_no);
+  int16_t carry_bits = result16 ^ a ^ b;
+
+  return carry_bits & (1 << bit_no);
 }
 
 // ========================================
 // adds a value (+ an optional carry flag) to a register
 // ----------------------------------------
 void i8080::add(uint8_t* const reg, uint8_t val, bool cy) {
-  uint8_t result = *reg + val + cy;
-  f_c_ = carry(8, *reg, val, cy);
-  f_h_ = carry(4, *reg, val, cy);
-  set_zsp_flags(result);
+  uint8_t result8 = *reg + val + cy;
+  int16_t result16 = *reg + val + cy;
+  f_c_ = i8080::carry(8, *reg, val, result16);
+  f_h_ = i8080::carry(4, *reg, val, result16);
+  set_zsp_flags(result8);
 
-  *reg = result;
+  *reg = result8;
 }
 
 // ========================================
@@ -423,7 +411,7 @@ void i8080::op_push_psw() {
   psw |= f_z_ << 6;
   psw |= f_h_ << 4;
   psw |= f_p_ << 2;
-  psw |= 1 << 1; // bit 1 is always 1
+  psw |= 1    << 1; // bit 1 is always 1
   psw |= f_c_ << 0;
 
   push_stack(r_a_ << 8 | psw);
@@ -433,15 +421,15 @@ void i8080::op_push_psw() {
 // pops register A and the flags from the stack
 // ----------------------------------------
 void i8080::op_pop_psw() {
-  uint16_t af = pop_stack();
-  r_a_ = af >> 8;
-  uint8_t psw = af & 0xFF;
+  uint16_t psw = pop_stack();
+  r_a_ = psw >> 8;
+  uint8_t r_f = psw & 0xFF;
 
-  f_s_ = (psw >> 7) & 1;
-  f_z_ = (psw >> 6) & 1;
-  f_h_ = (psw >> 4) & 1;
-  f_p_ = (psw >> 2) & 1;
-  f_c_ = (psw >> 0) & 1;
+  f_s_ = (r_f >> 7) & 1;
+  f_z_ = (r_f >> 6) & 1;
+  f_h_ = (r_f >> 4) & 1;
+  f_p_ = (r_f >> 2) & 1;
+  f_c_ = (r_f >> 0) & 1;
 }
 
 // ========================================

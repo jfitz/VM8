@@ -69,6 +69,7 @@ typedef class i8080 {
   uint16_t pop_stack();
 
   static bool parity(uint8_t val);
+  static bool carry(int bit_no, uint8_t a, uint8_t b, int16_t result16);
   
   void add(uint8_t* const reg, uint8_t val, bool cy);
   void sub(uint8_t* const reg, uint8_t val, bool cy);
