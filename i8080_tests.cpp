@@ -10,15 +10,15 @@
 
 // memory callbacks
 #define MEMORY_SIZE 0x10000
-static uint8_t* memory = NULL;
-static bool test_finished = 0;
+static uint8_t* memory__ = NULL;
+static bool test_finished__ = 0;
 
 static uint8_t rb(void* userdata, uint16_t addr) {
-  return memory[addr];
+  return memory__[addr];
 }
 
 static void wb(void* userdata, uint16_t addr, uint8_t val) {
-  memory[addr] = val;
+  memory__[addr] = val;
 }
 
 static uint8_t port_in(void* userdata, uint8_t port) {
@@ -29,7 +29,7 @@ static void port_out(void* userdata, uint8_t port, uint8_t value) {
   i8080* const c = (i8080*) userdata;
 
   if (port == 0) {
-    test_finished = 1;
+    test_finished__ = 1;
   } else if (port == 1) {
     uint8_t operation = c->r_c_;
 
@@ -62,7 +62,7 @@ static inline int load_file(const char* filename, uint16_t addr) {
   }
 
   // copying the bytes in memory:
-  size_t result = fread(&memory[addr], sizeof(uint8_t), file_size, f);
+  size_t result = fread(&memory__[addr], sizeof(uint8_t), file_size, f);
   if (result != file_size) {
     fprintf(stderr, "error: while reading file '%s'\n", filename);
     return 1;
@@ -80,7 +80,7 @@ static inline void run_test(
   c->write_byte = wb;
   c->port_in = port_in;
   c->port_out = port_out;
-  memset(memory, 0, MEMORY_SIZE);
+  memset(memory__, 0, MEMORY_SIZE);
 
   if (load_file(filename, 0x100) != 0) {
     return;
@@ -90,19 +90,19 @@ static inline void run_test(
   c->set_pc(0x100);
 
   // inject "out 0,a" at 0x0000 (signal to stop the test)
-  memory[0x0000] = 0xD3;
-  memory[0x0001] = 0x00;
+  memory__[0x0000] = 0xD3;
+  memory__[0x0001] = 0x00;
 
   // inject "out 1,a" at 0x0005 (signal to output some characters)
-  memory[0x0005] = 0xD3;
-  memory[0x0006] = 0x01;
-  memory[0x0007] = 0xC9;
+  memory__[0x0005] = 0xD3;
+  memory__[0x0006] = 0x01;
+  memory__[0x0007] = 0xC9;
 
   long nb_instructions = 0;
 
-  test_finished = 0;
+  test_finished__ = 0;
 
-  while (!test_finished) {
+  while (!test_finished__) {
     nb_instructions += 1;
 
     // uncomment following line to have a debug output of machine state
@@ -119,8 +119,9 @@ static inline void run_test(
 }
 
 int main(void) {
-  memory = (uint8_t*)malloc(MEMORY_SIZE);
-  if (memory == NULL) {
+  memory__ = (uint8_t*)malloc(MEMORY_SIZE);
+  if (memory__ == NULL) {
+    puts("cannot allocate memory");
     return 1;
   }
 
@@ -130,7 +131,7 @@ int main(void) {
   run_test(&cpu, "cpu_tests/8080PRE.COM", 7817LU);
   run_test(&cpu, "cpu_tests/8080EXM.COM", 23803381171LU);
 
-  free(memory);
+  free(memory__);
 
   return 0;
 }
