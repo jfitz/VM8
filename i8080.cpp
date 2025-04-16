@@ -512,320 +512,306 @@ void i8080::op_xthl() {
 // ========================================
 // executes one opcode
 // ----------------------------------------
-static inline void i8080_execute(i8080* const c, uint8_t opcode) {
-  c->cyc_ += OPCODES_CYCLES[opcode];
+void i8080::execute(uint8_t opcode) {
+  cyc_ += OPCODES_CYCLES[opcode];
 
   // when DI is executed, interrupts won't be serviced
   // until the end of next instruction:
-  if (c->interrupt_delay_ > 0) {
-    c->interrupt_delay_ -= 1;
+  if (interrupt_delay_ > 0) {
+    interrupt_delay_ -= 1;
   }
 
   switch (opcode) {
-  case 0x7F: c->r_a_ = c->r_a_; break; // MOV A,A
-  case 0x78: c->r_a_ = c->r_b_; break; // MOV A,B
-  case 0x79: c->r_a_ = c->r_c_; break; // MOV A,C
-  case 0x7A: c->r_a_ = c->r_d_; break; // MOV A,D
-  case 0x7B: c->r_a_ = c->r_e_; break; // MOV A,E
-  case 0x7C: c->r_a_ = c->r_h_; break; // MOV A,H
-  case 0x7D: c->r_a_ = c->r_l_; break; // MOV A,L
-  case 0x7E: c->r_a_ = c->rb(c->hl()); break; // MOV A,M
+  case 0x7F: r_a_ = r_a_; break; // MOV A,A
+  case 0x78: r_a_ = r_b_; break; // MOV A,B
+  case 0x79: r_a_ = r_c_; break; // MOV A,C
+  case 0x7A: r_a_ = r_d_; break; // MOV A,D
+  case 0x7B: r_a_ = r_e_; break; // MOV A,E
+  case 0x7C: r_a_ = r_h_; break; // MOV A,H
+  case 0x7D: r_a_ = r_l_; break; // MOV A,L
+  case 0x7E: r_a_ = rb(hl()); break; // MOV A,M
 
-  case 0x0A: c->r_a_ = c->rb(c->bc()); break; // LDAX B
-  case 0x1A: c->r_a_ = c->rb(c->de()); break; // LDAX D
-  case 0x3A: c->r_a_ = c->rb(c->pc_next_word()); break; // LDA word
+  case 0x0A: r_a_ = rb(bc()); break; // LDAX B
+  case 0x1A: r_a_ = rb(de()); break; // LDAX D
+  case 0x3A: r_a_ = rb(pc_next_word()); break; // LDA word
 
-  case 0x47: c->r_b_ = c->r_a_; break; // MOV B,A
-  case 0x40: c->r_b_ = c->r_b_; break; // MOV B,B
-  case 0x41: c->r_b_ = c->r_c_; break; // MOV B,C
-  case 0x42: c->r_b_ = c->r_d_; break; // MOV B,D
-  case 0x43: c->r_b_ = c->r_e_; break; // MOV B,E
-  case 0x44: c->r_b_ = c->r_h_; break; // MOV B,H
-  case 0x45: c->r_b_ = c->r_l_; break; // MOV B,L
-  case 0x46: c->r_b_ = c->rb(c->hl()); break; // MOV B,M
+  case 0x47: r_b_ = r_a_; break; // MOV B,A
+  case 0x40: r_b_ = r_b_; break; // MOV B,B
+  case 0x41: r_b_ = r_c_; break; // MOV B,C
+  case 0x42: r_b_ = r_d_; break; // MOV B,D
+  case 0x43: r_b_ = r_e_; break; // MOV B,E
+  case 0x44: r_b_ = r_h_; break; // MOV B,H
+  case 0x45: r_b_ = r_l_; break; // MOV B,L
+  case 0x46: r_b_ = rb(hl()); break; // MOV B,M
 
-  case 0x4F: c->r_c_ = c->r_a_; break; // MOV C,A
-  case 0x48: c->r_c_ = c->r_b_; break; // MOV C,B
-  case 0x49: c->r_c_ = c->r_c_; break; // MOV C,C
-  case 0x4A: c->r_c_ = c->r_d_; break; // MOV C,D
-  case 0x4B: c->r_c_ = c->r_e_; break; // MOV C,E
-  case 0x4C: c->r_c_ = c->r_h_; break; // MOV C,H
-  case 0x4D: c->r_c_ = c->r_l_; break; // MOV C,L
-  case 0x4E: c->r_c_ = c->rb(c->hl()); break; // MOV C,M
+  case 0x4F: r_c_ = r_a_; break; // MOV C,A
+  case 0x48: r_c_ = r_b_; break; // MOV C,B
+  case 0x49: r_c_ = r_c_; break; // MOV C,C
+  case 0x4A: r_c_ = r_d_; break; // MOV C,D
+  case 0x4B: r_c_ = r_e_; break; // MOV C,E
+  case 0x4C: r_c_ = r_h_; break; // MOV C,H
+  case 0x4D: r_c_ = r_l_; break; // MOV C,L
+  case 0x4E: r_c_ = rb(hl()); break; // MOV C,M
 
-  case 0x57: c->r_d_ = c->r_a_; break; // MOV D,A
-  case 0x50: c->r_d_ = c->r_b_; break; // MOV D,B
-  case 0x51: c->r_d_ = c->r_c_; break; // MOV D,C
-  case 0x52: c->r_d_ = c->r_d_; break; // MOV D,D
-  case 0x53: c->r_d_ = c->r_e_; break; // MOV D,E
-  case 0x54: c->r_d_ = c->r_h_; break; // MOV D,H
-  case 0x55: c->r_d_ = c->r_l_; break; // MOV D,L
-  case 0x56: c->r_d_ = c->rb(c->hl()); break; // MOV D,M
+  case 0x57: r_d_ = r_a_; break; // MOV D,A
+  case 0x50: r_d_ = r_b_; break; // MOV D,B
+  case 0x51: r_d_ = r_c_; break; // MOV D,C
+  case 0x52: r_d_ = r_d_; break; // MOV D,D
+  case 0x53: r_d_ = r_e_; break; // MOV D,E
+  case 0x54: r_d_ = r_h_; break; // MOV D,H
+  case 0x55: r_d_ = r_l_; break; // MOV D,L
+  case 0x56: r_d_ = rb(hl()); break; // MOV D,M
 
-  case 0x5F: c->r_e_ = c->r_a_; break; // MOV E,A
-  case 0x58: c->r_e_ = c->r_b_; break; // MOV E,B
-  case 0x59: c->r_e_ = c->r_c_; break; // MOV E,C
-  case 0x5A: c->r_e_ = c->r_d_; break; // MOV E,D
-  case 0x5B: c->r_e_ = c->r_e_; break; // MOV E,E
-  case 0x5C: c->r_e_ = c->r_h_; break; // MOV E,H
-  case 0x5D: c->r_e_ = c->r_l_; break; // MOV E,L
-  case 0x5E: c->r_e_ = c->rb(c->hl()); break; // MOV E,M
+  case 0x5F: r_e_ = r_a_; break; // MOV E,A
+  case 0x58: r_e_ = r_b_; break; // MOV E,B
+  case 0x59: r_e_ = r_c_; break; // MOV E,C
+  case 0x5A: r_e_ = r_d_; break; // MOV E,D
+  case 0x5B: r_e_ = r_e_; break; // MOV E,E
+  case 0x5C: r_e_ = r_h_; break; // MOV E,H
+  case 0x5D: r_e_ = r_l_; break; // MOV E,L
+  case 0x5E: r_e_ = rb(hl()); break; // MOV E,M
 
-  case 0x67: c->r_h_ = c->r_a_; break; // MOV H,A
-  case 0x60: c->r_h_ = c->r_b_; break; // MOV H,B
-  case 0x61: c->r_h_ = c->r_c_; break; // MOV H,C
-  case 0x62: c->r_h_ = c->r_d_; break; // MOV H,D
-  case 0x63: c->r_h_ = c->r_e_; break; // MOV H,E
-  case 0x64: c->r_h_ = c->r_h_; break; // MOV H,H
-  case 0x65: c->r_h_ = c->r_l_; break; // MOV H,L
-  case 0x66: c->r_h_ = c->rb(c->hl()); break; // MOV H,M
+  case 0x67: r_h_ = r_a_; break; // MOV H,A
+  case 0x60: r_h_ = r_b_; break; // MOV H,B
+  case 0x61: r_h_ = r_c_; break; // MOV H,C
+  case 0x62: r_h_ = r_d_; break; // MOV H,D
+  case 0x63: r_h_ = r_e_; break; // MOV H,E
+  case 0x64: r_h_ = r_h_; break; // MOV H,H
+  case 0x65: r_h_ = r_l_; break; // MOV H,L
+  case 0x66: r_h_ = rb(hl()); break; // MOV H,M
 
-  case 0x6F: c->r_l_ = c->r_a_; break; // MOV L,A
-  case 0x68: c->r_l_ = c->r_b_; break; // MOV L,B
-  case 0x69: c->r_l_ = c->r_c_; break; // MOV L,C
-  case 0x6A: c->r_l_ = c->r_d_; break; // MOV L,D
-  case 0x6B: c->r_l_ = c->r_e_; break; // MOV L,E
-  case 0x6C: c->r_l_ = c->r_h_; break; // MOV L,H
-  case 0x6D: c->r_l_ = c->r_l_; break; // MOV L,L
-  case 0x6E: c->r_l_ = c->rb(c->hl()); break; // MOV L,M
+  case 0x6F: r_l_ = r_a_; break; // MOV L,A
+  case 0x68: r_l_ = r_b_; break; // MOV L,B
+  case 0x69: r_l_ = r_c_; break; // MOV L,C
+  case 0x6A: r_l_ = r_d_; break; // MOV L,D
+  case 0x6B: r_l_ = r_e_; break; // MOV L,E
+  case 0x6C: r_l_ = r_h_; break; // MOV L,H
+  case 0x6D: r_l_ = r_l_; break; // MOV L,L
+  case 0x6E: r_l_ = rb(hl()); break; // MOV L,M
 
-  case 0x77: c->wb(c->hl(), c->r_a_); break; // MOV M,A
-  case 0x70: c->wb(c->hl(), c->r_b_); break; // MOV M,B
-  case 0x71: c->wb(c->hl(), c->r_c_); break; // MOV M,C
-  case 0x72: c->wb(c->hl(), c->r_d_); break; // MOV M,D
-  case 0x73: c->wb(c->hl(), c->r_e_); break; // MOV M,E
-  case 0x74: c->wb(c->hl(), c->r_h_); break; // MOV M,H
-  case 0x75: c->wb(c->hl(), c->r_l_); break; // MOV M,L
+  case 0x77: wb(hl(), r_a_); break; // MOV M,A
+  case 0x70: wb(hl(), r_b_); break; // MOV M,B
+  case 0x71: wb(hl(), r_c_); break; // MOV M,C
+  case 0x72: wb(hl(), r_d_); break; // MOV M,D
+  case 0x73: wb(hl(), r_e_); break; // MOV M,E
+  case 0x74: wb(hl(), r_h_); break; // MOV M,H
+  case 0x75: wb(hl(), r_l_); break; // MOV M,L
 
-  case 0x3E: c->r_a_ = c->pc_next_byte(); break; // MVI A,byte
-  case 0x06: c->r_b_ = c->pc_next_byte(); break; // MVI B,byte
-  case 0x0E: c->r_c_ = c->pc_next_byte(); break; // MVI C,byte
-  case 0x16: c->r_d_ = c->pc_next_byte(); break; // MVI D,byte
-  case 0x1E: c->r_e_ = c->pc_next_byte(); break; // MVI E,byte
-  case 0x26: c->r_h_ = c->pc_next_byte(); break; // MVI H,byte
-  case 0x2E: c->r_l_ = c->pc_next_byte(); break; // MVI L,byte
-  case 0x36:
-    c->wb(c->hl(), c->pc_next_byte());
-    break; // MVI M,byte
+  case 0x3E: r_a_ = pc_next_byte(); break; // MVI A,byte
+  case 0x06: r_b_ = pc_next_byte(); break; // MVI B,byte
+  case 0x0E: r_c_ = pc_next_byte(); break; // MVI C,byte
+  case 0x16: r_d_ = pc_next_byte(); break; // MVI D,byte
+  case 0x1E: r_e_ = pc_next_byte(); break; // MVI E,byte
+  case 0x26: r_h_ = pc_next_byte(); break; // MVI H,byte
+  case 0x2E: r_l_ = pc_next_byte(); break; // MVI L,byte
+  case 0x36: wb(hl(), pc_next_byte()); break; // MVI M,byte
 
-  case 0x02: c->wb(c->bc(), c->r_a_);    break; // STAX B
-  case 0x12: c->wb(c->de(), c->r_a_);    break; // STAX D
-  case 0x32: c->wb(c->pc_next_word(), c->r_a_); break; // STA word
+  case 0x02: wb(bc(), r_a_);    break; // STAX B
+  case 0x12: wb(de(), r_a_);    break; // STAX D
+  case 0x32: wb(pc_next_word(), r_a_); break; // STA word
 
-  case 0x01: c->set_bc(c->pc_next_word()); break; // LXI B,word
-  case 0x11: c->set_de(c->pc_next_word()); break; // LXI D,word
-  case 0x21: c->set_hl(c->pc_next_word()); break; // LXI H,word
-  case 0x31: c->set_sp(c->pc_next_word()); break; // LXI SP,word
-  case 0x2A: c->set_hl(c->rw(c->pc_next_word())); break; // LHLD
-  case 0x22: c->ww(c->pc_next_word(), c->hl()); break; // SHLD
-  case 0xF9: c->set_sp(c->hl());                break; // SPHL
+  case 0x01: set_bc(pc_next_word()); break; // LXI B,word
+  case 0x11: set_de(pc_next_word()); break; // LXI D,word
+  case 0x21: set_hl(pc_next_word()); break; // LXI H,word
+  case 0x31: set_sp(pc_next_word()); break; // LXI SP,word
+  case 0x2A: set_hl(rw(pc_next_word())); break; // LHLD
+  case 0x22: ww(pc_next_word(), hl()); break; // SHLD
+  case 0xF9: set_sp(hl());                break; // SPHL
 
-  case 0xEB: c->op_xchg(); break; // XCHG
-  case 0xE3: c->op_xthl(); break; // XTHL
+  case 0xEB: op_xchg(); break; // XCHG
+  case 0xE3: op_xthl(); break; // XTHL
 
-  case 0x87: c->add(&c->r_a_, c->r_a_, 0); break; // ADD A
-  case 0x80: c->add(&c->r_a_, c->r_b_, 0); break; // ADD B
-  case 0x81: c->add(&c->r_a_, c->r_c_, 0); break; // ADD C
-  case 0x82: c->add(&c->r_a_, c->r_d_, 0); break; // ADD D
-  case 0x83: c->add(&c->r_a_, c->r_e_, 0); break; // ADD E
-  case 0x84: c->add(&c->r_a_, c->r_h_, 0); break; // ADD H
-  case 0x85: c->add(&c->r_a_, c->r_l_, 0); break; // ADD L
-  case 0x86:
-    c->add(&c->r_a_, c->rb(c->hl()), 0);
-    break; // ADD M
+  case 0x87: add(&r_a_, r_a_, 0); break; // ADD A
+  case 0x80: add(&r_a_, r_b_, 0); break; // ADD B
+  case 0x81: add(&r_a_, r_c_, 0); break; // ADD C
+  case 0x82: add(&r_a_, r_d_, 0); break; // ADD D
+  case 0x83: add(&r_a_, r_e_, 0); break; // ADD E
+  case 0x84: add(&r_a_, r_h_, 0); break; // ADD H
+  case 0x85: add(&r_a_, r_l_, 0); break; // ADD L
+  case 0x86: add(&r_a_, rb(hl()), 0); break; // ADD M
 
-  case 0xC6: c->add(&c->r_a_, c->pc_next_byte(), 0); break; // ADI byte
+  case 0xC6: add(&r_a_, pc_next_byte(), 0); break; // ADI byte
 
-  case 0x8F: c->add(&c->r_a_, c->r_a_, c->f_c_); break; // ADC A
-  case 0x88: c->add(&c->r_a_, c->r_b_, c->f_c_); break; // ADC B
-  case 0x89: c->add(&c->r_a_, c->r_c_, c->f_c_); break; // ADC C
-  case 0x8A: c->add(&c->r_a_, c->r_d_, c->f_c_); break; // ADC D
-  case 0x8B: c->add(&c->r_a_, c->r_e_, c->f_c_); break; // ADC E
-  case 0x8C: c->add(&c->r_a_, c->r_h_, c->f_c_); break; // ADC H
-  case 0x8D: c->add(&c->r_a_, c->r_l_, c->f_c_); break; // ADC L
-  case 0x8E:
-    c->add(&c->r_a_, c->rb(c->hl()), c->f_c_);
-    break; // ADC M
+  case 0x8F: add(&r_a_, r_a_, f_c_); break; // ADC A
+  case 0x88: add(&r_a_, r_b_, f_c_); break; // ADC B
+  case 0x89: add(&r_a_, r_c_, f_c_); break; // ADC C
+  case 0x8A: add(&r_a_, r_d_, f_c_); break; // ADC D
+  case 0x8B: add(&r_a_, r_e_, f_c_); break; // ADC E
+  case 0x8C: add(&r_a_, r_h_, f_c_); break; // ADC H
+  case 0x8D: add(&r_a_, r_l_, f_c_); break; // ADC L
+  case 0x8E: add(&r_a_, rb(hl()), f_c_); break; // ADC M
 
-  case 0xCE: c->add(&c->r_a_, c->pc_next_byte(), c->f_c_); break; // ACI byte
+  case 0xCE: add(&r_a_, pc_next_byte(), f_c_); break; // ACI byte
 
-  case 0x97: c->sub(&c->r_a_, c->r_a_, 0); break; // SUB A
-  case 0x90: c->sub(&c->r_a_, c->r_b_, 0); break; // SUB B
-  case 0x91: c->sub(&c->r_a_, c->r_c_, 0); break; // SUB C
-  case 0x92: c->sub(&c->r_a_, c->r_d_, 0); break; // SUB D
-  case 0x93: c->sub(&c->r_a_, c->r_e_, 0); break; // SUB E
-  case 0x94: c->sub(&c->r_a_, c->r_h_, 0); break; // SUB H
-  case 0x95: c->sub(&c->r_a_, c->r_l_, 0); break; // SUB L
-  case 0x96:
-    c->sub(&c->r_a_, c->rb(c->hl()), 0);
-    break; // SUB M
+  case 0x97: sub(&r_a_, r_a_, 0); break; // SUB A
+  case 0x90: sub(&r_a_, r_b_, 0); break; // SUB B
+  case 0x91: sub(&r_a_, r_c_, 0); break; // SUB C
+  case 0x92: sub(&r_a_, r_d_, 0); break; // SUB D
+  case 0x93: sub(&r_a_, r_e_, 0); break; // SUB E
+  case 0x94: sub(&r_a_, r_h_, 0); break; // SUB H
+  case 0x95: sub(&r_a_, r_l_, 0); break; // SUB L
+  case 0x96: sub(&r_a_, rb(hl()), 0); break; // SUB M
 
-  case 0xD6: c->sub(&c->r_a_, c->pc_next_byte(), 0); break; // SUI byte
+  case 0xD6: sub(&r_a_, pc_next_byte(), 0); break; // SUI byte
 
-  case 0x9F: c->sub(&c->r_a_, c->r_a_, c->f_c_); break; // SBB A
-  case 0x98: c->sub(&c->r_a_, c->r_b_, c->f_c_); break; // SBB B
-  case 0x99: c->sub(&c->r_a_, c->r_c_, c->f_c_); break; // SBB C
-  case 0x9A: c->sub(&c->r_a_, c->r_d_, c->f_c_); break; // SBB D
-  case 0x9B: c->sub(&c->r_a_, c->r_e_, c->f_c_); break; // SBB E
-  case 0x9C: c->sub(&c->r_a_, c->r_h_, c->f_c_); break; // SBB H
-  case 0x9D: c->sub(&c->r_a_, c->r_l_, c->f_c_); break; // SBB L
-  case 0x9E:
-    c->sub(&c->r_a_, c->rb(c->hl()), c->f_c_);
-    break; // SBB M
+  case 0x9F: sub(&r_a_, r_a_, f_c_); break; // SBB A
+  case 0x98: sub(&r_a_, r_b_, f_c_); break; // SBB B
+  case 0x99: sub(&r_a_, r_c_, f_c_); break; // SBB C
+  case 0x9A: sub(&r_a_, r_d_, f_c_); break; // SBB D
+  case 0x9B: sub(&r_a_, r_e_, f_c_); break; // SBB E
+  case 0x9C: sub(&r_a_, r_h_, f_c_); break; // SBB H
+  case 0x9D: sub(&r_a_, r_l_, f_c_); break; // SBB L
+  case 0x9E: sub(&r_a_, rb(hl()), f_c_); break; // SBB M
 
-  case 0xDE: c->sub(&c->r_a_, c->pc_next_byte(), c->f_c_); break; // SBI byte
+  case 0xDE: sub(&r_a_, pc_next_byte(), f_c_); break; // SBI byte
 
-  case 0x09: c->op_dad(c->bc()); break; // DAD B
-  case 0x19: c->op_dad(c->de()); break; // DAD D
-  case 0x29: c->op_dad(c->hl()); break; // DAD H
-  case 0x39: c->op_dad(c->sp()); break; // DAD SP
+  case 0x09: op_dad(bc()); break; // DAD B
+  case 0x19: op_dad(de()); break; // DAD D
+  case 0x29: op_dad(hl()); break; // DAD H
+  case 0x39: op_dad(sp()); break; // DAD SP
 
-  case 0xF3: c->f_i_ = 0; break; // DI
+  case 0xF3: f_i_ = 0; break; // DI
   case 0xFB:
-    c->f_i_ = 1;
-    c->interrupt_delay_ = 1;
+    f_i_ = 1;
+    interrupt_delay_ = 1;
     break; // EI
 
   case 0x00: break; // NOP
-  case 0x76: c->halted_ = 1; break; // HLT
+  case 0x76: halted_ = 1; break; // HLT
 
-  case 0x3C: c->r_a_ = c->inr(c->r_a_); break; // INR A
-  case 0x04: c->r_b_ = c->inr(c->r_b_); break; // INR B
-  case 0x0C: c->r_c_ = c->inr(c->r_c_); break; // INR C
-  case 0x14: c->r_d_ = c->inr(c->r_d_); break; // INR D
-  case 0x1C: c->r_e_ = c->inr(c->r_e_); break; // INR E
-  case 0x24: c->r_h_ = c->inr(c->r_h_); break; // INR H
-  case 0x2C: c->r_l_ = c->inr(c->r_l_); break; // INR L
-  case 0x34:
-    c->wb(c->hl(), c->inr(c->rb(c->hl())));
-    break; // INR M
+  case 0x3C: r_a_ = inr(r_a_); break; // INR A
+  case 0x04: r_b_ = inr(r_b_); break; // INR B
+  case 0x0C: r_c_ = inr(r_c_); break; // INR C
+  case 0x14: r_d_ = inr(r_d_); break; // INR D
+  case 0x1C: r_e_ = inr(r_e_); break; // INR E
+  case 0x24: r_h_ = inr(r_h_); break; // INR H
+  case 0x2C: r_l_ = inr(r_l_); break; // INR L
+  case 0x34: wb(hl(), inr(rb(hl()))); break; // INR M
 
-  case 0x3D: c->r_a_ = c->dcr(c->r_a_); break; // DCR A
-  case 0x05: c->r_b_ = c->dcr(c->r_b_); break; // DCR B
-  case 0x0D: c->r_c_ = c->dcr(c->r_c_); break; // DCR C
-  case 0x15: c->r_d_ = c->dcr(c->r_d_); break; // DCR D
-  case 0x1D: c->r_e_ = c->dcr(c->r_e_); break; // DCR E
-  case 0x25: c->r_h_ = c->dcr(c->r_h_); break; // DCR H
-  case 0x2D: c->r_l_ = c->dcr(c->r_l_); break; // DCR L
-  case 0x35:
-    c->wb(c->hl(), c->dcr(c->rb(c->hl())));
-    break; // DCR M
+  case 0x3D: r_a_ = dcr(r_a_); break; // DCR A
+  case 0x05: r_b_ = dcr(r_b_); break; // DCR B
+  case 0x0D: r_c_ = dcr(r_c_); break; // DCR C
+  case 0x15: r_d_ = dcr(r_d_); break; // DCR D
+  case 0x1D: r_e_ = dcr(r_e_); break; // DCR E
+  case 0x25: r_h_ = dcr(r_h_); break; // DCR H
+  case 0x2D: r_l_ = dcr(r_l_); break; // DCR L
+  case 0x35: wb(hl(), dcr(rb(hl()))); break; // DCR M
 
-  case 0x03: c->set_bc(c->bc() + 1); break; // INX B
-  case 0x13: c->set_de(c->de() + 1); break; // INX D
-  case 0x23: c->set_hl(c->hl() + 1); break; // INX H
-  case 0x33: c->set_sp(c->sp() + 1); break; // INX SP
+  case 0x03: set_bc(bc() + 1); break; // INX B
+  case 0x13: set_de(de() + 1); break; // INX D
+  case 0x23: set_hl(hl() + 1); break; // INX H
+  case 0x33: set_sp(sp() + 1); break; // INX SP
 
-  case 0x0B: c->set_bc(c->bc() - 1); break; // DCX B
-  case 0x1B: c->set_de(c->de() - 1); break; // DCX D
-  case 0x2B: c->set_hl(c->hl() - 1); break; // DCX H
-  case 0x3B: c->set_sp(c->sp() - 1); break; // DCX SP
+  case 0x0B: set_bc(bc() - 1); break; // DCX B
+  case 0x1B: set_de(de() - 1); break; // DCX D
+  case 0x2B: set_hl(hl() - 1); break; // DCX H
+  case 0x3B: set_sp(sp() - 1); break; // DCX SP
 
-  case 0x27: c->op_daa();          break; // DAA
-  case 0x2F: c->r_a_ = ~c->r_a_;   break; // CMA
-  case 0x37: c->f_c_ = 1;          break; // STC
-  case 0x3F: c->f_c_ = !c->f_c_;   break; // CMC
+  case 0x27: op_daa();       break; // DAA
+  case 0x2F: r_a_ = ~r_a_;   break; // CMA
+  case 0x37: f_c_ = 1;       break; // STC
+  case 0x3F: f_c_ = !f_c_;   break; // CMC
 
-  case 0x07: c->op_rlc(); break; // RLC (rotate left)
-  case 0x0F: c->op_rrc(); break; // RRC (rotate right)
-  case 0x17: c->op_ral(); break; // RAL
-  case 0x1F: c->op_rar(); break; // RAR
+  case 0x07: op_rlc(); break; // RLC (rotate left)
+  case 0x0F: op_rrc(); break; // RRC (rotate right)
+  case 0x17: op_ral(); break; // RAL
+  case 0x1F: op_rar(); break; // RAR
 
-  case 0xA7: c->op_ana(c->r_a_); break; // ANA A
-  case 0xA0: c->op_ana(c->r_b_); break; // ANA B
-  case 0xA1: c->op_ana(c->r_c_); break; // ANA C
-  case 0xA2: c->op_ana(c->r_d_); break; // ANA D
-  case 0xA3: c->op_ana(c->r_e_); break; // ANA E
-  case 0xA4: c->op_ana(c->r_h_); break; // ANA H
-  case 0xA5: c->op_ana(c->r_l_); break; // ANA L
-  case 0xA6: c->op_ana(c->rb(c->hl())); break; // ANA M
+  case 0xA7: op_ana(r_a_); break; // ANA A
+  case 0xA0: op_ana(r_b_); break; // ANA B
+  case 0xA1: op_ana(r_c_); break; // ANA C
+  case 0xA2: op_ana(r_d_); break; // ANA D
+  case 0xA3: op_ana(r_e_); break; // ANA E
+  case 0xA4: op_ana(r_h_); break; // ANA H
+  case 0xA5: op_ana(r_l_); break; // ANA L
+  case 0xA6: op_ana(rb(hl())); break; // ANA M
 
-  case 0xE6: c->op_ana(c->pc_next_byte()); break; // ANI byte
+  case 0xE6: op_ana(pc_next_byte()); break; // ANI byte
 
-  case 0xAF: c->op_xra(c->r_a_); break; // XRA A
-  case 0xA8: c->op_xra(c->r_b_); break; // XRA B
-  case 0xA9: c->op_xra(c->r_c_); break; // XRA C
-  case 0xAA: c->op_xra(c->r_d_); break; // XRA D
-  case 0xAB: c->op_xra(c->r_e_); break; // XRA E
-  case 0xAC: c->op_xra(c->r_h_); break; // XRA H
-  case 0xAD: c->op_xra(c->r_l_); break; // XRA L
-  case 0xAE: c->op_xra(c->rb(c->hl())); break; // XRA M
+  case 0xAF: op_xra(r_a_); break; // XRA A
+  case 0xA8: op_xra(r_b_); break; // XRA B
+  case 0xA9: op_xra(r_c_); break; // XRA C
+  case 0xAA: op_xra(r_d_); break; // XRA D
+  case 0xAB: op_xra(r_e_); break; // XRA E
+  case 0xAC: op_xra(r_h_); break; // XRA H
+  case 0xAD: op_xra(r_l_); break; // XRA L
+  case 0xAE: op_xra(rb(hl())); break; // XRA M
 
-  case 0xEE: c->op_xra(c->pc_next_byte()); break; // XRI byte
+  case 0xEE: op_xra(pc_next_byte()); break; // XRI byte
 
-  case 0xB7: c->op_ora(c->r_a_); break; // ORA A
-  case 0xB0: c->op_ora(c->r_b_); break; // ORA B
-  case 0xB1: c->op_ora(c->r_c_); break; // ORA C
-  case 0xB2: c->op_ora(c->r_d_); break; // ORA D
-  case 0xB3: c->op_ora(c->r_e_); break; // ORA E
-  case 0xB4: c->op_ora(c->r_h_); break; // ORA H
-  case 0xB5: c->op_ora(c->r_l_); break; // ORA L
-  case 0xB6: c->op_ora(c->rb(c->hl())); break; // ORA M
+  case 0xB7: op_ora(r_a_); break; // ORA A
+  case 0xB0: op_ora(r_b_); break; // ORA B
+  case 0xB1: op_ora(r_c_); break; // ORA C
+  case 0xB2: op_ora(r_d_); break; // ORA D
+  case 0xB3: op_ora(r_e_); break; // ORA E
+  case 0xB4: op_ora(r_h_); break; // ORA H
+  case 0xB5: op_ora(r_l_); break; // ORA L
+  case 0xB6: op_ora(rb(hl())); break; // ORA M
 
-  case 0xF6: c->op_ora(c->pc_next_byte()); break; // ORI byte
+  case 0xF6: op_ora(pc_next_byte()); break; // ORI byte
 
-  case 0xBF: c->op_cmp(c->r_a_); break; // CMP A
-  case 0xB8: c->op_cmp(c->r_b_); break; // CMP B
-  case 0xB9: c->op_cmp(c->r_c_); break; // CMP C
-  case 0xBA: c->op_cmp(c->r_d_); break; // CMP D
-  case 0xBB: c->op_cmp(c->r_e_); break; // CMP E
-  case 0xBC: c->op_cmp(c->r_h_); break; // CMP H
-  case 0xBD: c->op_cmp(c->r_l_); break; // CMP L
-  case 0xBE: c->op_cmp(c->rb(c->hl())); break; // CMP M
-  case 0xFE: c->op_cmp(c->pc_next_byte());           break; // CPI byte
+  case 0xBF: op_cmp(r_a_); break; // CMP A
+  case 0xB8: op_cmp(r_b_); break; // CMP B
+  case 0xB9: op_cmp(r_c_); break; // CMP C
+  case 0xBA: op_cmp(r_d_); break; // CMP D
+  case 0xBB: op_cmp(r_e_); break; // CMP E
+  case 0xBC: op_cmp(r_h_); break; // CMP H
+  case 0xBD: op_cmp(r_l_); break; // CMP L
+  case 0xBE: op_cmp(rb(hl())); break; // CMP M
+  case 0xFE: op_cmp(pc_next_byte()); break; // CPI byte
 
-  case 0xC3: c->jump(c->pc_next_word());  break; // JMP
-  case 0xC2: c->cond_jump(c->f_z_ == 0);    break; // JNZ
-  case 0xCA: c->cond_jump(c->f_z_ == 1);    break; // JZ
-  case 0xD2: c->cond_jump(c->f_c_ == 0);    break; // JNC
-  case 0xDA: c->cond_jump(c->f_c_ == 1);    break; // JC
-  case 0xE2: c->cond_jump(c->f_p_ == 0);    break; // JPO
-  case 0xEA: c->cond_jump(c->f_p_ == 1);    break; // JPE
-  case 0xF2: c->cond_jump(c->f_s_ == 0);    break; // JP
-  case 0xFA: c->cond_jump(c->f_s_ == 1);    break; // JM
+  case 0xC3: jump(pc_next_word());  break; // JMP
+  case 0xC2: cond_jump(f_z_ == 0);    break; // JNZ
+  case 0xCA: cond_jump(f_z_ == 1);    break; // JZ
+  case 0xD2: cond_jump(f_c_ == 0);    break; // JNC
+  case 0xDA: cond_jump(f_c_ == 1);    break; // JC
+  case 0xE2: cond_jump(f_p_ == 0);    break; // JPO
+  case 0xEA: cond_jump(f_p_ == 1);    break; // JPE
+  case 0xF2: cond_jump(f_s_ == 0);    break; // JP
+  case 0xFA: cond_jump(f_s_ == 1);    break; // JM
 
-  case 0xE9: c->set_pc(c->hl());         break; // PCHL
-  case 0xCD: c->call(c->pc_next_word()); break; // CALL
+  case 0xE9: set_pc(hl());         break; // PCHL
+  case 0xCD: call(pc_next_word()); break; // CALL
 
-  case 0xC4: c->cond_call(c->f_z_ == 0); break; // CNZ
-  case 0xCC: c->cond_call(c->f_z_ == 1); break; // CZ
-  case 0xD4: c->cond_call(c->f_c_ == 0); break; // CNC
-  case 0xDC: c->cond_call(c->f_c_ == 1); break; // CC
-  case 0xE4: c->cond_call(c->f_p_ == 0); break; // CPO
-  case 0xEC: c->cond_call(c->f_p_ == 1); break; // CPE
-  case 0xF4: c->cond_call(c->f_s_ == 0); break; // CP
-  case 0xFC: c->cond_call(c->f_s_ == 1); break; // CM
+  case 0xC4: cond_call(f_z_ == 0); break; // CNZ
+  case 0xCC: cond_call(f_z_ == 1); break; // CZ
+  case 0xD4: cond_call(f_c_ == 0); break; // CNC
+  case 0xDC: cond_call(f_c_ == 1); break; // CC
+  case 0xE4: cond_call(f_p_ == 0); break; // CPO
+  case 0xEC: cond_call(f_p_ == 1); break; // CPE
+  case 0xF4: cond_call(f_s_ == 0); break; // CP
+  case 0xFC: cond_call(f_s_ == 1); break; // CM
 
-  case 0xC9: c->op_ret();               break; // RET
-  case 0xC0: c->cond_ret(c->f_z_ == 0); break; // RNZ
-  case 0xC8: c->cond_ret(c->f_z_ == 1); break; // RZ
-  case 0xD0: c->cond_ret(c->f_c_ == 0); break; // RNC
-  case 0xD8: c->cond_ret(c->f_c_ == 1); break; // RC
-  case 0xE0: c->cond_ret(c->f_p_ == 0); break; // RPO
-  case 0xE8: c->cond_ret(c->f_p_ == 1); break; // RPE
-  case 0xF0: c->cond_ret(c->f_s_ == 0); break; // RP
-  case 0xF8: c->cond_ret(c->f_s_ == 1); break; // RM
+  case 0xC9: op_ret();            break; // RET
+  case 0xC0: cond_ret(f_z_ == 0); break; // RNZ
+  case 0xC8: cond_ret(f_z_ == 1); break; // RZ
+  case 0xD0: cond_ret(f_c_ == 0); break; // RNC
+  case 0xD8: cond_ret(f_c_ == 1); break; // RC
+  case 0xE0: cond_ret(f_p_ == 0); break; // RPO
+  case 0xE8: cond_ret(f_p_ == 1); break; // RPE
+  case 0xF0: cond_ret(f_s_ == 0); break; // RP
+  case 0xF8: cond_ret(f_s_ == 1); break; // RM
 
-  case 0xC7: c->call(0x00); break; // RST 0
-  case 0xCF: c->call(0x08); break; // RST 1
-  case 0xD7: c->call(0x10); break; // RST 2
-  case 0xDF: c->call(0x18); break; // RST 3
-  case 0xE7: c->call(0x20); break; // RST 4
-  case 0xEF: c->call(0x28); break; // RST 5
-  case 0xF7: c->call(0x30); break; // RST 6
-  case 0xFF: c->call(0x38); break; // RST 7
+  case 0xC7: call(0x00); break; // RST 0
+  case 0xCF: call(0x08); break; // RST 1
+  case 0xD7: call(0x10); break; // RST 2
+  case 0xDF: call(0x18); break; // RST 3
+  case 0xE7: call(0x20); break; // RST 4
+  case 0xEF: call(0x28); break; // RST 5
+  case 0xF7: call(0x30); break; // RST 6
+  case 0xFF: call(0x38); break; // RST 7
 
-  case 0xC5: c->push_stack(c->bc()); break; // PUSH B
-  case 0xD5: c->push_stack(c->de()); break; // PUSH D
-  case 0xE5: c->push_stack(c->hl()); break; // PUSH H
-  case 0xF5: c->op_push_psw();       break; // PUSH PSW
-  case 0xC1: c->set_bc(c->pop_stack());  break; // POP B
-  case 0xD1: c->set_de(c->pop_stack());  break; // POP D
-  case 0xE1: c->set_hl(c->pop_stack());  break; // POP H
-  case 0xF1: c->op_pop_psw();            break; // POP PSW
+  case 0xC5: push_stack(bc()); break; // PUSH B
+  case 0xD5: push_stack(de()); break; // PUSH D
+  case 0xE5: push_stack(hl()); break; // PUSH H
+  case 0xF5: op_push_psw();    break; // PUSH PSW
+  case 0xC1: set_bc(pop_stack());  break; // POP B
+  case 0xD1: set_de(pop_stack());  break; // POP D
+  case 0xE1: set_hl(pop_stack());  break; // POP H
+  case 0xF1: op_pop_psw();          break; // POP PSW
 
-  case 0xDB: c->r_a_ = c->port_in(c->userdata_, c->pc_next_byte()); break; // IN
-  case 0xD3: c->port_out(c->userdata_, c->pc_next_byte(), c->r_a_); break; // OUT
+  case 0xDB: r_a_ = port_in(userdata_, pc_next_byte()); break; // IN
+  case 0xD3: port_out(userdata_, pc_next_byte(), r_a_); break; // OUT
 
   case 0x08:
   case 0x10:
@@ -835,13 +821,13 @@ static inline void i8080_execute(i8080* const c, uint8_t opcode) {
   case 0x30:
   case 0x38: break; // undocumented NOPs
 
-  case 0xD9: c->op_ret();                   break; // undocumented RET
+  case 0xD9: op_ret();             break; // undocumented RET
 
   case 0xDD:
   case 0xED:
-  case 0xFD: c->call(c->pc_next_word()); break; // undocumented CALLs
+  case 0xFD: call(pc_next_word()); break; // undocumented CALLs
 
-  case 0xCB: c->jump(c->pc_next_word());  break; // undocumented JMP
+  case 0xCB: jump(pc_next_word()); break; // undocumented JMP
   }
 }
 
@@ -892,9 +878,9 @@ void i8080::exec_step() {
     f_i_ = 0;
     halted_ = 0;
 
-    i8080_execute(this, interrupt_vector_);
+    execute(interrupt_vector_);
   } else if (!halted_) {
-    i8080_execute(this, pc_next_byte());
+    execute(pc_next_byte());
   }
 }
 

@@ -106,6 +106,7 @@ typedef class i8080 {
   void exec_step();
   void exec_interrupt(uint8_t opcode);
   void debug_output(bool print_disassembly);
+  void execute(uint8_t opcode);
 } i8080;
 
 
