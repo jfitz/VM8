@@ -64,7 +64,7 @@ static const char* DISASSEMBLE_TABLE[] = {
 // ========================================
 //
 // ----------------------------------------
-void i8080::set_zsp_flags(uint8_t val)
+void Intel8080::set_zsp_flags(uint8_t val)
 {
   f_z_ = (val) == 0;
   f_s_ = (val) >> 7;
@@ -74,42 +74,42 @@ void i8080::set_zsp_flags(uint8_t val)
 // ========================================
 //
 // ----------------------------------------
-uint16_t i8080::pc() const {
+uint16_t Intel8080::pc() const {
   return pc_;
 }
 
 // ========================================
 //
 // ----------------------------------------
-void i8080::set_pc(uint16_t pc) {
+void Intel8080::set_pc(uint16_t pc) {
   pc_ = pc;
 }
 
 // ========================================
 //
 // ----------------------------------------
-uint16_t i8080::sp() const {
+uint16_t Intel8080::sp() const {
   return sp_;
 }
 
 // ========================================
 //
 // ----------------------------------------
-void i8080::set_sp(uint16_t sp) {
+void Intel8080::set_sp(uint16_t sp) {
   sp_ = sp;
 }
 
 // ========================================
 //
 // ----------------------------------------
-uint16_t i8080::bc() const {
+uint16_t Intel8080::bc() const {
   return (r_b_ << 8) | r_c_;
 }
 
 // ========================================
 //
 // ----------------------------------------
-void i8080::set_bc(uint16_t val) {
+void Intel8080::set_bc(uint16_t val) {
   r_b_ = val >> 8;
   r_c_ = val & 0xFF;
 }
@@ -117,14 +117,14 @@ void i8080::set_bc(uint16_t val) {
 // ========================================
 //
 // ----------------------------------------
-uint16_t i8080::de() const {
+uint16_t Intel8080::de() const {
   return (r_d_ << 8) | r_e_;
 }
 
 // ========================================
 //
 // ----------------------------------------
-void i8080::set_de(uint16_t val) {
+void Intel8080::set_de(uint16_t val) {
   r_d_ = val >> 8;
   r_e_ = val & 0xFF;
 }
@@ -132,14 +132,14 @@ void i8080::set_de(uint16_t val) {
 // ========================================
 //
 // ----------------------------------------
-uint16_t i8080::hl() const {
+uint16_t Intel8080::hl() const {
   return (r_h_ << 8) | r_l_;
 }
 
 // ========================================
 //
 // ----------------------------------------
-void i8080::set_hl(uint16_t val) {
+void Intel8080::set_hl(uint16_t val) {
   r_h_ = val >> 8;
   r_l_ = val & 0xFF;
 }
@@ -150,21 +150,21 @@ void i8080::set_hl(uint16_t val) {
 // ========================================
 // reads a byte from memory
 // ----------------------------------------
-uint8_t i8080::rb(uint16_t addr) {
+uint8_t Intel8080::rb(uint16_t addr) {
   return read_byte(userdata_, addr);
 }
 
 // ========================================
 // writes a byte to memory
 // ----------------------------------------
-void i8080::wb(uint16_t addr, uint8_t val) {
+void Intel8080::wb(uint16_t addr, uint8_t val) {
   write_byte(userdata_, addr, val);
 }
 
 // ========================================
 // reads a word from memory
 // ----------------------------------------
-uint16_t i8080::rw(uint16_t addr) {
+uint16_t Intel8080::rw(uint16_t addr) {
   return read_byte(userdata_, addr + 1) << 8 |
          read_byte(userdata_, addr);
 }
@@ -172,7 +172,7 @@ uint16_t i8080::rw(uint16_t addr) {
 // ========================================
 // writes a word to memory
 // ----------------------------------------
-void i8080::ww(uint16_t addr, uint16_t val) {
+void Intel8080::ww(uint16_t addr, uint16_t val) {
   write_byte(userdata_, addr, val & 0xFF);
   write_byte(userdata_, addr + 1, val >> 8);
 }
@@ -180,7 +180,7 @@ void i8080::ww(uint16_t addr, uint16_t val) {
 // ========================================
 // returns the next byte in memory (and updates the program counter)
 // ----------------------------------------
-uint8_t i8080::pc_next_byte() {
+uint8_t Intel8080::pc_next_byte() {
   uint16_t result = rb(pc_);
   pc_ += 1;
 
@@ -190,7 +190,7 @@ uint8_t i8080::pc_next_byte() {
 // ========================================
 // returns the next word in memory (and updates the program counter)
 // ----------------------------------------
-uint16_t i8080::pc_next_word() {
+uint16_t Intel8080::pc_next_word() {
   uint16_t result = rw(pc_);
   pc_ += 2;
 
@@ -202,7 +202,7 @@ uint16_t i8080::pc_next_word() {
 // ========================================
 // pushes a value into the stack and updates the stack pointer
 // ----------------------------------------
-void i8080::push_stack(uint16_t val) {
+void Intel8080::push_stack(uint16_t val) {
   sp_ -= 2;
   ww(sp_, val);
 }
@@ -210,7 +210,7 @@ void i8080::push_stack(uint16_t val) {
 // ========================================
 // pops a value from the stack and updates the stack pointer
 // ----------------------------------------
-uint16_t i8080::pop_stack() {
+uint16_t Intel8080::pop_stack() {
   uint16_t val = rw(sp_);
   sp_ += 2;
 
@@ -222,7 +222,7 @@ uint16_t i8080::pop_stack() {
 // ========================================
 // returns the parity of byte: 0 if number of 1 bits in `val` is odd, else 1
 // ----------------------------------------
-bool i8080::parity(uint8_t val) {
+bool Intel8080::parity(uint8_t val) {
   uint8_t nb_one_bits = 0;
 
   for (int i = 0; i < 8; i++) {
@@ -236,7 +236,7 @@ bool i8080::parity(uint8_t val) {
 // returns if there was a carry between bit "bit_no" and "bit_no - 1" when
 // executing "a + b + cy"
 // ----------------------------------------
-bool i8080::carry(int bit_no, uint8_t a, uint8_t b, int16_t result16) {
+bool Intel8080::carry(int bit_no, uint8_t a, uint8_t b, int16_t result16) {
 
   int16_t carry_bits = result16 ^ a ^ b;
 
@@ -246,11 +246,11 @@ bool i8080::carry(int bit_no, uint8_t a, uint8_t b, int16_t result16) {
 // ========================================
 // adds a value (+ an optional carry flag) to a register
 // ----------------------------------------
-void i8080::add(uint8_t* const reg, uint8_t val, bool cy) {
+void Intel8080::add(uint8_t* const reg, uint8_t val, bool cy) {
   uint8_t result8 = *reg + val + cy;
   int16_t result16 = *reg + val + cy;
-  f_c_ = i8080::carry(8, *reg, val, result16);
-  f_h_ = i8080::carry(4, *reg, val, result16);
+  f_c_ = Intel8080::carry(8, *reg, val, result16);
+  f_h_ = Intel8080::carry(4, *reg, val, result16);
   set_zsp_flags(result8);
 
   *reg = result8;
@@ -260,7 +260,7 @@ void i8080::add(uint8_t* const reg, uint8_t val, bool cy) {
 // subtracts a byte (+ an optional carry flag) from a register
 // see https://stackoverflow.com/a/8037485
 // ----------------------------------------
-void i8080::sub(uint8_t* const reg, uint8_t val, bool cy) {
+void Intel8080::sub(uint8_t* const reg, uint8_t val, bool cy) {
   // call add() which will set flags
   add(reg, ~val, !cy);
   f_c_ = !f_c_;
@@ -269,7 +269,7 @@ void i8080::sub(uint8_t* const reg, uint8_t val, bool cy) {
 // ========================================
 // adds a word to HL
 // ----------------------------------------
-void i8080::op_dad(uint16_t val) {
+void Intel8080::op_dad(uint16_t val) {
   f_c_ = ((hl() + val) >> 16) & 1;
   set_hl(hl() + val);
 }
@@ -277,7 +277,7 @@ void i8080::op_dad(uint16_t val) {
 // ========================================
 // increments a byte
 // ----------------------------------------
-uint8_t i8080::inr(uint8_t val) {
+uint8_t Intel8080::inr(uint8_t val) {
   uint8_t result = val + 1;
   f_h_ = (result & 0xF) == 0;
   set_zsp_flags(result);
@@ -288,7 +288,7 @@ uint8_t i8080::inr(uint8_t val) {
 // ========================================
 // decrements a byte
 // ----------------------------------------
-uint8_t i8080::dcr(uint8_t val) {
+uint8_t Intel8080::dcr(uint8_t val) {
   uint8_t result = val - 1;
   f_h_ = !((result & 0xF) == 0xF);
   set_zsp_flags(result);
@@ -300,7 +300,7 @@ uint8_t i8080::dcr(uint8_t val) {
 // executes a logic "and" between register A and a byte, then stores the
 // result in register A
 // ----------------------------------------
-void i8080::op_ana(uint8_t val) {
+void Intel8080::op_ana(uint8_t val) {
   uint8_t result = r_a_ & val;
   f_c_ = 0;
   f_h_ = ((r_a_ | val) & 0x08) != 0;
@@ -313,7 +313,7 @@ void i8080::op_ana(uint8_t val) {
 // executes a logic "xor" between register A and a byte, then stores the
 // result in register A
 // ----------------------------------------
-void i8080::op_xra(uint8_t val) {
+void Intel8080::op_xra(uint8_t val) {
   r_a_ ^= val;
   f_c_ = 0;
   f_h_ = 0;
@@ -325,7 +325,7 @@ void i8080::op_xra(uint8_t val) {
 // executes a logic "or" between register A and a byte, then stores the
 // result in register A
 // ----------------------------------------
-void i8080::op_ora(uint8_t val) {
+void Intel8080::op_ora(uint8_t val) {
   r_a_ |= val;
   f_c_ = 0;
   f_h_ = 0;
@@ -336,7 +336,7 @@ void i8080::op_ora(uint8_t val) {
 // ========================================
 // compares the register A to another byte
 // ----------------------------------------
-void i8080::op_cmp(uint8_t val) {
+void Intel8080::op_cmp(uint8_t val) {
   int16_t result = r_a_ - val;
   f_c_ = result >> 8;
   f_h_ = ~(r_a_ ^ result ^ val) & 0x10;
@@ -347,7 +347,7 @@ void i8080::op_cmp(uint8_t val) {
 // ========================================
 // sets the program counter to a given address
 // ----------------------------------------
-void i8080::jump(uint16_t addr) {
+void Intel8080::jump(uint16_t addr) {
   set_pc(addr);
 }
 
@@ -355,7 +355,7 @@ void i8080::jump(uint16_t addr) {
 // jumps to next address pointed by the next word in memory if a condition
 // is met
 // ----------------------------------------
-void i8080::cond_jump(bool condition) {
+void Intel8080::cond_jump(bool condition) {
   uint16_t addr = pc_next_word();
 
   if (condition) {
@@ -366,7 +366,7 @@ void i8080::cond_jump(bool condition) {
 // ========================================
 // pushes the current pc to the stack, then jumps to an address
 // ----------------------------------------
-void i8080::call(uint16_t addr) {
+void Intel8080::call(uint16_t addr) {
   push_stack(pc());
   jump(addr);
 }
@@ -374,7 +374,7 @@ void i8080::call(uint16_t addr) {
 // ========================================
 // calls to next word in memory if a condition is met
 // ----------------------------------------
-void i8080::cond_call(bool condition) {
+void Intel8080::cond_call(bool condition) {
   uint16_t addr = pc_next_word();
 
   if (condition) {
@@ -386,14 +386,14 @@ void i8080::cond_call(bool condition) {
 // ========================================
 // returns from subroutine
 // ----------------------------------------
-void i8080::op_ret() {
+void Intel8080::op_ret() {
   set_pc(pop_stack());
 }
 
 // ========================================
 // returns from subroutine if a condition is met
 // ----------------------------------------
-void i8080::cond_ret(bool condition) {
+void Intel8080::cond_ret(bool condition) {
   if (condition) {
     op_ret();
     cyc_ += 6;
@@ -403,7 +403,7 @@ void i8080::cond_ret(bool condition) {
 // ========================================
 // pushes register A and the flags into the stack
 // ----------------------------------------
-void i8080::op_push_psw() {
+void Intel8080::op_push_psw() {
   // note: bit 3 and 5 are always 0
   uint8_t psw = 0;
 
@@ -420,7 +420,7 @@ void i8080::op_push_psw() {
 // ========================================
 // pops register A and the flags from the stack
 // ----------------------------------------
-void i8080::op_pop_psw() {
+void Intel8080::op_pop_psw() {
   uint16_t psw = pop_stack();
   r_a_ = psw >> 8;
   uint8_t r_f = psw & 0xFF;
@@ -435,7 +435,7 @@ void i8080::op_pop_psw() {
 // ========================================
 // rotate register A left
 // ----------------------------------------
-void i8080::op_rlc() {
+void Intel8080::op_rlc() {
   f_c_ = r_a_ >> 7;
   r_a_ = (r_a_ << 1) | f_c_;
 }
@@ -443,7 +443,7 @@ void i8080::op_rlc() {
 // ========================================
 // rotate register A right
 // ----------------------------------------
-void i8080::op_rrc() {
+void Intel8080::op_rrc() {
   f_c_ = r_a_ & 1;
   r_a_ = (r_a_ >> 1) | (f_c_ << 7);
 }
@@ -451,7 +451,7 @@ void i8080::op_rrc() {
 // ========================================
 // rotate register A left with the carry flag
 // ----------------------------------------
-void i8080::op_ral() {
+void Intel8080::op_ral() {
   bool cy = f_c_;
   f_c_ = r_a_ >> 7;
   r_a_ = (r_a_ << 1) | cy;
@@ -460,7 +460,7 @@ void i8080::op_ral() {
 // ========================================
 // rotate register A right with the carry flag
 // ----------------------------------------
-void i8080::op_rar() {
+void Intel8080::op_rar() {
   bool cy = f_c_;
   f_c_ = r_a_ & 1;
   r_a_ = (r_a_ >> 1) | (cy << 7);
@@ -471,7 +471,7 @@ void i8080::op_rar() {
 // to form two four-bit binary-coded-decimal digits.
 // For example, if A=$2B and DAA is executed, A becomes $31.
 // ----------------------------------------
-void i8080::op_daa() {
+void Intel8080::op_daa() {
   bool cy = f_c_;
   uint8_t correction = 0;
 
@@ -494,7 +494,7 @@ void i8080::op_daa() {
 // ========================================
 // switches the value of registers DE and HL
 // ----------------------------------------
-void i8080::op_xchg() {
+void Intel8080::op_xchg() {
   uint16_t val = de();
   set_de(hl());
   set_hl(val);
@@ -503,7 +503,7 @@ void i8080::op_xchg() {
 // ========================================
 // switches the value of a word at (sp) and HL
 // ----------------------------------------
-void i8080::op_xthl() {
+void Intel8080::op_xthl() {
   uint16_t val = rw(sp());
   ww(sp(), hl());
   set_hl(val);
@@ -512,7 +512,7 @@ void i8080::op_xthl() {
 // ========================================
 // executes one opcode
 // ----------------------------------------
-void i8080::execute(uint8_t opcode) {
+void Intel8080::execute(uint8_t opcode) {
   cyc_ += OPCODES_CYCLES[opcode];
 
   // when DI is executed, interrupts won't be serviced
@@ -834,7 +834,7 @@ void i8080::execute(uint8_t opcode) {
 // ========================================
 // initializes the emulator with default values
 // ----------------------------------------
-void i8080::init() {
+void Intel8080::init() {
   read_byte = NULL;
   write_byte = NULL;
   port_in = NULL;
@@ -870,7 +870,7 @@ void i8080::init() {
 // ========================================
 // executes one instruction
 // ----------------------------------------
-void i8080::exec_step() {
+void Intel8080::exec_step() {
   // interrupt processing: if an interrupt is pending and IFF is set,
   // we execute the interrupt vector passed by the user.
   if (interrupt_pending_ && f_i_ && interrupt_delay_ == 0) {
@@ -887,7 +887,7 @@ void i8080::exec_step() {
 // ========================================
 // asks for an interrupt to be serviced
 // ----------------------------------------
-void i8080::exec_interrupt(uint8_t opcode) {
+void Intel8080::exec_interrupt(uint8_t opcode) {
   interrupt_pending_ = 1;
   interrupt_vector_ = opcode;
 }
@@ -896,7 +896,7 @@ void i8080::exec_interrupt(uint8_t opcode) {
 // outputs a debug trace of the emulator state to the standard output,
 // including registers and flags
 // ----------------------------------------
-void i8080::debug_output(bool print_disassembly) {
+void Intel8080::debug_output(bool print_disassembly) {
   uint8_t f = 0;
   f |= f_s_ << 7;
   f |= f_z_ << 6;

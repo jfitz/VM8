@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef class i8080 {
+typedef class Intel8080 {
  public:
   // memory + io interface
   uint8_t (*read_byte)(void*, uint16_t); // user function to read from memory

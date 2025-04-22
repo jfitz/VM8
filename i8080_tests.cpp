@@ -26,7 +26,7 @@ static uint8_t port_in(void* userdata, uint8_t port) {
 }
 
 static void port_out(void* userdata, uint8_t port, uint8_t value) {
-  i8080* const c = (i8080*) userdata;
+  Intel8080* const c = (Intel8080*) userdata;
 
   if (port == 0) {
     test_finished__ = 1;
@@ -36,7 +36,8 @@ static void port_out(void* userdata, uint8_t port, uint8_t value) {
     if (operation == 2) { // print a character stored in E
       printf("%c", c->r_e_);
     } else if (operation == 9) { // print from memory at (DE) until '$' char
-      uint16_t addr = (c->r_d_ << 8) | c->r_e_;
+      uint16_t addr = c->de();
+
       do {
         printf("%c", rb(c, addr++));
       } while (rb(c, addr) != '$');
@@ -48,6 +49,7 @@ static inline int load_file(const char* filename, uint16_t addr) {
   FILE* f = fopen(filename, "rb");
   if (f == NULL) {
     fprintf(stderr, "error: can't open file '%s'.\n", filename);
+
     return 1;
   }
 
@@ -58,6 +60,7 @@ static inline int load_file(const char* filename, uint16_t addr) {
 
   if (file_size + addr >= MEMORY_SIZE) {
     fprintf(stderr, "error: file %s can't fit in memory.\n", filename);
+
     return 1;
   }
 
@@ -65,15 +68,17 @@ static inline int load_file(const char* filename, uint16_t addr) {
   size_t result = fread(&memory__[addr], sizeof(uint8_t), file_size, f);
   if (result != file_size) {
     fprintf(stderr, "error: while reading file '%s'\n", filename);
+
     return 1;
   }
 
   fclose(f);
+
   return 0;
 }
 
 static inline void run_test(
-    i8080* const c, const char* filename, unsigned long cyc_expected) {
+    Intel8080* const c, const char* filename, unsigned long cyc_expected) {
   c->init();
   c->userdata_ = c;
   c->read_byte = rb;
@@ -90,13 +95,13 @@ static inline void run_test(
   c->set_pc(0x100);
 
   // inject "out 0,a" at 0x0000 (signal to stop the test)
-  memory__[0x0000] = 0xD3;
+  memory__[0x0000] = 0xD3;  // OUT
   memory__[0x0001] = 0x00;
 
   // inject "out 1,a" at 0x0005 (signal to output some characters)
-  memory__[0x0005] = 0xD3;
+  memory__[0x0005] = 0xD3;  // OUT
   memory__[0x0006] = 0x01;
-  memory__[0x0007] = 0xC9;
+  memory__[0x0007] = 0xC9;  // RET
 
   long nb_instructions = 0;
 
@@ -122,10 +127,11 @@ int main(void) {
   memory__ = (uint8_t*)malloc(MEMORY_SIZE);
   if (memory__ == NULL) {
     puts("cannot allocate memory");
+
     return 1;
   }
 
-  i8080 cpu;
+  Intel8080 cpu;
   run_test(&cpu, "cpu_tests/TST8080.COM", 4924LU);
   run_test(&cpu, "cpu_tests/CPUTEST.COM", 255653383LU);
   run_test(&cpu, "cpu_tests/8080PRE.COM", 7817LU);
