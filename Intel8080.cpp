@@ -1,4 +1,4 @@
-#include "i8080.h"
+#include "Intel8080.h"
 
 // this array defines the number of cycles one opcode takes.
 // note that there are some special cases: conditional RETs and CALLs
