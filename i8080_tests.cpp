@@ -36,7 +36,7 @@ static void port_out(void* userdata, uint8_t port, uint8_t value) {
     if (operation == 2) { // print a character stored in E
       printf("%c", c->r_e());
     } else if (operation == 9) { // print from memory at (DE) until '$' char
-      uint16_t addr = c->de();
+      uint16_t addr = c->rp_de();
 
       do {
         printf("%c", rb(c, addr++));

@@ -88,7 +88,7 @@ uint8_t Intel8080::r_e() const {
 // ========================================
 //
 // ----------------------------------------
-uint16_t Intel8080::pc() const {
+uint16_t Intel8080::rp_pc() const {
   return pc_;
 }
 
@@ -102,7 +102,7 @@ void Intel8080::set_pc(uint16_t pc) {
 // ========================================
 //
 // ----------------------------------------
-uint16_t Intel8080::sp() const {
+uint16_t Intel8080::rp_sp() const {
   return sp_;
 }
 
@@ -116,7 +116,7 @@ void Intel8080::set_sp(uint16_t sp) {
 // ========================================
 //
 // ----------------------------------------
-uint16_t Intel8080::bc() const {
+uint16_t Intel8080::rp_bc() const {
   return (r_b_ << 8) | r_c_;
 }
 
@@ -131,7 +131,7 @@ void Intel8080::set_bc(uint16_t val) {
 // ========================================
 //
 // ----------------------------------------
-uint16_t Intel8080::de() const {
+uint16_t Intel8080::rp_de() const {
   return (r_d_ << 8) | r_e_;
 }
 
@@ -146,7 +146,7 @@ void Intel8080::set_de(uint16_t val) {
 // ========================================
 //
 // ----------------------------------------
-uint16_t Intel8080::hl() const {
+uint16_t Intel8080::rp_hl() const {
   return (r_h_ << 8) | r_l_;
 }
 
@@ -284,8 +284,8 @@ void Intel8080::sub(uint8_t* const reg, uint8_t val, bool cy) {
 // adds a word to HL
 // ----------------------------------------
 void Intel8080::op_dad(uint16_t val) {
-  f_c_ = ((hl() + val) >> 16) & 1;
-  set_hl(hl() + val);
+  f_c_ = ((rp_hl() + val) >> 16) & 1;
+  set_hl(rp_hl() + val);
 }
 
 // ========================================
@@ -381,7 +381,7 @@ void Intel8080::cond_jump(bool condition) {
 // pushes the current pc to the stack, then jumps to an address
 // ----------------------------------------
 void Intel8080::call(uint16_t addr) {
-  push_stack(pc());
+  push_stack(rp_pc());
   jump(addr);
 }
 
@@ -509,8 +509,8 @@ void Intel8080::op_daa() {
 // switches the value of registers DE and HL
 // ----------------------------------------
 void Intel8080::op_xchg() {
-  uint16_t val = de();
-  set_de(hl());
+  uint16_t val = rp_de();
+  set_de(rp_hl());
   set_hl(val);
 }
 
@@ -518,8 +518,8 @@ void Intel8080::op_xchg() {
 // switches the value of a word at (sp) and HL
 // ----------------------------------------
 void Intel8080::op_xthl() {
-  uint16_t val = rw(sp());
-  ww(sp(), hl());
+  uint16_t val = rw(rp_sp());
+  ww(rp_sp(), rp_hl());
   set_hl(val);
 }
 
@@ -543,10 +543,10 @@ void Intel8080::execute(uint8_t opcode) {
   case 0x7B: r_a_ = r_e_; break; // MOV A,E
   case 0x7C: r_a_ = r_h_; break; // MOV A,H
   case 0x7D: r_a_ = r_l_; break; // MOV A,L
-  case 0x7E: r_a_ = rb(hl()); break; // MOV A,M
+  case 0x7E: r_a_ = rb(rp_hl()); break; // MOV A,M
 
-  case 0x0A: r_a_ = rb(bc()); break; // LDAX B
-  case 0x1A: r_a_ = rb(de()); break; // LDAX D
+  case 0x0A: r_a_ = rb(rp_bc()); break; // LDAX B
+  case 0x1A: r_a_ = rb(rp_de()); break; // LDAX D
   case 0x3A: r_a_ = rb(pc_next_word()); break; // LDA word
 
   case 0x47: r_b_ = r_a_; break; // MOV B,A
@@ -556,7 +556,7 @@ void Intel8080::execute(uint8_t opcode) {
   case 0x43: r_b_ = r_e_; break; // MOV B,E
   case 0x44: r_b_ = r_h_; break; // MOV B,H
   case 0x45: r_b_ = r_l_; break; // MOV B,L
-  case 0x46: r_b_ = rb(hl()); break; // MOV B,M
+  case 0x46: r_b_ = rb(rp_hl()); break; // MOV B,M
 
   case 0x4F: r_c_ = r_a_; break; // MOV C,A
   case 0x48: r_c_ = r_b_; break; // MOV C,B
@@ -565,7 +565,7 @@ void Intel8080::execute(uint8_t opcode) {
   case 0x4B: r_c_ = r_e_; break; // MOV C,E
   case 0x4C: r_c_ = r_h_; break; // MOV C,H
   case 0x4D: r_c_ = r_l_; break; // MOV C,L
-  case 0x4E: r_c_ = rb(hl()); break; // MOV C,M
+  case 0x4E: r_c_ = rb(rp_hl()); break; // MOV C,M
 
   case 0x57: r_d_ = r_a_; break; // MOV D,A
   case 0x50: r_d_ = r_b_; break; // MOV D,B
@@ -574,7 +574,7 @@ void Intel8080::execute(uint8_t opcode) {
   case 0x53: r_d_ = r_e_; break; // MOV D,E
   case 0x54: r_d_ = r_h_; break; // MOV D,H
   case 0x55: r_d_ = r_l_; break; // MOV D,L
-  case 0x56: r_d_ = rb(hl()); break; // MOV D,M
+  case 0x56: r_d_ = rb(rp_hl()); break; // MOV D,M
 
   case 0x5F: r_e_ = r_a_; break; // MOV E,A
   case 0x58: r_e_ = r_b_; break; // MOV E,B
@@ -583,7 +583,7 @@ void Intel8080::execute(uint8_t opcode) {
   case 0x5B: r_e_ = r_e_; break; // MOV E,E
   case 0x5C: r_e_ = r_h_; break; // MOV E,H
   case 0x5D: r_e_ = r_l_; break; // MOV E,L
-  case 0x5E: r_e_ = rb(hl()); break; // MOV E,M
+  case 0x5E: r_e_ = rb(rp_hl()); break; // MOV E,M
 
   case 0x67: r_h_ = r_a_; break; // MOV H,A
   case 0x60: r_h_ = r_b_; break; // MOV H,B
@@ -592,7 +592,7 @@ void Intel8080::execute(uint8_t opcode) {
   case 0x63: r_h_ = r_e_; break; // MOV H,E
   case 0x64: r_h_ = r_h_; break; // MOV H,H
   case 0x65: r_h_ = r_l_; break; // MOV H,L
-  case 0x66: r_h_ = rb(hl()); break; // MOV H,M
+  case 0x66: r_h_ = rb(rp_hl()); break; // MOV H,M
 
   case 0x6F: r_l_ = r_a_; break; // MOV L,A
   case 0x68: r_l_ = r_b_; break; // MOV L,B
@@ -601,15 +601,15 @@ void Intel8080::execute(uint8_t opcode) {
   case 0x6B: r_l_ = r_e_; break; // MOV L,E
   case 0x6C: r_l_ = r_h_; break; // MOV L,H
   case 0x6D: r_l_ = r_l_; break; // MOV L,L
-  case 0x6E: r_l_ = rb(hl()); break; // MOV L,M
+  case 0x6E: r_l_ = rb(rp_hl()); break; // MOV L,M
 
-  case 0x77: wb(hl(), r_a_); break; // MOV M,A
-  case 0x70: wb(hl(), r_b_); break; // MOV M,B
-  case 0x71: wb(hl(), r_c_); break; // MOV M,C
-  case 0x72: wb(hl(), r_d_); break; // MOV M,D
-  case 0x73: wb(hl(), r_e_); break; // MOV M,E
-  case 0x74: wb(hl(), r_h_); break; // MOV M,H
-  case 0x75: wb(hl(), r_l_); break; // MOV M,L
+  case 0x77: wb(rp_hl(), r_a_); break; // MOV M,A
+  case 0x70: wb(rp_hl(), r_b_); break; // MOV M,B
+  case 0x71: wb(rp_hl(), r_c_); break; // MOV M,C
+  case 0x72: wb(rp_hl(), r_d_); break; // MOV M,D
+  case 0x73: wb(rp_hl(), r_e_); break; // MOV M,E
+  case 0x74: wb(rp_hl(), r_h_); break; // MOV M,H
+  case 0x75: wb(rp_hl(), r_l_); break; // MOV M,L
 
   case 0x3E: r_a_ = pc_next_byte(); break; // MVI A,byte
   case 0x06: r_b_ = pc_next_byte(); break; // MVI B,byte
@@ -618,19 +618,19 @@ void Intel8080::execute(uint8_t opcode) {
   case 0x1E: r_e_ = pc_next_byte(); break; // MVI E,byte
   case 0x26: r_h_ = pc_next_byte(); break; // MVI H,byte
   case 0x2E: r_l_ = pc_next_byte(); break; // MVI L,byte
-  case 0x36: wb(hl(), pc_next_byte()); break; // MVI M,byte
+  case 0x36: wb(rp_hl(), pc_next_byte()); break; // MVI M,byte
 
-  case 0x02: wb(bc(), r_a_);    break; // STAX B
-  case 0x12: wb(de(), r_a_);    break; // STAX D
+  case 0x02: wb(rp_bc(), r_a_);        break; // STAX B
+  case 0x12: wb(rp_de(), r_a_);        break; // STAX D
   case 0x32: wb(pc_next_word(), r_a_); break; // STA word
 
   case 0x01: set_bc(pc_next_word()); break; // LXI B,word
   case 0x11: set_de(pc_next_word()); break; // LXI D,word
   case 0x21: set_hl(pc_next_word()); break; // LXI H,word
   case 0x31: set_sp(pc_next_word()); break; // LXI SP,word
-  case 0x2A: set_hl(rw(pc_next_word())); break; // LHLD
-  case 0x22: ww(pc_next_word(), hl()); break; // SHLD
-  case 0xF9: set_sp(hl());                break; // SPHL
+  case 0x2A: set_hl(rw(pc_next_word()));  break; // LHLD
+  case 0x22: ww(pc_next_word(), rp_hl()); break; // SHLD
+  case 0xF9: set_sp(rp_hl());             break; // SPHL
 
   case 0xEB: op_xchg(); break; // XCHG
   case 0xE3: op_xthl(); break; // XTHL
@@ -642,7 +642,7 @@ void Intel8080::execute(uint8_t opcode) {
   case 0x83: add(&r_a_, r_e_, 0); break; // ADD E
   case 0x84: add(&r_a_, r_h_, 0); break; // ADD H
   case 0x85: add(&r_a_, r_l_, 0); break; // ADD L
-  case 0x86: add(&r_a_, rb(hl()), 0); break; // ADD M
+  case 0x86: add(&r_a_, rb(rp_hl()), 0); break; // ADD M
 
   case 0xC6: add(&r_a_, pc_next_byte(), 0); break; // ADI byte
 
@@ -653,7 +653,7 @@ void Intel8080::execute(uint8_t opcode) {
   case 0x8B: add(&r_a_, r_e_, f_c_); break; // ADC E
   case 0x8C: add(&r_a_, r_h_, f_c_); break; // ADC H
   case 0x8D: add(&r_a_, r_l_, f_c_); break; // ADC L
-  case 0x8E: add(&r_a_, rb(hl()), f_c_); break; // ADC M
+  case 0x8E: add(&r_a_, rb(rp_hl()), f_c_); break; // ADC M
 
   case 0xCE: add(&r_a_, pc_next_byte(), f_c_); break; // ACI byte
 
@@ -664,7 +664,7 @@ void Intel8080::execute(uint8_t opcode) {
   case 0x93: sub(&r_a_, r_e_, 0); break; // SUB E
   case 0x94: sub(&r_a_, r_h_, 0); break; // SUB H
   case 0x95: sub(&r_a_, r_l_, 0); break; // SUB L
-  case 0x96: sub(&r_a_, rb(hl()), 0); break; // SUB M
+  case 0x96: sub(&r_a_, rb(rp_hl()), 0); break; // SUB M
 
   case 0xD6: sub(&r_a_, pc_next_byte(), 0); break; // SUI byte
 
@@ -675,14 +675,14 @@ void Intel8080::execute(uint8_t opcode) {
   case 0x9B: sub(&r_a_, r_e_, f_c_); break; // SBB E
   case 0x9C: sub(&r_a_, r_h_, f_c_); break; // SBB H
   case 0x9D: sub(&r_a_, r_l_, f_c_); break; // SBB L
-  case 0x9E: sub(&r_a_, rb(hl()), f_c_); break; // SBB M
+  case 0x9E: sub(&r_a_, rb(rp_hl()), f_c_); break; // SBB M
 
   case 0xDE: sub(&r_a_, pc_next_byte(), f_c_); break; // SBI byte
 
-  case 0x09: op_dad(bc()); break; // DAD B
-  case 0x19: op_dad(de()); break; // DAD D
-  case 0x29: op_dad(hl()); break; // DAD H
-  case 0x39: op_dad(sp()); break; // DAD SP
+  case 0x09: op_dad(rp_bc()); break; // DAD B
+  case 0x19: op_dad(rp_de()); break; // DAD D
+  case 0x29: op_dad(rp_hl()); break; // DAD H
+  case 0x39: op_dad(rp_sp()); break; // DAD SP
 
   case 0xF3: f_i_ = 0; break; // DI
   case 0xFB:
@@ -700,7 +700,7 @@ void Intel8080::execute(uint8_t opcode) {
   case 0x1C: r_e_ = inr(r_e_); break; // INR E
   case 0x24: r_h_ = inr(r_h_); break; // INR H
   case 0x2C: r_l_ = inr(r_l_); break; // INR L
-  case 0x34: wb(hl(), inr(rb(hl()))); break; // INR M
+  case 0x34: wb(rp_hl(), inr(rb(rp_hl()))); break; // INR M
 
   case 0x3D: r_a_ = dcr(r_a_); break; // DCR A
   case 0x05: r_b_ = dcr(r_b_); break; // DCR B
@@ -709,17 +709,17 @@ void Intel8080::execute(uint8_t opcode) {
   case 0x1D: r_e_ = dcr(r_e_); break; // DCR E
   case 0x25: r_h_ = dcr(r_h_); break; // DCR H
   case 0x2D: r_l_ = dcr(r_l_); break; // DCR L
-  case 0x35: wb(hl(), dcr(rb(hl()))); break; // DCR M
+  case 0x35: wb(rp_hl(), dcr(rb(rp_hl()))); break; // DCR M
 
-  case 0x03: set_bc(bc() + 1); break; // INX B
-  case 0x13: set_de(de() + 1); break; // INX D
-  case 0x23: set_hl(hl() + 1); break; // INX H
-  case 0x33: set_sp(sp() + 1); break; // INX SP
+  case 0x03: set_bc(rp_bc() + 1); break; // INX B
+  case 0x13: set_de(rp_de() + 1); break; // INX D
+  case 0x23: set_hl(rp_hl() + 1); break; // INX H
+  case 0x33: set_sp(rp_sp() + 1); break; // INX SP
 
-  case 0x0B: set_bc(bc() - 1); break; // DCX B
-  case 0x1B: set_de(de() - 1); break; // DCX D
-  case 0x2B: set_hl(hl() - 1); break; // DCX H
-  case 0x3B: set_sp(sp() - 1); break; // DCX SP
+  case 0x0B: set_bc(rp_bc() - 1); break; // DCX B
+  case 0x1B: set_de(rp_de() - 1); break; // DCX D
+  case 0x2B: set_hl(rp_hl() - 1); break; // DCX H
+  case 0x3B: set_sp(rp_sp() - 1); break; // DCX SP
 
   case 0x27: op_daa();       break; // DAA
   case 0x2F: r_a_ = ~r_a_;   break; // CMA
@@ -738,7 +738,7 @@ void Intel8080::execute(uint8_t opcode) {
   case 0xA3: op_ana(r_e_); break; // ANA E
   case 0xA4: op_ana(r_h_); break; // ANA H
   case 0xA5: op_ana(r_l_); break; // ANA L
-  case 0xA6: op_ana(rb(hl())); break; // ANA M
+  case 0xA6: op_ana(rb(rp_hl())); break; // ANA M
 
   case 0xE6: op_ana(pc_next_byte()); break; // ANI byte
 
@@ -749,7 +749,7 @@ void Intel8080::execute(uint8_t opcode) {
   case 0xAB: op_xra(r_e_); break; // XRA E
   case 0xAC: op_xra(r_h_); break; // XRA H
   case 0xAD: op_xra(r_l_); break; // XRA L
-  case 0xAE: op_xra(rb(hl())); break; // XRA M
+  case 0xAE: op_xra(rb(rp_hl())); break; // XRA M
 
   case 0xEE: op_xra(pc_next_byte()); break; // XRI byte
 
@@ -760,7 +760,7 @@ void Intel8080::execute(uint8_t opcode) {
   case 0xB3: op_ora(r_e_); break; // ORA E
   case 0xB4: op_ora(r_h_); break; // ORA H
   case 0xB5: op_ora(r_l_); break; // ORA L
-  case 0xB6: op_ora(rb(hl())); break; // ORA M
+  case 0xB6: op_ora(rb(rp_hl())); break; // ORA M
 
   case 0xF6: op_ora(pc_next_byte()); break; // ORI byte
 
@@ -771,7 +771,7 @@ void Intel8080::execute(uint8_t opcode) {
   case 0xBB: op_cmp(r_e_); break; // CMP E
   case 0xBC: op_cmp(r_h_); break; // CMP H
   case 0xBD: op_cmp(r_l_); break; // CMP L
-  case 0xBE: op_cmp(rb(hl())); break; // CMP M
+  case 0xBE: op_cmp(rb(rp_hl())); break; // CMP M
   case 0xFE: op_cmp(pc_next_byte()); break; // CPI byte
 
   case 0xC3: jump(pc_next_word());  break; // JMP
@@ -784,7 +784,7 @@ void Intel8080::execute(uint8_t opcode) {
   case 0xF2: cond_jump(f_s_ == 0);    break; // JP
   case 0xFA: cond_jump(f_s_ == 1);    break; // JM
 
-  case 0xE9: set_pc(hl());         break; // PCHL
+  case 0xE9: set_pc(rp_hl());         break; // PCHL
   case 0xCD: call(pc_next_word()); break; // CALL
 
   case 0xC4: cond_call(f_z_ == 0); break; // CNZ
@@ -815,9 +815,9 @@ void Intel8080::execute(uint8_t opcode) {
   case 0xF7: call(0x30); break; // RST 6
   case 0xFF: call(0x38); break; // RST 7
 
-  case 0xC5: push_stack(bc()); break; // PUSH B
-  case 0xD5: push_stack(de()); break; // PUSH D
-  case 0xE5: push_stack(hl()); break; // PUSH H
+  case 0xC5: push_stack(rp_bc()); break; // PUSH B
+  case 0xD5: push_stack(rp_de()); break; // PUSH D
+  case 0xE5: push_stack(rp_hl()); break; // PUSH H
   case 0xF5: op_push_psw();    break; // PUSH PSW
   case 0xC1: set_bc(pop_stack());  break; // POP B
   case 0xD1: set_de(pop_stack());  break; // POP D
@@ -920,12 +920,11 @@ void Intel8080::debug_output(bool print_disassembly) {
   f |= f_c_ << 0;
 
   printf("PC: %04X, AF: %04X, BC: %04X, DE: %04X, HL: %04X, SP: %04X, CYC: %lu",
-	 pc(), r_a_ << 8 | f, bc(), de(), hl(), sp(), cyc_);
+	 rp_pc(), r_a_ << 8 | f, rp_bc(), rp_de(), rp_hl(), rp_sp(), cyc_);
 
-  uint16_t my_pc = pc();
+  uint16_t my_pc = rp_pc();
 
-  printf("\t(%02X %02X %02X %02X)", rb(my_pc), rb(my_pc + 1),
-	 rb(my_pc + 2), rb(my_pc + 3));
+  printf("\t(%02X %02X %02X %02X)", rb(my_pc), rb(my_pc + 1), rb(my_pc + 2), rb(my_pc + 3));
 
   if (print_disassembly) {
     printf(" - %s", DISASSEMBLE_TABLE[rb(my_pc)]);
