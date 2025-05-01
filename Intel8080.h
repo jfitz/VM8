@@ -40,18 +40,15 @@ class Intel8080 {
   uint8_t r_e() const;
   
   uint16_t rp_pc() const;
-  void set_pc(uint16_t pc);
-
   uint16_t rp_sp() const;
-  void set_sp(uint16_t sp);
-
   uint16_t rp_bc() const;
-  void set_bc(uint16_t bc);
-
   uint16_t rp_de() const;
-  void set_de(uint16_t de);
-
   uint16_t rp_hl() const;
+
+  void set_pc(uint16_t pc);
+  void set_sp(uint16_t sp);
+  void set_bc(uint16_t bc);
+  void set_de(uint16_t de);
   void set_hl(uint16_t de);
 
   uint8_t rb(uint16_t addr);
