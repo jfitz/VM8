@@ -31,10 +31,10 @@ static void port_out(void* userdata, uint8_t port, uint8_t value) {
   if (port == 0) {
     test_finished__ = 1;
   } else if (port == 1) {
-    uint8_t operation = c->r_c_;
+    uint8_t operation = c->r_c();
 
     if (operation == 2) { // print a character stored in E
-      printf("%c", c->r_e_);
+      printf("%c", c->r_e());
     } else if (operation == 9) { // print from memory at (DE) until '$' char
       uint16_t addr = c->de();
 

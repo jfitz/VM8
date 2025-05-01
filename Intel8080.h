@@ -23,12 +23,10 @@ typedef class Intel8080 {
   uint16_t pc_;
   uint16_t sp_;
 
- public:
   // registers
-  uint8_t r_a_, r_b_;
-  uint8_t r_c_;
-  uint8_t r_d_, r_e_, r_h_, r_l_;
+  uint8_t r_a_, r_b_, r_c_, r_d_, r_e_, r_h_, r_l_;
 
+ public:
   // flags: sign, zero, half-carry, parity, carry, interrupt flip-flop
   bool f_s_ : 1, f_z_ : 1, f_h_ : 1, f_p_ : 1, f_c_ : 1, f_i_ : 1;
   bool halted_ : 1;
@@ -38,6 +36,9 @@ typedef class Intel8080 {
   uint8_t interrupt_delay_;
 
  public:
+  uint8_t r_c() const;
+  uint8_t r_e() const;
+  
   uint16_t pc() const;
   void set_pc(uint16_t pc);
 
