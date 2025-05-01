@@ -26,11 +26,11 @@ typedef class Intel8080 {
   // registers
   uint8_t r_a_, r_b_, r_c_, r_d_, r_e_, r_h_, r_l_;
 
- public:
   // flags: sign, zero, half-carry, parity, carry, interrupt flip-flop
   bool f_s_ : 1, f_z_ : 1, f_h_ : 1, f_p_ : 1, f_c_ : 1, f_i_ : 1;
   bool halted_ : 1;
 
+ public:
   bool interrupt_pending_ : 1;
   uint8_t interrupt_vector_;
   uint8_t interrupt_delay_;
