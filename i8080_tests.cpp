@@ -83,8 +83,6 @@ static inline void run_test(
   c->userdata_ = c;
   c->read_byte = rb;
   c->write_byte = wb;
-  c->supervisor_request_port_in = port_in;
-  c->supervisor_request_port_out = port_out;
   memset(memory__, 0, MEMORY_SIZE);
 
   if (load_file(filename, 0x100) != 0) {
@@ -131,7 +129,8 @@ int main(void) {
     return 1;
   }
 
-  Intel8080 cpu;
+  Intel8080 cpu(port_in, port_out);
+
   run_test(&cpu, "cpu_tests/TST8080.COM", 4924LU);
   run_test(&cpu, "cpu_tests/CPUTEST.COM", 255653383LU);
   run_test(&cpu, "cpu_tests/8080PRE.COM", 7817LU);

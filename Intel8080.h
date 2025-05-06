@@ -11,17 +11,17 @@ class Intel8080 {
   uint8_t (*read_byte)(void*, uint16_t); // user function to read from memory
   void (*write_byte)(void*, uint16_t, uint8_t); // same for writing to memory
 
-  // callback to supervisor to read from port
-  uint8_t (*supervisor_request_port_in)(void*, uint8_t);
-  // callback to supervisor for writing to port
-  void (*supervisor_request_port_out)(void*, uint8_t, uint8_t);
-
   void* userdata_; // user custom pointer
 
   unsigned long cyc_; // cycle count
 
   // program counter, stack pointer
  private:
+  // callback to supervisor to read from port
+  uint8_t (*supervisor_request_port_in_)(void*, uint8_t);
+  // callback to supervisor for writing to port
+  void (*supervisor_request_port_out_)(void*, uint8_t, uint8_t);
+
   uint16_t pc_;
   uint16_t sp_;
 
@@ -39,7 +39,10 @@ class Intel8080 {
 
  public:
   // constructors
-  Intel8080();
+  Intel8080(
+    uint8_t (*port_in)(void*, uint8_t),
+    void (*port_out)(void*, uint8_t, uint8_t)
+  );
 
   // mutators
   void init();

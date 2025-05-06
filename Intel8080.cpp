@@ -61,12 +61,15 @@ static const char* DISASSEMBLE_TABLE[] = {
     "rst 6", "rm", "sphl", "jm $", "ei", "cm $", "ill", "cpi #", "rst 7"
 };
 
-Intel8080::Intel8080()
+Intel8080::Intel8080(
+  uint8_t (*port_in)(void*, uint8_t),
+  void (*port_out)(void*, uint8_t, uint8_t)
+)
 {
   read_byte = NULL;
   write_byte = NULL;
-  supervisor_request_port_in = NULL;
-  supervisor_request_port_out = NULL;
+  supervisor_request_port_in_ = port_in;
+  supervisor_request_port_out_ = port_out;
   userdata_ = NULL;
 
   init();
@@ -866,10 +869,10 @@ void Intel8080::execute(uint8_t opcode) {
   case 0xF1: op_pop_psw();          break; // POP PSW
 
   case 0xDB: // IN
-    r_a_ = supervisor_request_port_in(userdata_, pc_next_byte());
+    r_a_ = supervisor_request_port_in_(userdata_, pc_next_byte());
     break;
   case 0xD3: // OUT
-    supervisor_request_port_out(userdata_, pc_next_byte(), r_a_);
+    supervisor_request_port_out_(userdata_, pc_next_byte(), r_a_);
     break;
 
   // undocumented NOPs
