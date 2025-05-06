@@ -83,8 +83,8 @@ static inline void run_test(
   c->userdata_ = c;
   c->read_byte = rb;
   c->write_byte = wb;
-  c->port_in = port_in;
-  c->port_out = port_out;
+  c->supervisor_request_port_in = port_in;
+  c->supervisor_request_port_out = port_out;
   memset(memory__, 0, MEMORY_SIZE);
 
   if (load_file(filename, 0x100) != 0) {

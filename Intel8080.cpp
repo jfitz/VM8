@@ -61,6 +61,47 @@ static const char* DISASSEMBLE_TABLE[] = {
     "rst 6", "rm", "sphl", "jm $", "ei", "cm $", "ill", "cpi #", "rst 7"
 };
 
+Intel8080::Intel8080()
+{
+  read_byte = NULL;
+  write_byte = NULL;
+  supervisor_request_port_in = NULL;
+  supervisor_request_port_out = NULL;
+  userdata_ = NULL;
+
+  init();
+}
+
+// ========================================
+// initializes the emulator with default values
+// ----------------------------------------
+void Intel8080::init() {
+  cyc_ = 0;
+
+  pc_ = 0;
+  sp_ = 0;
+
+  r_a_ = 0;
+  r_b_ = 0;
+  r_c_ = 0;
+  r_d_ = 0;
+  r_e_ = 0;
+  r_h_ = 0;
+  r_l_ = 0;
+
+  f_s_ = 0;
+  f_z_ = 0;
+  f_h_ = 0;
+  f_p_ = 0;
+  f_c_ = 0;
+  f_i_ = 0;
+
+  halted_ = 0;
+  interrupt_pending_ = 0;
+  interrupt_vector_ = 0;
+  interrupt_delay_ = 0;
+}
+
 // ========================================
 //
 // ----------------------------------------
@@ -824,61 +865,40 @@ void Intel8080::execute(uint8_t opcode) {
   case 0xE1: set_hl(pop_stack());  break; // POP H
   case 0xF1: op_pop_psw();          break; // POP PSW
 
-  case 0xDB: r_a_ = port_in(userdata_, pc_next_byte()); break; // IN
-  case 0xD3: port_out(userdata_, pc_next_byte(), r_a_); break; // OUT
+  case 0xDB: // IN
+    r_a_ = supervisor_request_port_in(userdata_, pc_next_byte());
+    break;
+  case 0xD3: // OUT
+    supervisor_request_port_out(userdata_, pc_next_byte(), r_a_);
+    break;
 
+  // undocumented NOPs
   case 0x08:
   case 0x10:
   case 0x18:
   case 0x20:
   case 0x28:
   case 0x30:
-  case 0x38: break; // undocumented NOPs
+  case 0x38:
+    break;
 
-  case 0xD9: op_ret();             break; // undocumented RET
+  // undocumented RET
+  case 0xD9:
+    op_ret();
+    break;
 
+  // undocumented CALLs
   case 0xDD:
   case 0xED:
-  case 0xFD: call(pc_next_word()); break; // undocumented CALLs
+  case 0xFD:
+    call(pc_next_word());
+    break;
 
-  case 0xCB: jump(pc_next_word()); break; // undocumented JMP
+  // undocumented JMP
+  case 0xCB:
+    jump(pc_next_word());
+    break;
   }
-}
-
-// ========================================
-// initializes the emulator with default values
-// ----------------------------------------
-void Intel8080::init() {
-  read_byte = NULL;
-  write_byte = NULL;
-  port_in = NULL;
-  port_out = NULL;
-  userdata_ = NULL;
-
-  cyc_ = 0;
-
-  pc_ = 0;
-  sp_ = 0;
-
-  r_a_ = 0;
-  r_b_ = 0;
-  r_c_ = 0;
-  r_d_ = 0;
-  r_e_ = 0;
-  r_h_ = 0;
-  r_l_ = 0;
-
-  f_s_ = 0;
-  f_z_ = 0;
-  f_h_ = 0;
-  f_p_ = 0;
-  f_c_ = 0;
-  f_i_ = 0;
-
-  halted_ = 0;
-  interrupt_pending_ = 0;
-  interrupt_vector_ = 0;
-  interrupt_delay_ = 0;
 }
 
 // ========================================

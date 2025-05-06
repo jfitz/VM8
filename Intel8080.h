@@ -11,8 +11,10 @@ class Intel8080 {
   uint8_t (*read_byte)(void*, uint16_t); // user function to read from memory
   void (*write_byte)(void*, uint16_t, uint8_t); // same for writing to memory
 
-  uint8_t (*port_in)(void*, uint8_t); // user function to read from port
-  void (*port_out)(void*, uint8_t, uint8_t); // same for writing to port
+  // callback to supervisor to read from port
+  uint8_t (*supervisor_request_port_in)(void*, uint8_t);
+  // callback to supervisor for writing to port
+  void (*supervisor_request_port_out)(void*, uint8_t, uint8_t);
 
   void* userdata_; // user custom pointer
 
@@ -36,6 +38,13 @@ class Intel8080 {
   uint8_t interrupt_delay_;
 
  public:
+  // constructors
+  Intel8080();
+
+  // mutators
+  void init();
+  
+  // properties
   uint8_t r_c() const;
   uint8_t r_e() const;
   
@@ -55,8 +64,6 @@ class Intel8080 {
   void wb(uint16_t addr, uint8_t val);
   uint16_t rw(uint16_t addr);
   void ww(uint16_t addr, uint16_t val);
-
-  void init();
 
   void set_zsp_flags(uint8_t val);
   
