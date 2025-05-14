@@ -21,6 +21,8 @@ class Intel8080 {
   uint8_t (*supervisor_request_port_in_)(void*, uint8_t);
   // callback to supervisor for writing to port
   void (*supervisor_request_port_out_)(void*, uint8_t, uint8_t);
+  // callback to supervisor to halt
+  void (*supervisor_request_halt_)();
 
   uint16_t pc_;
   uint16_t sp_;
@@ -30,7 +32,6 @@ class Intel8080 {
 
   // flags: sign, zero, half-carry, parity, carry, interrupt flip-flop
   bool f_s_ : 1, f_z_ : 1, f_h_ : 1, f_p_ : 1, f_c_ : 1, f_i_ : 1;
-  bool halted_ : 1;
 
  public:
   bool interrupt_pending_ : 1;
@@ -41,7 +42,8 @@ class Intel8080 {
   // constructors
   Intel8080(
     uint8_t (*port_in)(void*, uint8_t),
-    void (*port_out)(void*, uint8_t, uint8_t)
+    void (*port_out)(void*, uint8_t, uint8_t),
+    void (*set_halted)()
   );
 
   // mutators

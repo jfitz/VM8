@@ -12,25 +12,44 @@
 #define MEMORY_SIZE 0x10000
 static uint8_t* memory__ = NULL;
 static bool test_finished__ = 0;
+static bool running__ = false;
 
+// ========================================
+//
+// ----------------------------------------
 static uint8_t rb(void* userdata, uint16_t addr) {
   return memory__[addr];
 }
 
+// ========================================
+//
+// ----------------------------------------
 static void wb(void* userdata, uint16_t addr, uint8_t val) {
   memory__[addr] = val;
 }
 
+// ========================================
+//
+// ----------------------------------------
+static void set_halted() {
+  running__ = false;
+  test_finished__ = 1;
+}
+
+// ========================================
+//
+// ----------------------------------------
 static uint8_t port_in(void* userdata, uint8_t port) {
   return 0x00;
 }
 
+// ========================================
+//
+// ----------------------------------------
 static void port_out(void* userdata, uint8_t port, uint8_t value) {
   Intel8080* const c = (Intel8080*) userdata;
 
-  if (port == 0) {
-    test_finished__ = 1;
-  } else if (port == 1) {
+  if (port == 1) {
     uint8_t operation = c->r_c();
 
     if (operation == 2) { // print a character stored in E
@@ -45,6 +64,9 @@ static void port_out(void* userdata, uint8_t port, uint8_t value) {
   }
 }
 
+// ========================================
+//
+// ----------------------------------------
 static inline int load_file(const char* filename, uint16_t addr) {
   FILE* f = fopen(filename, "rb");
   if (f == NULL) {
@@ -77,6 +99,9 @@ static inline int load_file(const char* filename, uint16_t addr) {
   return 0;
 }
 
+// ========================================
+//
+// ----------------------------------------
 static inline void run_test(
     Intel8080* const c, const char* filename, unsigned long cyc_expected) {
   c->init();
@@ -93,7 +118,7 @@ static inline void run_test(
   c->set_pc(0x100);
 
   // inject "out 0,a" at 0x0000 (signal to stop the test)
-  memory__[0x0000] = 0xD3;  // OUT
+  memory__[0x0000] = 0x76;  // HLT
   memory__[0x0001] = 0x00;
 
   // inject "out 1,a" at 0x0005 (signal to output some characters)
@@ -121,6 +146,9 @@ static inline void run_test(
       nb_instructions, c->cyc_, cyc_expected, diff);
 }
 
+// ========================================
+//
+// ----------------------------------------
 int main(void) {
   memory__ = (uint8_t*)malloc(MEMORY_SIZE);
   if (memory__ == NULL) {
@@ -129,12 +157,12 @@ int main(void) {
     return 1;
   }
 
-  Intel8080 cpu(port_in, port_out);
+  Intel8080 cpu(port_in, port_out, set_halted);
 
-  run_test(&cpu, "cpu_tests/TST8080.COM", 4924LU);
-  run_test(&cpu, "cpu_tests/CPUTEST.COM", 255653383LU);
-  run_test(&cpu, "cpu_tests/8080PRE.COM", 7817LU);
-  run_test(&cpu, "cpu_tests/8080EXM.COM", 23803381171LU);
+  run_test(&cpu, "cpu_tests/TST8080.COM", 4921LU);
+  run_test(&cpu, "cpu_tests/CPUTEST.COM", 255653380LU);
+  run_test(&cpu, "cpu_tests/8080PRE.COM", 7814LU);
+  run_test(&cpu, "cpu_tests/8080EXM.COM", 23803381168LU);
 
   free(memory__);
 

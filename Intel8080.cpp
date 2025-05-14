@@ -6,22 +6,22 @@
 // clang-format off
 static const uint8_t OPCODES_CYCLES[256] = {
 //  0  1   2   3   4   5   6   7   8  9   A   B   C   D   E  F
-    4, 10, 7,  5,  5,  5,  7,  4,  4, 10, 7,  5,  5,  5,  7, 4,  // 0
-    4, 10, 7,  5,  5,  5,  7,  4,  4, 10, 7,  5,  5,  5,  7, 4,  // 1
-    4, 10, 16, 5,  5,  5,  7,  4,  4, 10, 16, 5,  5,  5,  7, 4,  // 2
-    4, 10, 13, 5,  10, 10, 10, 4,  4, 10, 13, 5,  5,  5,  7, 4,  // 3
-    5, 5,  5,  5,  5,  5,  7,  5,  5, 5,  5,  5,  5,  5,  7, 5,  // 4
-    5, 5,  5,  5,  5,  5,  7,  5,  5, 5,  5,  5,  5,  5,  7, 5,  // 5
-    5, 5,  5,  5,  5,  5,  7,  5,  5, 5,  5,  5,  5,  5,  7, 5,  // 6
-    7, 7,  7,  7,  7,  7,  7,  7,  5, 5,  5,  5,  5,  5,  7, 5,  // 7
-    4, 4,  4,  4,  4,  4,  7,  4,  4, 4,  4,  4,  4,  4,  7, 4,  // 8
-    4, 4,  4,  4,  4,  4,  7,  4,  4, 4,  4,  4,  4,  4,  7, 4,  // 9
-    4, 4,  4,  4,  4,  4,  7,  4,  4, 4,  4,  4,  4,  4,  7, 4,  // A
-    4, 4,  4,  4,  4,  4,  7,  4,  4, 4,  4,  4,  4,  4,  7, 4,  // B
-    5, 10, 10, 10, 11, 11, 7,  11, 5, 10, 10, 10, 11, 17, 7, 11, // C
-    5, 10, 10, 10, 11, 11, 7,  11, 5, 10, 10, 10, 11, 17, 7, 11, // D
-    5, 10, 10, 18, 11, 11, 7,  11, 5, 5,  10, 4,  11, 17, 7, 11, // E
-    5, 10, 10, 4,  11, 11, 7,  11, 5, 5,  10, 4,  11, 17, 7, 11  // F
+    4, 10, 7,  5,  5,  5,  7,  4,  4, 10, 7,  5,  5,  5,  7, 4,  // 0x
+    4, 10, 7,  5,  5,  5,  7,  4,  4, 10, 7,  5,  5,  5,  7, 4,  // 1x
+    4, 10, 16, 5,  5,  5,  7,  4,  4, 10, 16, 5,  5,  5,  7, 4,  // 2x
+    4, 10, 13, 5,  10, 10, 10, 4,  4, 10, 13, 5,  5,  5,  7, 4,  // 3x
+    5, 5,  5,  5,  5,  5,  7,  5,  5, 5,  5,  5,  5,  5,  7, 5,  // 4x
+    5, 5,  5,  5,  5,  5,  7,  5,  5, 5,  5,  5,  5,  5,  7, 5,  // 5x
+    5, 5,  5,  5,  5,  5,  7,  5,  5, 5,  5,  5,  5,  5,  7, 5,  // 6x
+    7, 7,  7,  7,  7,  7,  7,  7,  5, 5,  5,  5,  5,  5,  7, 5,  // 7x
+    4, 4,  4,  4,  4,  4,  7,  4,  4, 4,  4,  4,  4,  4,  7, 4,  // 8x
+    4, 4,  4,  4,  4,  4,  7,  4,  4, 4,  4,  4,  4,  4,  7, 4,  // 9x
+    4, 4,  4,  4,  4,  4,  7,  4,  4, 4,  4,  4,  4,  4,  7, 4,  // Ax
+    4, 4,  4,  4,  4,  4,  7,  4,  4, 4,  4,  4,  4,  4,  7, 4,  // Bx
+    5, 10, 10, 10, 11, 11, 7,  11, 5, 10, 10, 10, 11, 17, 7, 11, // Cx
+    5, 10, 10, 10, 11, 11, 7,  11, 5, 10, 10, 10, 11, 17, 7, 11, // Dx
+    5, 10, 10, 18, 11, 11, 7,  11, 5, 5,  10, 4,  11, 17, 7, 11, // Ex
+    5, 10, 10, 4,  11, 11, 7,  11, 5, 5,  10, 4,  11, 17, 7, 11  // Fx
 };
 // clang-format on
 
@@ -61,15 +61,20 @@ static const char* DISASSEMBLE_TABLE[] = {
     "rst 6", "rm", "sphl", "jm $", "ei", "cm $", "ill", "cpi #", "rst 7"
 };
 
+// ========================================
+//
+// ----------------------------------------
 Intel8080::Intel8080(
   uint8_t (*port_in)(void*, uint8_t),
-  void (*port_out)(void*, uint8_t, uint8_t)
+  void (*port_out)(void*, uint8_t, uint8_t),
+  void (*set_halted)()
 )
 {
   read_byte = NULL;
   write_byte = NULL;
   supervisor_request_port_in_ = port_in;
   supervisor_request_port_out_ = port_out;
+  supervisor_request_halt_ = set_halted;
   userdata_ = NULL;
 
   init();
@@ -99,7 +104,6 @@ void Intel8080::init() {
   f_c_ = 0;
   f_i_ = 0;
 
-  halted_ = 0;
   interrupt_pending_ = 0;
   interrupt_vector_ = 0;
   interrupt_delay_ = 0;
@@ -729,13 +733,20 @@ void Intel8080::execute(uint8_t opcode) {
   case 0x39: op_dad(rp_sp()); break; // DAD SP
 
   case 0xF3: f_i_ = 0; break; // DI
-  case 0xFB:
+
+  case 0xFB: // EI
     f_i_ = 1;
     interrupt_delay_ = 1;
-    break; // EI
+    break;
 
   case 0x00: break; // NOP
-  case 0x76: halted_ = 1; break; // HLT
+
+  case 0x76: // HLT
+    if (supervisor_request_halt_ != NULL)
+    {
+      supervisor_request_halt_();
+    }
+    break;
 
   case 0x3C: r_a_ = inr(r_a_); break; // INR A
   case 0x04: r_b_ = inr(r_b_); break; // INR B
@@ -913,10 +924,9 @@ void Intel8080::exec_step() {
   if (interrupt_pending_ && f_i_ && interrupt_delay_ == 0) {
     interrupt_pending_ = 0;
     f_i_ = 0;
-    halted_ = 0;
 
     execute(interrupt_vector_);
-  } else if (!halted_) {
+  } else {
     execute(pc_next_byte());
   }
 }
