@@ -1,0 +1,5 @@
+# sample bytes file
+
+001 002 003
+0303 000 0100   # JMP label
+
