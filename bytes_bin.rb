@@ -37,8 +37,7 @@ File.open(output_filename, "wb") do |output|
     values.each do |value|
       print ' ' + value if options[:verbose]
       # convert each item to binary
-      c = value.to_i
-      c = value.to_i(8) if value[0] == '0'
+      c = value.to_i(0)
 
       # emit binary
       output.write([c].pack('c'))

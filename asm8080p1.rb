@@ -36,8 +36,7 @@ def make_opcodes_table(filename)
     opcode_text = words[1]
 
     # [1] must be numeric (octal, hex, dec)
-    opcode = opcode_text.to_i
-    opcode = opcode_text.to_i(8) if opcode_text[0] == '0'
+    opcode = opcode_text.to_i(0)
 
     # store
     opcodes[mnemonic] = opcode
