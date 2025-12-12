@@ -1,15 +1,5 @@
 require 'optparse'
 
-def to_bin(text)
-  return 0 if text.empty?
-  
-  return text.to_i(16) if text.start_with?('0x')
-  
-  return text.to_i(8) if text.start_with?('0')
-  
-  return text.to_i
-end
-
 def make_opcodes_table(filename)
   opcodes = {}
 
@@ -46,7 +36,8 @@ def make_opcodes_table(filename)
     opcode_text = words[1]
 
     # [1] must be numeric (octal, hex, dec)
-    opcode = to_bin(opcode_text)
+    opcode = opcode_text.to_i
+    opcode = opcode_text.to_i(8) if opcode_text[0] == '0'
 
     # store
     opcodes[mnemonic] = opcode

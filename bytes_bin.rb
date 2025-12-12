@@ -1,15 +1,5 @@
 require 'optparse'
 
-def to_bin(text)
-  return 0 if text.empty?
-  
-  return text.to_i(16) if text.start_with?('0x')
-  
-  return text.to_i(8) if text.start_with?('0')
-  
-  return text.to_i
-end
-
 options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: ruby my_app_options.rb [options]"
@@ -47,7 +37,8 @@ File.open(output_filename, "wb") do |output|
     values.each do |value|
       print ' ' + value if options[:verbose]
       # convert each item to binary
-      c = to_bin(value)
+      c = value.to_i
+      c = value.to_i(8) if value[0] == '0'
 
       # emit binary
       output.write([c].pack('c'))
