@@ -1,77 +1,90 @@
-def make_opcodes_table
-  opcodes =
-  {
-    'NOP' => 0,
-    'LXIB' => 1,
-    'STAXB' => 2,
-    'INXB' => 3,
-    'INRB' => 4,
-    'DCRB' => 5,
-    'MVIB' => 6,
-    'RLC' => 7,
+require 'optparse'
 
-    'DADB' => 011,
-    'LDAXB' => 012,
-    'DCXB' => 013,
-    'INRC' => 014,
-    'DCRC' => 015,
-    'MVIC' => 016,
-    'RRC' => 017,
-
-    'LXID' => 021,
-    'STAXD' => 022,
-    'INXD' => 023,
-    'INRD' => 024,
-    'DCRD' => 025,
-    'MVID' => 026,
-    'RAL' => 027,
-
-    'DADD' => 031,
-    'LDAXD' => 032,
-    'DCXD' => 033,
-    'INRE' => 034,
-    'DCRE' => 035,
-    'MVIE' => 036,
-    'RAR' => 037,
-
-    'LXIH' => 041,
-    'SHLD' => 042,
-    'INXH' => 043,
-    'INRH' => 044,
-    'DCRH' => 045,
-    'MVIH' => 046,
-    'DAA' => 047,
-
-    'DADH' => 051,
-    'LHLD' => 052,
-    'DCXH' => 053,
-    'INRL' => 054,
-    'DCRL' => 055,
-    'MVIL' => 056,
-    'CMA' => 057,
-
-    'LXISP' => 061,
-    'STA' => 062,
-    'INXSP' => 063,
-    'INRM' => 064,
-    'DCRM' => 065,
-    'MVIM' => 066,
-    'STC' => 067,
-
-    'DADSP' => 071,
-    'LDA' => 072,
-    'DCXSP' => 073,
-    'INRA' => 074,
-    'DCRA' => 075,
-    'MVIA' => 076,
-    'CMC' => 077,
-
-
-    'HLT' => 0114
-  }
+def to_bin(text)
+  return 0 if text.empty?
+  
+  return text.to_i(16) if text.start_with?('0x')
+  
+  return text.to_i(8) if text.start_with?('0')
+  
+  return text.to_i
 end
 
-opcodes_table = make_opcodes_table
+def make_opcodes_table(filename)
+  opcodes = {}
+
+  File.foreach(filename) do |line|
+    # split on #
+    parts = line.split('#')
+    next if parts[0].size == 0
+
+    text = parts[0].chomp
+    next if text.empty?
+
+    words = text.split
+
+    # must have 2
+    if words.count != 2
+      puts 'Bad opcode spec: ' + text
+      exit
+    end
+
+    mnemonic = words[0]
+    # [0] must start with alpha
+    char = mnemonic[0]
+    unless char.match?(/[A-Za-z]/)
+      puts 'Bad mnemonic: ' + mnemonic
+      exit
+    end
+    
+    # check no duplicate
+    if opcodes.key?(mnemonic)
+      puts 'Duplicate mnemonic: ' + mnemonic
+      exit
+    end
+
+    opcode_text = words[1]
+
+    # [1] must be numeric (octal, hex, dec)
+    opcode = to_bin(opcode_text)
+
+    # store
+    opcodes[mnemonic] = opcode
+  end
+  
+  opcodes
+end
+
+options = {}
+OptionParser.new do |opts|
+  opts.banner = "Usage: ruby my_app_options.rb [options]"
+
+  opts.on("-o", "--opcodes NAME", "File name for opcodes table") do |v|
+    options[:opcodes_name] = v
+  end
+
+  opts.on("-l", "--labels NAME", "File name for label values") do |v|
+    options[:labels_name] = v
+  end
+
+  opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+    options[:verbose] = v
+  end
+
+  opts.on("-h", "--help", "Prints this help") do
+    puts opts
+    exit
+  end
+end.parse!
+
+opcodes_table_filename = options[:opcodes_name]
+
+if opcodes_table_filename.nil?
+  puts "opcodes table required"
+  exit
+end
+
+opcodes_table = make_opcodes_table(opcodes_table_filename)
 
 # for each line in input
 while line = gets
