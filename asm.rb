@@ -62,14 +62,12 @@ def parse_asm_line(asm_text)
   mnems = big_mnemonic.split(',')
   big_mnemonic = mnems[0]
   arg_text = ''
-  arg_value = 0
 
   if mnems.size > 1
     arg_text = mnems[1]
-    arg_value = 0 # do lookup in pass 2
   end
   
-  return label, big_mnemonic, arg_text, arg_value
+  return label, big_mnemonic, arg_text
 end
 
 def format_octal_byte(n)
@@ -207,7 +205,10 @@ while line = gets
   comment = ''
   comment = split_line[1] if split_line.size > 1
 
-  label, mnemonic, arg_text, arg_value = parse_asm_line(asm_text)
+  label, mnemonic, arg_text = parse_asm_line(asm_text)
+
+  arg_value = 0
+  arg_value = 0 # do lookup in pass 2
 
   if mnemonic.nil?
     print format_nongen_output(label, comment, address, verbose)
