@@ -1,9 +1,10 @@
 # CP/M kernel
 	NOP
+start
 label	NOP
 	INX B
 	LXI H, TPA	# start of user program
-	HLT
+label2	HLT
 	MVI A,
 	MVI A,5
 	

@@ -48,6 +48,30 @@ def make_opcodes_table(filename)
   opcodes
 end
 
+def parse_asm_line(asm_text)
+  # force a first item for the split
+  asm_text = ':' + asm_text if asm_text.match(/^\s/) 
+  items = asm_text.split
+
+  # drop the forced item to make 'label' empty string
+  label = ''
+  label = items[0] if items.size > 0 && items[0] != ':'
+
+  items.shift
+  big_mnemonic = items.join
+  mnems = big_mnemonic.split(',')
+  big_mnemonic = mnems[0]
+  arg_text = ''
+  arg_value = 0
+
+  if mnems.size > 1
+    arg_text = mnems[1]
+    arg_value = 0 # do lookup in pass 2
+  end
+  
+  return label, big_mnemonic, arg_text, arg_value
+end
+
 options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: ruby my_app_options.rb [options]"
@@ -92,47 +116,46 @@ while line = gets
 
   asm_text = ''
   asm_text = split_line[0] if split_line.size > 0
+
   comment = ''
   comment = split_line[1] if split_line.size > 1
 
-  asm_text = ':' + asm_text if asm_text.match(/^\s/) 
-  items = asm_text.split
-  
-  label = ''
-  label = items[0] if items.size > 0 && items[0] != ':'
+  label, mnemonic, arg_text, arg_value = parse_asm_line(asm_text)
 
-  items.shift
-  big_mnemonic = items.join
-  mnems = big_mnemonic.split(',')
-  big_mnemonic = mnems[0]
-  arg_text = ''
-  arg_value = 0
-  if mnems.size > 1
-    arg_text = mnems[1]
-    arg_value = 0 # do lookup in pass 2
-  end
-
-  mnemonic = ''
-  mnemonic = big_mnemonic if items.size > 0
+  opcode_spec = opcodes_table[mnemonic] 
   
-  opcode_spec = opcodes_table[mnemonic] || { 'op' => 0, 'sz' => 0 } 
-  opcode = opcode_spec['op']
-  arg_size = opcode_spec['sz'] || 0
-  
-  if mnemonic.size > 0
-    if opcode.nil?
-      puts 'Unknown mnemonic: ' + big_mnemonic
-    else
-      print "%#06o" % address + ': ' if verbose
-      print "%#03o " % opcode
-      print "%#03o " % 0 if arg_size > 0
-      print "%#03o " % 0 if arg_size > 1
-      print '# ' + label + ' ' + big_mnemonic
-      print ', ' + arg_text if arg_text.size > 0
-      
-      address += 1
-      address += arg_size
+  if mnemonic.nil?
+    print "%#06o" % address + ': ' if verbose
+    print '               # ' + label
+  else
+    if opcode_spec.nil?
+      puts 'Unknown mnemonic: ' + mnemonic
+      exit
     end
+
+    opcode = opcode_spec['op']
+    arg_size = opcode_spec['sz'] || 0
+
+    print "%#06o" % address + ': ' if verbose
+    print "%04o " % opcode
+
+    if arg_size > 0
+      print "%04o " % 0
+    else
+      print "     "
+    end
+    
+    if arg_size > 1
+      print "%04o " % 0
+    else
+      print "     "
+    end
+    
+    print '# ' + label.ljust(8) + ' ' + mnemonic
+    print ', ' + arg_text if arg_text.size > 0
+
+    address += 1
+    address += arg_size
   end
 
   print ' #' + comment if comment.size > 0
