@@ -80,7 +80,7 @@ end
 opcodes_table = make_opcodes_table(opcodes_table_filename)
 
 verbose = options[:verbose]
-pc = 0
+address = 0
 
 # for each line in input
 while line = gets
@@ -123,15 +123,15 @@ while line = gets
     if opcode.nil?
       puts 'Unknown mnemonic: ' + big_mnemonic
     else
-      print "%#06o" % pc + ': ' if verbose
+      print "%#06o" % address + ': ' if verbose
       print "%#03o " % opcode
       print "%#03o " % 0 if arg_size > 0
       print "%#03o " % 0 if arg_size > 1
       print '# ' + label + ' ' + big_mnemonic
       print ', ' + arg_text if arg_text.size > 0
       
-      pc += 1
-      pc += arg_size
+      address += 1
+      address += arg_size
     end
   end
 
