@@ -13,8 +13,8 @@ def make_opcodes_table(filename)
 
     words = text.split
 
-    # must have 2
-    if words.count != 2
+    # must have 2 or 3
+    if words.count > 3
       puts 'Bad opcode spec: ' + text
       exit
     end
@@ -38,8 +38,11 @@ def make_opcodes_table(filename)
     # [1] must be numeric (octal, hex, dec)
     opcode = opcode_text.to_i(0)
 
+    # [2] if exists must be numeric
+    argcount = words[2].to_i || 0
+
     # store
-    opcodes[mnemonic] = opcode
+    opcodes[mnemonic] = { 'op' => opcode, 'sz' => argcount }
   end
   
   opcodes
@@ -76,6 +79,9 @@ end
 
 opcodes_table = make_opcodes_table(opcodes_table_filename)
 
+verbose = options[:verbose]
+pc = 0
+
 # for each line in input
 while line = gets
   chomped = line.chomp
@@ -99,29 +105,36 @@ while line = gets
   big_mnemonic = items.join
   mnems = big_mnemonic.split(',')
   big_mnemonic = mnems[0]
-  arg = ''
+  arg_text = ''
+  arg_value = 0
   if mnems.size > 1
-    arg = mnems[1]
+    arg_text = mnems[1]
+    arg_value = 0 # do lookup in pass 2
   end
 
   mnemonic = ''
   mnemonic = big_mnemonic if items.size > 0
   
-  opcode = 0
-  opcode = opcodes_table[mnemonic] if opcodes_table.key?(mnemonic)
+  opcode_spec = opcodes_table[mnemonic] || { 'op' => 0, 'sz' => 0 } 
+  opcode = opcode_spec['op']
+  arg_size = opcode_spec['sz'] || 0
   
   if mnemonic.size > 0
     if opcode.nil?
       puts 'Unknown mnemonic: ' + big_mnemonic
     else
-      print "%#03o" % opcode + ' # '
-      print label + ' ' + big_mnemonic
-      print ', ' + arg if arg.size > 0
-      print '# ' + comment if comment.size > 0
-      puts
+      print "%#06o" % pc + ': ' if verbose
+      print "%#03o " % opcode
+      print "%#03o " % 0 if arg_size > 0
+      print "%#03o " % 0 if arg_size > 1
+      print '# ' + label + ' ' + big_mnemonic
+      print ', ' + arg_text if arg_text.size > 0
+      
+      pc += 1
+      pc += arg_size
     end
-  else
-    print '# ' + comment if comment.size > 0
-    puts
   end
+
+  print ' #' + comment if comment.size > 0
+  puts
 end
