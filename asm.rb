@@ -72,6 +72,30 @@ def parse_asm_line(asm_text)
   return label, big_mnemonic, arg_text, arg_value
 end
 
+def format_octal_byte(n)
+  s = ''
+  
+  if n.nil?
+    s = '    '
+  else
+    s = ("%#03o" % n).rjust(4)
+  end
+  
+  s
+end
+
+def format_octal_word(n)
+  s = ''
+  
+  if n.nil?
+    s = '    '
+  else
+    s = ("%#06o" % n).rjust(7)
+  end
+  
+  s
+end
+
 options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: ruby my_app_options.rb [options]"
@@ -125,7 +149,7 @@ while line = gets
   opcode_spec = opcodes_table[mnemonic] 
   
   if mnemonic.nil?
-    print "%#06o" % address + ': ' if verbose
+    print format_octal_word(address) + ': ' if verbose
     print '               # ' + label
   else
     if opcode_spec.nil?
@@ -136,21 +160,27 @@ while line = gets
     opcode = opcode_spec['op']
     arg_size = opcode_spec['sz'] || 0
 
-    print "%#06o" % address + ': ' if verbose
-    print "%04o " % opcode
+    print format_octal_word(address) + ': ' if verbose
+    print format_octal_byte(opcode)
+
+    print ' '
 
     if arg_size > 0
-      print "%04o " % 0
+      print format_octal_byte(arg_value % 256)
     else
-      print "     "
+      print format_octal_byte(nil)
     end
+    
+    print ' '
     
     if arg_size > 1
-      print "%04o " % 0
+      print format_octal_byte(arg_value / 256)
     else
-      print "     "
+      print format_octal_byte(nil)
     end
     
+    print ' '
+
     print '# ' + label.ljust(8) + ' ' + mnemonic
     print ', ' + arg_text if arg_text.size > 0
 
