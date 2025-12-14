@@ -6,6 +6,7 @@ label	NOP
 
 	LXI H, TPA	# start of user program
 label2	HLT
-	MVI A,
+loop	MVI A,
 	MVI A,5
+	JMP loop
 	

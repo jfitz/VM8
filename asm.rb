@@ -48,26 +48,45 @@ def make_opcodes_table(filename)
   opcodes
 end
 
-def parse_asm_line(asm_text)
+def split_mnemonic(text, opcodes)
+  return nil, '' if text.nil?
+
+  # skip spaces, commas
+  condensed = text.tr(' ,','')
+
+  # look for the longest match
+  best_candidate = ''
+  best_remaining = ''
+  
+  1.upto(10) do |n|
+    candidate = condensed[0..n]
+    remaining = condensed[n+1..-1]
+
+    if opcodes.include?(candidate)
+      best_candidate = candidate
+      best_remaining = remaining
+    end
+  end
+
+  return best_candidate, best_remaining unless best_candidate.empty?
+
+  # did not find opcode
+  return nil, text
+end
+
+def parse_asm_line(asm_text, opcodes)
   # force a first item for the split
   asm_text = ':' + asm_text if asm_text.match(/^\s/) 
-  items = asm_text.split
+  items = asm_text.split(' ', 2)
 
   # drop the forced item to make 'label' empty string
-  label = ''
+  label = nil
   label = items[0] if items.size > 0 && items[0] != ':'
 
-  items.shift
-  big_mnemonic = items.join
-  mnems = big_mnemonic.split(',')
-  big_mnemonic = mnems[0]
-  arg_text = ''
+  mnemonic = items[1]
+  mnemonic, arg_text = split_mnemonic(mnemonic, opcodes)
 
-  if mnems.size > 1
-    arg_text = mnems[1]
-  end
-  
-  return label, big_mnemonic, arg_text
+  return label, mnemonic, arg_text
 end
 
 def format_octal_byte(n)
@@ -119,8 +138,16 @@ def format_generated_bytes(opcode, arg_size, arg_value)
 end
 
 def format_asm_line(label, mnemonic, arg_text)
-  s = '# ' + label.ljust(8) + ' ' + mnemonic
-  s += ', ' + arg_text if arg_text.size > 0
+  s = '# '
+  
+  if label.nil?
+    s += '        '
+  else
+    s += label.ljust(8)
+  end
+
+  s += ' ' + mnemonic
+  s += ', ' + arg_text unless arg_text.nil?
   
   s
 end
@@ -142,7 +169,7 @@ end
 def format_nongen_output(label, comment, address, verbose)
   s = ''
   
-  if label.empty?
+  if label.nil?
     # no label means no address, just spaces (and only then if a comment)
     if comment.size > 0
       s += '         ' if verbose
@@ -190,6 +217,7 @@ opcodes_table = make_opcodes_table(opcodes_table_filename)
 
 verbose = options[:verbose]
 address = 0
+labels = {}
 
 # for each line in input
 while line = gets
@@ -205,7 +233,11 @@ while line = gets
   comment = ''
   comment = split_line[1] if split_line.size > 1
 
-  label, mnemonic, arg_text = parse_asm_line(asm_text)
+  label, mnemonic, arg_text = parse_asm_line(asm_text, opcodes_table.keys)
+
+  unless label.nil?
+    labels[label] = address
+  end
 
   arg_value = 0
   arg_value = 0 # do lookup in pass 2
@@ -234,3 +266,9 @@ while line = gets
 
   puts
 end
+
+# for pass 1, print labels and values 
+labels.each do |label, address|
+  puts label + ': ' + format_octal_word(address)
+end
+
