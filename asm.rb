@@ -147,8 +147,17 @@ def format_asm_line(label, mnemonic, arg_text)
     s += label.ljust(8)
   end
 
-  s += ' ' + mnemonic
-  s += ', ' + arg_text unless arg_text.empty?
+  s += ' ' + mnemonic.sub(' ', "\t")
+
+  unless arg_text.empty?
+    if mnemonic.include?(' ')
+      s += ','
+    else
+      s += "\t"
+    end
+
+    s += arg_text
+  end
   
   s
 end
