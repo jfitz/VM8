@@ -11,7 +11,7 @@ def make_opcodes_table(filename)
     text = parts[0].chomp
     next if text.empty?
 
-    words = text.split
+    words = text.split("\t")
 
     # must have 2 or 3
     if words.count > 3
@@ -48,43 +48,44 @@ def make_opcodes_table(filename)
   opcodes
 end
 
-def split_mnemonic(text, opcodes)
-  return nil, '' if text.nil?
+def split_mnemonic(tokens, opcodes)
+  return nil, '' if tokens.nil?
+  return nil, '' if tokens.empty?
 
-  # skip spaces, commas
-  condensed = text.tr(' ,','')
+  # look for an entry in table that has all tokens that match beginning of line
+  opcodes.each do |big_mnemonic|
+    mnem_tokens = big_mnemonic.split
+    mnem_size = mnem_tokens.size
 
-  # look for the longest match
-  best_candidate = ''
-  best_remaining = ''
-  
-  1.upto(10) do |n|
-    candidate = condensed[0..n]
-    remaining = condensed[n+1..-1]
+    lim_text_tokens = tokens[0..mnem_size-1]
 
-    if opcodes.include?(candidate)
-      best_candidate = candidate
-      best_remaining = remaining
+#    puts 'BIG_M: ' + big_mnemonic + ' mnem_tokens: ' + mnem_tokens.to_s + ' mnem_size: ' + mnem_size.to_s
+#    puts 'tokens: ' + tokens.to_s + ' lim_text_tokens: ' + lim_text_tokens.to_s
+
+    if lim_text_tokens == mnem_tokens
+      arg_tokens = tokens[mnem_size..-1]
+
+      return big_mnemonic, arg_tokens.join
     end
   end
 
-  return best_candidate, best_remaining unless best_candidate.empty?
-
   # did not find opcode
-  return nil, text
+  puts 'did not match ' + tokens.to_s
+
+  return nil, ''
 end
 
 def parse_asm_line(asm_text, opcodes)
   # force a first item for the split
   asm_text = ':' + asm_text if asm_text.match(/^\s/) 
-  items = asm_text.split(' ', 2)
-
+  tokens = asm_text.split(/[\s\,]/).reject(&:empty?)
+  
   # drop the forced item to make 'label' empty string
   label = nil
-  label = items[0] if items.size > 0 && items[0] != ':'
+  label = tokens[0] if tokens.size > 0 && tokens[0] != ':'
 
-  mnemonic = items[1]
-  mnemonic, arg_text = split_mnemonic(mnemonic, opcodes)
+  tokens.shift   # remove label
+  mnemonic, arg_text = split_mnemonic(tokens, opcodes)
 
   return label, mnemonic, arg_text
 end
@@ -147,7 +148,7 @@ def format_asm_line(label, mnemonic, arg_text)
   end
 
   s += ' ' + mnemonic
-  s += ', ' + arg_text unless arg_text.nil?
+  s += ', ' + arg_text unless arg_text.empty?
   
   s
 end
