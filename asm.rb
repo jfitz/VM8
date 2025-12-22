@@ -54,7 +54,7 @@ def split_mnemonic(tokens, opcodes)
 
   # look for an entry in table that has all tokens that match beginning of line
   opcodes.each do |big_mnemonic|
-    mnem_tokens = big_mnemonic.split
+    mnem_tokens = big_mnemonic.split(/[\s\,]/).reject(&:empty?)
     mnem_size = mnem_tokens.size
 
     lim_text_tokens = tokens[0..mnem_size-1]
@@ -73,6 +73,16 @@ def split_mnemonic(tokens, opcodes)
   puts 'did not match ' + tokens.to_s
 
   return nil, ''
+end
+
+def parse_directive_line(asm_text)
+  parts = asm_text.split
+  
+  directive = parts[0]
+  arg_text = ''
+  arg_text = parts[1] if parts.size > 0
+  
+  return directive, arg_text
 end
 
 def parse_asm_line(asm_text, opcodes)
@@ -243,32 +253,48 @@ while line = gets
   comment = ''
   comment = split_line[1] if split_line.size > 1
 
-  label, mnemonic, arg_text = parse_asm_line(asm_text, opcodes_table.keys)
+  unless asm_text.empty?
+    if asm_text[0] == '.'
+      # process directive
+      directive, arg_text = parse_directive_line(asm_text)
+      
+      if directive == '.address'
+        address = arg_text.to_i(0)
+        
+        print directive + "\t" + arg_text
+      else
+        puts 'unknown directive ' + directive
+      end
+    else
+      # process code
+      label, mnemonic, arg_text = parse_asm_line(asm_text, opcodes_table.keys)
 
-  unless label.nil?
-    labels[label] = address
-  end
+      unless label.nil?
+        labels[label] = address
+      end
 
-  arg_value = 0
-  arg_value = 0 # do lookup in pass 2
+      arg_value = 0
+      arg_value = 0 # do lookup in pass 2
 
-  if mnemonic.nil?
-    print format_nongen_output(label, comment, address, verbose)
-  else
-    opcode_spec = opcodes_table[mnemonic]
+      if mnemonic.nil?
+        print format_nongen_output(label, comment, address, verbose)
+      else
+        opcode_spec = opcodes_table[mnemonic]
 
-    if opcode_spec.nil?
-      puts 'Unknown mnemonic: ' + mnemonic
-      exit
+        if opcode_spec.nil?
+          puts 'Unknown mnemonic: ' + mnemonic
+          exit
+        end
+
+        opcode = opcode_spec['op']
+        arg_size = opcode_spec['sz'] || 0
+
+        print format_output(address, opcode, arg_size, arg_value, label, mnemonic, arg_text, verbose)
+
+        address += 1
+        address += arg_size
+      end
     end
-
-    opcode = opcode_spec['op']
-    arg_size = opcode_spec['sz'] || 0
-
-    print format_output(address, opcode, arg_size, arg_value, label, mnemonic, arg_text, verbose)
-
-    address += 1
-    address += arg_size
   end
 
   # print comment (if any)
