@@ -1,0 +1,4 @@
+# log	phys	readfile	writefile
+CN:	TT0:	stdin		stdout
+LP:	TT1:	/dev/nul	printer.txt
+
