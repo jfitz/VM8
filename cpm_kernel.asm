@@ -9,7 +9,7 @@ DISPATCH
     LXI H,TABLE
     CPI C,TABLE_CT
     JP  CMD_ERR
-    MOV B,0
+    MVI B,0
     DAD B
     PCHL
     
@@ -30,7 +30,7 @@ CON_OUT
     RET
 
 # console output line
-CON_OUT
+CON_OUTS
     OUT 9
     RET
 
@@ -46,6 +46,6 @@ TABLE
 .dw 0           # 0x08
 .dw CON_OUTS    # 0x09
 
-.equate TABLE_SZ    .-TABLE
-.equate TABLE_CT    TABLE_SZ/2
+.equate TABLE_SZ    .address TABLE -
+.equate TABLE_CT    TABLE_SZ 2 /
 
