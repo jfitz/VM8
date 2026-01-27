@@ -276,7 +276,14 @@ def op_add(a, b)
   # abs + rel => rel
   # rel + abs => rel
   # rel + rel => error
-  a + b
+
+  raise Exception('two rel values for plus') if a.is_rel && b.is_rel
+
+  is_rel = false
+  is_rel = true if a.is_rel
+  is_rel = true if b.is_rel
+
+  AbsRelValue.new(a.value + b.value, is_rel)
 end
 
 def op_subtract(a, b)
@@ -284,7 +291,11 @@ def op_subtract(a, b)
   # abs - rel => rel
   # rel - abs => rel
   # rel - rel => abs
-  a - b
+
+  is_rel = false
+  is_rel = true if a.is_rel != b.is_rel
+
+  AbsRelValue.new(a.value - b.value, is_rel)
 end
 
 def op_multiply(a, b)
@@ -292,7 +303,12 @@ def op_multiply(a, b)
   # abs * rel => error
   # rel * abs => error
   # rel * rel => error
-  a * b
+
+  raise Exception('two rel values for multiply') if a.is_rel || b.is_rel
+
+  is_rel = false
+
+  AbsRelValue.new(a.value * b.value, is_rel)
 end
 
 def op_divide(a, b)
@@ -301,16 +317,22 @@ def op_divide(a, b)
   # abs / rel => error
   # rel / abs => error
   # rel / rel => error
-  a / b
+
+  raise Exception('two rel values for divide') if a.is_rel || b.is_rel
+
+  is_rel = false
+
+  AbsRelValue.new(a.value / b.value, is_rel)
 end
 
-def eval_rpn(tokens, address, labels, equates, symbols)
+def eval_rpn(tokens, address, symbols)
   # return a list of values
   values = []
   
   tokens.each do |token|
     case token
     when '+'
+      # check at least two values
       # pop two values
       b = values.pop
       a = values.pop
@@ -319,6 +341,7 @@ def eval_rpn(tokens, address, labels, equates, symbols)
       # push result
       values << result
     when '-'
+      # check at least two values
       # pop two values
       b = values.pop
       a = values.pop
@@ -327,6 +350,7 @@ def eval_rpn(tokens, address, labels, equates, symbols)
       # push result
       values << result
     when '*'
+      # check at least two values
       # pop two values
       b = values.pop
       a = values.pop
@@ -335,6 +359,7 @@ def eval_rpn(tokens, address, labels, equates, symbols)
       # push result
       values << result
     when '/'
+      # check at least two values
       # pop two values
       b = values.pop
       a = values.pop
@@ -346,17 +371,14 @@ def eval_rpn(tokens, address, labels, equates, symbols)
       # convert
       value = token.to_i(0)
       # push
-      values << value
+      values << AbsRelValue.new(value, false)
     when /\A[A-Z][A-Z0-9_]*\z/
       # look up value
-      value = labels[token]
-      if value.nil?
-        value = equates[token]
-      end
+      value = symbols[token]
       # push
       values << value
     when '.address'
-      values << address
+      values << AbsRelValue.new(address, true)
     else
       puts "unknown token: '" + token + "'"
     end
@@ -403,10 +425,10 @@ end
 
 verbose = options[:verbose]
 address = 0
-labels = {}
-equates = {}
 symbols = {}
 references = {}
+
+puts '.relocatable'
 
 puts '.code'
 
@@ -444,12 +466,10 @@ while line = gets
         label = parts.shift
         puts "\t\t\t# " + directive + "\t" + label + "\t" + parts.to_s
         # evaluate expression in RPN
-        values = eval_rpn(parts, address, labels, equates, symbols)
+        values = eval_rpn(parts, address, symbols)
         value = values[0]
         # store value in equates table (check for inconsistency)
-        equates[label] = value
-        abs_rel_value = AbsRelValue.new(value, false)
-        symbols[label] = abs_rel_value
+        symbols[label] = value
       when '.dw'
         # parse expression
         puts "\t\t\t# " + directive + "\t" + parts.to_s
@@ -466,11 +486,7 @@ while line = gets
       # process code
       label, mnemonic, arg_text = parse_asm_line(asm_text, opcodes_table.keys)
 
-      unless label.nil?
-        labels[label] = address
-        value = AbsRelValue.new(address, true)
-        symbols[label] = value
-      end
+      symbols[label] = AbsRelValue.new(address, true) unless label.nil?
 
       arg_value = 0
 
