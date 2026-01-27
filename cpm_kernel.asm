@@ -14,7 +14,7 @@ CMD_ERR
 
 # program exit
 C_EXIT
-	RET
+    RET
 
 # console input char
 CON_C_IN
@@ -31,16 +31,16 @@ CON_S_OUT
     RET
 
 TABLE
-.dw C_EXIT      # 0x00
-.dw CON_C_IN    # 0x01
-.dw CON_C_OUT   # 0x02
-.dw 0           # 0x03
-.dw 0           # 0x04
-.dw 0           # 0x05
-.dw 0           # 0x06
-.dw 0           # 0x07
-.dw 0           # 0x08
-.dw CON_S_OUT   # 0x09
+.word	C_EXIT      # 0x00
+.word	CON_C_IN    # 0x01
+.word	CON_C_OUT   # 0x02
+.word	0           # 0x03
+.word	0           # 0x04
+.word	0           # 0x05
+.word	0           # 0x06
+.word	0           # 0x07
+.word	0           # 0x08
+.word	CON_S_OUT   # 0x09
 
 .equate TABLE_SZ    .address TABLE -
 .equate TABLE_CT    TABLE_SZ 2 /

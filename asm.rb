@@ -10,6 +10,10 @@ class AbsRelValue
     @value = value
     @is_rel = is_rel
   end
+
+  def two_bytes
+    [@value % 256, @value / 256]
+  end
 end
 
 def make_opcodes_table(filename)
@@ -432,6 +436,8 @@ puts '.relocatable'
 
 puts '.code'
 
+word_count = 0
+
 # for each line in input
 while line = gets
   chomped = line.chomp
@@ -470,15 +476,26 @@ while line = gets
         value = values[0]
         # store value in equates table (check for inconsistency)
         symbols[label] = value
-      when '.dw'
+      when '.word'
         # parse expression
         puts "\t\t\t# " + directive + "\t" + parts.to_s
         # evaluate parts as RPN
-        value = 0
+        values = eval_rpn(parts, address, symbols)
+        value = values[0]
         # gen 2 bytes (low byte first)
-        values = [value % 256, value / 256]
-        print format_bytes_output(address, values, verbose)
-        address += values.size
+        bytes = value.two_bytes
+        print format_bytes_output(address, bytes, verbose)
+        if value.is_rel
+          if parts.size == 1
+            label = parts[0]
+          else
+            label = 'word_' + word_count.to_s
+          end
+          symbols[label] = value
+          references[address] = label
+        end
+        address += values.size * 2
+        word_count += 1
       else
         puts 'unknown directive'
       end
