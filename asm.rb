@@ -1,5 +1,17 @@
 require 'optparse'
 
+class AbsRelValue
+  attr_reader :value, :is_rel
+
+  def initialize(value, is_rel)
+    # value is numeric
+    # is_rel.is_a?(TrueClass) || is_rel.is_a?(FalseClass)
+
+    @value = value
+    @is_rel = is_rel
+  end
+end
+
 def make_opcodes_table(filename)
   opcodes = {}
 
@@ -48,9 +60,10 @@ def make_opcodes_table(filename)
   opcodes
 end
 
-def read_labels_file(filename)
+def read_symbols_file(filename)
   labels = {}
   equates = {}
+  symbols = {}
 
   File.foreach(filename) do |line|
     # split on #
@@ -69,15 +82,23 @@ def read_labels_file(filename)
     end
     
     if words[0] == '.label'
-      labels[words[1]] = words[2].to_i(0)
+      symbol = words[1]
+      value = words[2].to_i(0)
+      labels[symbol] = value
+      abs_rel_value = AbsRelValue.new(value, true)
+      symbols[symbol] = abs_rel_value
     end
     
     if words[0] == '.equate'
-      equates[words[1]] = words[2].to_i(0)
+      symbol = words[1]
+      value = words[2].to_i(0)
+      equates[words[1]] = value
+      abs_rel_value = AbsRelValue.new(value, false)
+      symbols[symbol] = abs_rel_value
     end
   end
   
-  [labels, equates]
+  [labels, equates, symbols]
 end
 
 def split_mnemonic(tokens, opcodes)
@@ -250,7 +271,40 @@ def format_bytes_output(address, values, verbose)
   s
 end
 
-def eval_rpn(tokens, address, labels, equates)
+def op_add(a, b)
+  # abs + abs => abs
+  # abs + rel => rel
+  # rel + abs => rel
+  # rel + rel => error
+  a + b
+end
+
+def op_subtract(a, b)
+  # abs - abs => abs
+  # abs - rel => rel
+  # rel - abs => rel
+  # rel - rel => abs
+  a - b
+end
+
+def op_multiply(a, b)
+  # abs * abs => abs
+  # abs * rel => error
+  # rel * abs => error
+  # rel * rel => error
+  a * b
+end
+
+def op_divide(a, b)
+  # check for divide by zero
+  # abs / abs => abs
+  # abs / rel => error
+  # rel / abs => error
+  # rel / rel => error
+  a / b
+end
+
+def eval_rpn(tokens, address, labels, equates, symbols)
   # return a list of values
   values = []
   
@@ -261,7 +315,7 @@ def eval_rpn(tokens, address, labels, equates)
       b = values.pop
       a = values.pop
       # execute
-      result = a + b
+      result = op_add(a, b)
       # push result
       values << result
     when '-'
@@ -269,7 +323,7 @@ def eval_rpn(tokens, address, labels, equates)
       b = values.pop
       a = values.pop
       # execute
-      result = a - b
+      result = op_subtract(a, b)
       # push result
       values << result
     when '*'
@@ -277,7 +331,7 @@ def eval_rpn(tokens, address, labels, equates)
       b = values.pop
       a = values.pop
       # execute
-      result = a * b
+      result = op_multiply(a, b)
       # push result
       values << result
     when '/'
@@ -285,7 +339,7 @@ def eval_rpn(tokens, address, labels, equates)
       b = values.pop
       a = values.pop
       # execute
-      result = a / b
+      result = op_divide(a, b)
       # push result
       values << result
     when /^\d+$/
@@ -319,8 +373,8 @@ OptionParser.new do |opts|
     options[:opcodes_name] = v
   end
 
-  opts.on("-l", "--labels NAME", "File name for label values") do |v|
-    options[:labels_name] = v
+  opts.on("-l", "--symbols NAME", "File name for symbol values") do |v|
+    options[:symbols_name] = v
   end
 
   opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
@@ -334,7 +388,7 @@ OptionParser.new do |opts|
 end.parse!
 
 opcodes_table_filename = options[:opcodes_name]
-labels_filename = options[:labels_name]
+symbols_filename = options[:symbols_name]
 
 if opcodes_table_filename.nil?
   puts "opcodes table required"
@@ -343,14 +397,18 @@ end
 
 opcodes_table = make_opcodes_table(opcodes_table_filename)
 
-unless labels_filename.nil?
-  labels = read_labels_file(labels_filename)
+unless symbols_filename.nil?
+  labels = read_symbols_file(symbols_filename)
 end
 
 verbose = options[:verbose]
 address = 0
 labels = {}
 equates = {}
+symbols = {}
+references = {}
+
+puts '.code'
 
 # for each line in input
 while line = gets
@@ -386,10 +444,12 @@ while line = gets
         label = parts.shift
         puts "\t\t\t# " + directive + "\t" + label + "\t" + parts.to_s
         # evaluate expression in RPN
-        values = eval_rpn(parts, address, labels, equates)
+        values = eval_rpn(parts, address, labels, equates, symbols)
         value = values[0]
         # store value in equates table (check for inconsistency)
         equates[label] = value
+        abs_rel_value = AbsRelValue.new(value, false)
+        symbols[label] = abs_rel_value
       when '.dw'
         # parse expression
         puts "\t\t\t# " + directive + "\t" + parts.to_s
@@ -408,10 +468,11 @@ while line = gets
 
       unless label.nil?
         labels[label] = address
+        value = AbsRelValue.new(address, true)
+        symbols[label] = value
       end
 
       arg_value = 0
-      arg_value = 0 # do lookup in pass 2
 
       if mnemonic.nil?
         print format_nongen_output(label, comment, address, verbose)
@@ -426,7 +487,15 @@ while line = gets
         opcode = opcode_spec['op']
         arg_size = opcode_spec['sz'] || 0
 
+        # add to code segment
         print format_output(address, opcode, arg_size, arg_value, label, mnemonic, arg_text, verbose)
+
+        if arg_size == 2
+          if arg_text.match(/\A[A-Z][A-Z0-9_]*\z/)
+            offset = address + 1  # skip over the opcode
+            references[offset] = arg_text
+          end
+        end
 
         address += 1
         address += arg_size
@@ -440,13 +509,20 @@ while line = gets
   puts
 end
 
-# for pass 1, print labels and values 
-labels.each do |label, address|
-  puts ".label\t" + label + "\t" + format_octal_word(address)
+puts '.symbols'
+
+symbols.each do |symbol, abs_rel_value|
+  value_s = format_octal_word(abs_rel_value.value)
+  abs_or_rel = "abs"
+  abs_or_rel = "rel" if abs_rel_value.is_rel
+  puts abs_or_rel + "\t" + symbol + "\t" + value_s
 end
 
-# for pass 1, print equates and values 
-equates.each do |label, value|
-  puts ".equate\t" + label + "\t" + format_octal_word(value)
+puts '.references'
+
+references.each do |offset, symbol|
+  offset_s = format_octal_word(offset)
+  puts offset_s + "\t" + symbol
 end
 
+puts '.end'
