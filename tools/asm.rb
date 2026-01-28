@@ -399,10 +399,6 @@ OptionParser.new do |opts|
     options[:opcodes_name] = v
   end
 
-  opts.on("-l", "--symbols NAME", "File name for symbol values") do |v|
-    options[:symbols_name] = v
-  end
-
   opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
     options[:verbose] = v
   end
@@ -414,7 +410,6 @@ OptionParser.new do |opts|
 end.parse!
 
 opcodes_table_filename = options[:opcodes_name]
-symbols_filename = options[:symbols_name]
 
 if opcodes_table_filename.nil?
   puts "opcodes table required"
@@ -423,18 +418,15 @@ end
 
 opcodes_table = make_opcodes_table(opcodes_table_filename)
 
-unless symbols_filename.nil?
-  labels = read_symbols_file(symbols_filename)
-end
-
 verbose = options[:verbose]
-offset = 0
 symbols = {}
 references = {}
 
 puts '.relocatable'
 
 puts '.code'
+
+offset = 0
 
 word_count = 0
 
