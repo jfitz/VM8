@@ -11,9 +11,9 @@ mkdir tests/$TEST
 echo running 'asm'
 
 # run test, generate output
-ruby asm.rb -o opcodes_8080.tsv <test/data/$TEST.asm >tests/$TEST/out.txt
+ruby asm.rb -o opcodes_8080.tsv -l tests/$TEST/list.out <test/data/$TEST.asm >tests/$TEST/asm.out
 
 echo comparing output
 
 # compare output against expected output
-diff tests/$TEST/out.txt test/ref/$TEST.txt
+diff tests/$TEST/asm.out test/ref/$TEST.txt
