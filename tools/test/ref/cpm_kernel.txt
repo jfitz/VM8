@@ -1,0 +1,79 @@
+.relocatable
+.code
+ # CPM kernel
+
+ # call handler for function in C
+               # DISPATCH
+ 041  000  000 #          LXI	H,TABLE
+0376  000      #          CPI	CTABLE_CT
+0362  000  000 #          JP	CMD_ERR
+ 006  000      #          MVI	B,0
+ 011           #          DAD	B
+0351           #          PCHL
+
+               # CMD_ERR
+0311           #          RET
+
+ # program exit
+               # C_EXIT
+0311           #          RET
+
+ # console input char
+               # CON_C_IN
+0311           #          RET
+
+ # console output char
+               # CON_C_OUT
+0323  000      #          OUT	1
+0311           #          RET
+
+ # console output line
+               # CON_S_OUT
+0323  000      #          OUT	9
+0311           #          RET
+
+               # TABLE
+			# .word	["C_EXIT"]
+ 015  000  # 0x00
+			# .word	["CON_C_IN"]
+ 016  000  # 0x01
+			# .word	["CON_C_OUT"]
+ 017  000  # 0x02
+			# .word	["0"]
+ 000  000  # 0x03
+			# .word	["0"]
+ 000  000  # 0x04
+			# .word	["0"]
+ 000  000  # 0x05
+			# .word	["0"]
+ 000  000  # 0x06
+			# .word	["0"]
+ 000  000  # 0x07
+			# .word	["0"]
+ 000  000  # 0x08
+			# .word	["CON_S_OUT"]
+ 022  000  # 0x09
+
+			# .equate	TABLE_SZ	[".offset", "TABLE", "-"]
+
+			# .equate	TABLE_CT	["TABLE_SZ", "2", "/"]
+
+
+.symbols
+rel	DISPATCH	 000000
+rel	CMD_ERR	 000014
+rel	C_EXIT	 000015
+rel	CON_C_IN	 000016
+rel	CON_C_OUT	 000017
+rel	CON_S_OUT	 000022
+rel	TABLE	 000025
+abs	TABLE_SZ	 000024
+abs	TABLE_CT	 000012
+.references
+ 000001	TABLE
+ 000006	CMD_ERR
+ 000025	C_EXIT
+ 000027	CON_C_IN
+ 000031	CON_C_OUT
+ 000047	CON_S_OUT
+.end

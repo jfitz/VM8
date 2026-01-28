@@ -42,6 +42,6 @@ TABLE
 .word	0           # 0x08
 .word	CON_S_OUT   # 0x09
 
-.equate TABLE_SZ    .address TABLE -
+.equate TABLE_SZ    .offset TABLE -
 .equate TABLE_CT    TABLE_SZ 2 /
 

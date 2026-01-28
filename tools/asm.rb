@@ -381,7 +381,7 @@ def eval_rpn(tokens, address, symbols)
       value = symbols[token]
       # push
       values << value
-    when '.address'
+    when '.offset'
       values << AbsRelValue.new(address, true)
     else
       puts "unknown token: '" + token + "'"
@@ -458,9 +458,6 @@ while line = gets
       directive, parts = parse_directive_line(asm_text)
       
       case directive
-      when '.address'
-        puts "\t\t\t# " + directive + "\t" + parts.to_s
-        address = parts[0].to_i(0)
       when '.label'
         # parse label, value
         label = parts.shift
