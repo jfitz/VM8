@@ -420,12 +420,12 @@ opcodes_table = make_opcodes_table(opcodes_table_filename)
 
 list_output_filename = options[:list_name]
 
+bytes = []
 symbols = {}
 references = {}
+instr_offs = []
 
 puts '.relocatable'
-
-puts '.code'
 
 offset = 0
 word_count = 0
@@ -457,22 +457,29 @@ while line = gets
       when '.equate'
         # parse label, expression (tokens separated by whitespace)
         label = parts.shift
+
         # evaluate expression in RPN
         values = eval_rpn(parts, offset, symbols)
         value = values[0]
-        bytes = value.two_bytes
-        bytes_s = format_octal_word(bytes)
+        byte_values = value.two_bytes
+        bytes_s = format_octal_word(byte_values)
         list_line = '         ' + bytes_s + "\t# " + directive + ' ' + label + ' ' + parts.to_s
+
         # store value in equates table (check for inconsistency)
         symbols[label] = value
       when '.word'
+        instr_offs << offset
+
         # parse expression
         # evaluate parts as RPN
         values = eval_rpn(parts, offset, symbols)
         value = values[0]
         # gen 2 bytes (low byte first)
-        bytes = value.two_bytes
-        bytes_s = format_bytes_output(offset, bytes)
+        byte_values = value.two_bytes
+        bytes << byte_values[0]
+        bytes << byte_values[1]
+        
+        bytes_s = format_bytes_output(offset, byte_values)
         list_line = bytes_s + "\t# " + directive + "\t" + parts.to_s
 
         if value.is_rel
@@ -503,6 +510,8 @@ while line = gets
       if mnemonic.nil?
         list_line = format_nongen_output(label, comment, offset)
       else
+        instr_offs << offset
+
         opcode_spec = opcodes_table[mnemonic]
 
         if opcode_spec.nil?
@@ -511,8 +520,13 @@ while line = gets
         end
 
         opcode = opcode_spec['op']
+        bytes << opcode
+
         arg_size = opcode_spec['sz'] || 0
 
+        bytes << 0 if arg_size > 0
+        bytes << 0 if arg_size > 1
+        
         # add to code segment
         list_line = format_output(offset, opcode, arg_size, arg_value, label, mnemonic, arg_text)
 
@@ -543,6 +557,19 @@ unless list_output_filename.nil?
   end
 end
 
+puts '.code'
+bytes.each do |byte|
+  byte_s = format_octal_byte(byte)
+
+  puts byte_s
+end
+
+puts '.instructions'
+instr_offs.each do |offset|
+  offset_s = format_octal_word(offset)
+
+  puts offset_s
+end
 
 puts '.symbols'
 
