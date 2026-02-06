@@ -489,7 +489,8 @@ while line = gets
         offset += values.size * 2
         word_count += 1
       else
-        puts 'unknown directive'
+        puts 'unknown directive: ' + directive
+        exit
       end
     else
       # process code
@@ -505,7 +506,7 @@ while line = gets
         opcode_spec = opcodes_table[mnemonic]
 
         if opcode_spec.nil?
-          puts 'Unknown mnemonic: ' + mnemonic
+          puts 'unknown mnemonic: ' + mnemonic
           exit
         end
 
