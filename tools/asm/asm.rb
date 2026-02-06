@@ -550,13 +550,15 @@ symbols.each do |symbol, abs_rel_value|
   value_s = format_octal_word(abs_rel_value.value)
   abs_or_rel = "abs"
   abs_or_rel = "rel" if abs_rel_value.is_rel
-  puts abs_or_rel + "\t" + symbol + "\t" + value_s
+
+  puts symbol + "\t" + value_s + "\t" + abs_or_rel
 end
 
 puts '.references'
 
 references.each do |offset, symbol|
   offset_s = format_octal_word(offset)
+
   puts offset_s + "\t" + symbol
 end
 
