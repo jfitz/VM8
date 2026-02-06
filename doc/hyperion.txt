@@ -1,0 +1,118 @@
+HYPERION supervisor
+Hyperion is the hypervisor for HDOS and CP/M guests
+
+$hyperion
+
+.create <name>=<profile>
+.load <name> 0xe000 hdos.bin
+.start <name>
+.telnet <name>
+# HDOS messages and prompts
+HDOS 2.0 guest 1.0
+>DIR
+>CAT
+>VER
+>LOGOUT
+# hyperion messages and prompts
+.status <name>
+64K running
+.stop <name>
+.destroy <name>
+.list
+<list of guests>
+.exit
+$
+
+PROFILE
+cpu: 8080
+rom: 0, 4k, h88.rom
+ram: 4k, 56k
+fd0: 40trk 1side 10sector 256bytes	# 5 inch H-17
+fd1: 40trk 2side 8sector 512bytes	# 5 inch H-37
+fd2: 80trk 2side 9sector 512bytes	# 5 inch IBM PC
+fd3: 77trk 1side 26sector 128bytes	# 8 inch
+
+STRUCTURE OF GUEST OS
+Device drivers:
+  talk to hardware
+  handle interrupts
+  terminal and disk devices
+  read and write sectors to disks (256b for H-17, 128b for IBM 3741, 512b for IBM PC)
+  block and deblock to desired size for OS (256 for HDOS, 128 for CP/M)
+File system:
+  group sectors into allocation units
+  block and deblock sectors into alloc units
+  manage directory and group allocation tables
+  HDOS uses DIRECT.SYS, GRT.SYS, and RGT.SYS (not needed as no bad sectors)
+  CP/M uses directory (no extents at first)
+Devices:
+  physical devices (TT0: DK0: for HDOS, CON: A: for CP/M)
+  logical devices (CN: for HDOS)
+  assign file system to device
+Kernel:
+  state machine for open files
+Login:
+  starts when terminal is activated
+  runs the shell (HDOS and CP/M have different shells)
+  shell programs are loaded in high memory
+User program:
+  runs
+  reads and writes to console
+  opens and closes files, reads and writes files
+
+MEMORY LAYOUT
+
+address 0xffff
+kernel
+device manager
+file system
+device drivers
+login
+shell
+user program
+page 0 (0x100 data for CP/M, 8K ROM for HDOS)
+address 0x0000
+
+HDOS shell
+
+LOGOUT
+BYE
+CAT (PIP)
+DIR (PIP)
+COPY (PIP)
+DEL (PIP)
+RENAME (PIP)
+TYPE (PIP)
+MOUNT
+DISMOUNT
+TIME
+VER
+
+CP/M shell
+LOGOUT
+BYE
+DIR (PIP ?)
+ERA (PIP ?)
+REN (PIP ?)
+SAVE (not implemented)
+TYPE (PIP ?)
+USER (not implemented)
+TIME (?)
+VER
+
+UTILITIES
+
+HDOS
+
+ASM
+BASIC
+PIP
+EDIT
+
+CP/M
+
+ASM
+PIP
+(no DDT)
+ED
+
