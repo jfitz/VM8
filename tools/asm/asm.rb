@@ -450,7 +450,7 @@ while line = gets
         bytes << byte_values[1]
         
         bytes_s = format_bytes_output(offset, byte_values)
-        list_line = bytes_s + "\t# " + directive + "\t" + parts.to_s
+        list_line = bytes_s + "\t# " + directive + "\t" + parts.join(' ')
 
         if value.is_rel
           if parts.size == 1

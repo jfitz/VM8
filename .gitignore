@@ -4,4 +4,7 @@ i8080_tests
 cpm
 cpu_tests/sunhillow
 TODO.md
-tools/tests/
+tools/asm/testbed
+tools/linker/testbed
+tools/macro/testbed
+tools/include/testbed
