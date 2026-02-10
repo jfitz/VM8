@@ -1,0 +1,20 @@
+assembler reference manual
+
+Summary
+
+This is a one-pass include processor.
+It reads an ASCII-text file (stdin) and generates an ASCII-text file (stdout).
+
+Options
+
+Directives
+
+.include	include another file at this point
+
+Examples
+
+.include HDOSREF.ACM
+
+Future
+
+Directive to disable includes in included files

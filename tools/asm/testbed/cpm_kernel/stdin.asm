@@ -2,10 +2,11 @@
 
 # call handler for function in C
 DISPATCH
-    LXI H,TABLE
-    CPI C,TABLE_CT
+    MOV A,C
+    CPI TABLE_CT
     JP  CMD_ERR
     MVI B,0
+    LXI H,TABLE
     DAD B
     PCHL
 

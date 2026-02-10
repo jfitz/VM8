@@ -1,0 +1,25 @@
+macro processor reference manual
+
+Summary
+
+This is a one-pass macro processor.
+It reads an ASCII-text file (stdin) and generates an ASCII-text file (stdout).
+The input may be a source file with assembly language or other text.
+
+Options
+
+Directives
+
+.macro		define a pair of bytes in the generated code
+.endmacro	define a symbol and value, not part of the generated code
+
+Examples
+
+.macro SYSCALL FUNCTION
+       RST 7
+.byte  FUNCTION
+.end-macro
+
+Future
+
+Directives to enable and disable macro processing (.enable-macro and .disable-macro)

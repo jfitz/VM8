@@ -16,6 +16,19 @@ class AbsRelValue
   end
 end
 
+class ReferenceDef
+  attr_reader :symbol, :num_bytes
+
+  def initialize(symbol, num_bytes)
+    @symbol = symbol
+    @num_bytes = num_bytes
+  end
+
+  def to_s
+    "#{@symbol}\t#{@num_bytes}"
+  end
+end
+
 def make_opcodes_table(filename)
   opcodes = {}
 
@@ -62,47 +75,6 @@ def make_opcodes_table(filename)
   end
   
   opcodes
-end
-
-def read_symbols_file(filename)
-  labels = {}
-  equates = {}
-  symbols = {}
-
-  File.foreach(filename) do |line|
-    # split on #
-    parts = line.split('#')
-    next if parts[0].size == 0
-
-    text = parts[0].chomp
-    next if text.empty?
-
-    words = text.split("\t")
-
-    # must have 2 or 3
-    if words.count > 3
-      puts 'Bad label spec: ' + text
-      exit
-    end
-    
-    if words[0] == '.label'
-      symbol = words[1]
-      value = words[2].to_i(0)
-      labels[symbol] = value
-      abs_rel_value = AbsRelValue.new(value, true)
-      symbols[symbol] = abs_rel_value
-    end
-    
-    if words[0] == '.equate'
-      symbol = words[1]
-      value = words[2].to_i(0)
-      equates[words[1]] = value
-      abs_rel_value = AbsRelValue.new(value, false)
-      symbols[symbol] = abs_rel_value
-    end
-  end
-  
-  [labels, equates, symbols]
 end
 
 def split_mnemonic(tokens, opcodes)
@@ -393,7 +365,7 @@ end
 
 options = {}
 OptionParser.new do |opts|
-  opts.banner = "Usage: ruby my_app_options.rb [options]"
+  opts.banner = "Usage: ruby asm.rb [options]"
 
   opts.on("-o", "--opcodes NAME", "File name for opcodes table") do |v|
     options[:opcodes_name] = v
@@ -424,8 +396,6 @@ bytes = []
 symbols = {}
 references = {}
 instr_offs = []
-
-puts '.relocatable'
 
 offset = 0
 word_count = 0
@@ -490,7 +460,8 @@ while line = gets
           end
 
           symbols[label] = value
-          references[offset] = label
+          reference_def = ReferenceDef.new(label, 2)
+          references[offset] = reference_def
         end
 
         offset += values.size * 2
@@ -530,10 +501,11 @@ while line = gets
         # add to code segment
         list_line = format_output(offset, opcode, arg_size, arg_value, label, mnemonic, arg_text)
 
-        if arg_size == 2
+        if arg_size > 0
           if arg_text.match(/\A[A-Z][A-Z0-9_]*\z/)
             offset_ref = offset + 1  # skip over the opcode
-            references[offset_ref] = arg_text
+            reference_def = ReferenceDef.new(arg_text, arg_size)
+            references[offset_ref] = reference_def
           end
         end
 
@@ -549,6 +521,7 @@ while line = gets
   list_lines << list_line
 end
 
+# write list output
 unless list_output_filename.nil?
   File.open(list_output_filename, "w") do |file|
     list_lines.each do |line|
@@ -556,6 +529,9 @@ unless list_output_filename.nil?
     end
   end
 end
+
+# write relocatable module
+puts '.relocatable'
 
 puts '.code'
 bytes.each do |byte|
@@ -583,10 +559,10 @@ end
 
 puts '.references'
 
-references.each do |offset, symbol|
+references.each do |offset, reference_def|
   offset_s = format_octal_word(offset)
 
-  puts offset_s + "\t" + symbol
+  puts offset_s + "\t" + reference_def.to_s
 end
 
 puts '.end'

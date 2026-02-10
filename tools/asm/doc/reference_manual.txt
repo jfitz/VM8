@@ -1,0 +1,57 @@
+assembler reference manual
+
+Summary
+
+This is a one-pass assembler.
+It reads an ASCII-text source file (stdin) and generates an ASCII-text relocatable file (stdout).
+Optionally it generates an ASCII-text list file (--list option).
+The relocatable file must be processed by the linker.
+
+Options
+
+-o --opcodes	specify file with opcode definitions
+
+Directives
+
+.byte		define a single byte in the generated code
+.word		define a pair of bytes in the generated code
+.equate		define a symbol and value, not part of the generated code
+
+There is no directive to set a code origin. That is handled in the linker.
+
+Symbol values may be absolute or relocatable.
+
+Examples
+
+.equate		LIMIT	1000
+
+generates an absolute value. It is not adjusted when the code is relocated.
+
+The code at the beginning of the file (that is, these bytes are at offset zero)
+
+START	LXI	H, 2000
+
+generates a relocated symbol for START.
+If this is the first line of code, its unrelocated value is zero (0x0000).
+When the code is relocated to build a memory image (by the linker), this symbol will be adjusted.
+The later code:
+
+	JMP	START
+
+will leave the assembler with the value zero for START.
+The linker will adjust it by the base value specified when running it.
+
+Arguments such as addresses and numeric values may be defined by expressions.
+Expressions are written in RPN notation, with values and operators separated by spaces.
+Expressions with all constants are evaluated in the assembler.
+Expressions with labels or addresses (both of which may be relocated) are evaluated in the linker.
+Operators are limited to + (add), - (subtract), * (multiply), and / (integer divide).
+
+Future
+
+Specify exported symbols (and other symbols are not exported or available outside of this module).
+
+.bytes directive to specify multiple bytes in the generated code
+.words directive to specify multiple byte pairs in the generated code
+.stringz directive to specify bytes as a text string, with NUL terminator added
+.nstring directive to specify bytes as a text string, with length as first byte (does not include count, may be single zero byte)
