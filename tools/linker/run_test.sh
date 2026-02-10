@@ -14,7 +14,7 @@ echo running 'linker'
 cp tests/$TEST/stdin.rel testbed/$TEST
 
 # run test, generate output
-ruby ../linker.rb <testbed/$TEST/stdin.rel --base 0x100 >testbed/$TEST/stdout.txt
+ruby linker.rb <testbed/$TEST/stdin.rel --base 0x100 >testbed/$TEST/stdout.txt
 
 echo comparing output
 

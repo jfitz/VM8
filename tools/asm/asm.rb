@@ -1,4 +1,5 @@
 require 'optparse'
+require '../tools.rb'
 
 class AbsRelValue
   attr_reader :value, :is_rel
@@ -13,19 +14,6 @@ class AbsRelValue
 
   def two_bytes
     [@value % 256, @value / 256]
-  end
-end
-
-class ReferenceDef
-  attr_reader :symbol, :num_bytes
-
-  def initialize(symbol, num_bytes)
-    @symbol = symbol
-    @num_bytes = num_bytes
-  end
-
-  def to_s
-    "#{@symbol}\t#{@num_bytes}"
   end
 end
 
@@ -126,26 +114,6 @@ def parse_asm_line(asm_text, opcodes)
   mnemonic, arg_text = split_mnemonic(tokens, opcodes)
 
   return label, mnemonic, arg_text
-end
-
-def format_octal_byte(n)
-  s = ''
-  
-  unless n.nil?
-    s = ("%#03o" % n)
-  end
-  
-  s.rjust(4)
-end
-
-def format_octal_word(n)
-  s = ''
-  
-  unless n.nil?
-    s = ("%#06o" % n)
-  end
-  
-  s.rjust(7)
 end
 
 def format_generated_bytes(opcode, arg_size, arg_value)

@@ -14,7 +14,7 @@ echo running 'asm'
 cp tests/$TEST/stdin.asm testbed/$TEST
 
 # run test, generate output
-ruby ../asm.rb -o opcodes_8080.tsv -l testbed/$TEST/list.txt <testbed/$TEST/stdin.asm >testbed/$TEST/stdout.txt
+ruby asm.rb -o opcodes_8080.tsv -l testbed/$TEST/list.txt <testbed/$TEST/stdin.asm >testbed/$TEST/stdout.txt
 
 echo comparing output
 
