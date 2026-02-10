@@ -433,7 +433,7 @@ while line = gets
         value = values[0]
         byte_values = value.two_bytes
         bytes_s = format_octal_word(byte_values)
-        list_line = '         ' + bytes_s + "\t# " + directive + ' ' + label + ' ' + parts.to_s
+        list_line = '         ' + bytes_s + "\t# " + directive + '  ' + label + '  ' + parts.join(' ')
 
         # store value in equates table (check for inconsistency)
         symbols[label] = value
@@ -450,7 +450,7 @@ while line = gets
         bytes << byte_values[1]
         
         bytes_s = format_bytes_output(offset, byte_values)
-        list_line = bytes_s + "\t# " + directive + "\t" + parts.join(' ')
+        list_line = bytes_s + "\t# " + directive + '  ' + parts.join(' ')
 
         if value.is_rel
           if parts.size == 1
