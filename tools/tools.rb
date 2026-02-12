@@ -1,3 +1,5 @@
+class ToolsError < RuntimeError; end
+
 def format_octal_byte(n)
   s = ''
   
@@ -42,7 +44,7 @@ class RpnExpression
     # rel + abs => rel
     # rel + rel => error
 
-    raise Exception('two rel values for plus') if a.is_rel && b.is_rel
+    raise ToolsError('two rel values for plus') if a.is_rel && b.is_rel
 
     is_rel = false
     is_rel = true if a.is_rel
@@ -69,7 +71,7 @@ class RpnExpression
     # rel * abs => error
     # rel * rel => error
 
-    raise Exception('two rel values for multiply') if a.is_rel || b.is_rel
+    raise ToolsError('two rel values for multiply') if a.is_rel || b.is_rel
 
     is_rel = false
 
@@ -83,7 +85,7 @@ class RpnExpression
     # rel / abs => error
     # rel / rel => error
 
-    raise Exception('two rel values for divide') if a.is_rel || b.is_rel
+    raise ToolsError('two rel values for divide') if a.is_rel || b.is_rel
 
     is_rel = false
 
