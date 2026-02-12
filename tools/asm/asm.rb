@@ -282,7 +282,8 @@ while line = gets
 
         # evaluate expression in RPN
         expression = RpnExpression.new(parts)
-        values = expression.eval_rpn(offset, symbols)
+        values = expression.evaluate(offset, symbols)
+        raise Exception.new('invalid expression ' + parts.join(' ')) if values.nil?
         value = values[0]
         byte_values = value.two_bytes
         bytes_s = format_octal_word(byte_values)
@@ -296,7 +297,8 @@ while line = gets
         # parse expression
         # evaluate parts as RPN
         expression = RpnExpression.new(parts)
-        values = expression.eval_rpn(offset, symbols)
+        values = expression.evaluate(offset, symbols)
+        raise Exception.new('invalid expression ' + parts.join(' ')) if values.nil?
         value = values[0]
         # gen 2 bytes (low byte first)
         byte_values = value.two_bytes

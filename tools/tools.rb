@@ -90,7 +90,7 @@ class RpnExpression
     AbsRelValue.new(a.value / b.value, is_rel)
   end
 
-  def eval_rpn(offset, symbols)
+  def evaluate(offset, symbols)
     # return a list of values
     values = []
     
@@ -98,6 +98,7 @@ class RpnExpression
       case token
       when '+'
         # check at least two values
+        return nil if values.size < 2
         # pop two values
         b = values.pop
         a = values.pop
@@ -107,6 +108,7 @@ class RpnExpression
         values << result
       when '-'
         # check at least two values
+        return nil if values.size < 2
         # pop two values
         b = values.pop
         a = values.pop
@@ -116,6 +118,7 @@ class RpnExpression
         values << result
       when '*'
         # check at least two values
+        return nil if values.size < 2
         # pop two values
         b = values.pop
         a = values.pop
@@ -125,6 +128,7 @@ class RpnExpression
         values << result
       when '/'
         # check at least two values
+        return nil if values.size < 2
         # pop two values
         b = values.pop
         a = values.pop
@@ -137,9 +141,15 @@ class RpnExpression
         value = token.to_i(0)
         # push
         values << AbsRelValue.new(value, false)
+      when /^0[xX][0-9a-fA-F]+$/
+        # convert
+        value = token.to_i(0)
+        # push
+        values << AbsRelValue.new(value, false)
       when /\A[A-Z][A-Z0-9_]*\z/
         # look up value
         value = symbols[token]
+        return nil if value.nil?
         # push
         values << value
       when '.offset'
