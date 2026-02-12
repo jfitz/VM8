@@ -23,12 +23,12 @@
 
  # console output char
  000020:                # CON_C_OUT
- 000020: 0323  000      #          OUT	1
+ 000020: 0323  001      #          OUT	1
  000022: 0311           #          RET
 
  # console output line
  000023:                # CON_S_OUT
- 000023: 0323  000      #          OUT	9
+ 000023: 0323  011      #          OUT	9
  000025: 0311           #          RET
 
  000026:                # TABLE

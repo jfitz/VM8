@@ -82,7 +82,7 @@ def split_mnemonic(tokens, opcodes)
     if lim_text_tokens == mnem_tokens
       arg_tokens = tokens[mnem_size..-1]
 
-      return big_mnemonic, arg_tokens.join
+      return big_mnemonic, arg_tokens
     end
   end
 
@@ -111,9 +111,9 @@ def parse_asm_line(asm_text, opcodes)
   label = tokens[0] if tokens.size > 0 && tokens[0] != ':'
 
   tokens.shift   # remove label
-  mnemonic, arg_text = split_mnemonic(tokens, opcodes)
+  mnemonic, arg_tokens = split_mnemonic(tokens, opcodes)
 
-  return label, mnemonic, arg_text
+  return label, mnemonic, arg_tokens
 end
 
 def format_generated_bytes(opcode, arg_size, arg_value)
@@ -140,7 +140,7 @@ def format_generated_bytes(opcode, arg_size, arg_value)
   s
 end
 
-def format_asm_line(label, mnemonic, arg_text)
+def format_asm_line(label, mnemonic, arg_tokens)
   s = '# '
   
   if label.nil?
@@ -151,14 +151,14 @@ def format_asm_line(label, mnemonic, arg_text)
 
   s += ' ' + mnemonic.sub(' ', "\t")
 
-  unless arg_text.empty?
+  unless arg_tokens.empty?
     if mnemonic.include?(' ')
       s += ','
     else
       s += "\t"
     end
 
-    s += arg_text
+    s += arg_tokens.join(' ')
   end
   
   s
@@ -328,7 +328,7 @@ while line = gets
       end
     else
       # process code
-      label, mnemonic, arg_text = parse_asm_line(asm_text, opcodes_table.keys)
+      label, mnemonic, arg_tokens = parse_asm_line(asm_text, opcodes_table.keys)
 
       symbols[label] = AbsRelValue.new(offset, true) unless label.nil?
 
@@ -337,6 +337,7 @@ while line = gets
       if mnemonic.nil?
         list_line = format_nongen_output(label, comment, offset)
       else
+        # offset to this instruction
         instr_offs << offset
 
         opcode_spec = opcodes_table[mnemonic]
@@ -346,24 +347,36 @@ while line = gets
           exit
         end
 
+        # store the opcode
         opcode = opcode_spec['op']
         bytes << opcode
-
         arg_size = opcode_spec['sz'] || 0
+        arg_value = 0
 
-        bytes << 0 if arg_size > 0
-        bytes << 0 if arg_size > 1
-        
-        # add to code segment
-        list_line = format_output(offset, opcode, arg_size, arg_value, label, mnemonic, arg_text)
+        # evaluate argument
+        if arg_tokens.size > 0
+          expression = RpnExpression.new(arg_tokens)
+          arg_values = expression.evaluate(offset, symbols) || [AbsRelValue.new(0, true)]
+          arg_value0 = arg_values[0]
+          arg_value = arg_value0.value
 
-        if arg_size > 0
-          if arg_text.match(/\A[A-Z][A-Z0-9_]*\z/)
-            offset_ref = offset + 1  # skip over the opcode
-            reference_def = ReferenceDef.new(arg_text, arg_size)
-            references[offset_ref] = reference_def
+          # store argument byte or bytes
+          bytes << arg_value % 256 if arg_size > 0
+          bytes << arg_value / 256 if arg_size > 1
+
+          arg_text = arg_tokens.join
+          
+          if arg_size > 0
+            if arg_text.match(/\A[A-Z][A-Z0-9_]*\z/)
+              offset_ref = offset + 1  # skip over the opcode
+              reference_def = ReferenceDef.new(arg_text, arg_size)
+              references[offset_ref] = reference_def
+            end
           end
         end
+
+        # add to code segment
+        list_line = format_output(offset, opcode, arg_size, arg_value, label, mnemonic, arg_tokens)
 
         offset += 1
         offset += arg_size
