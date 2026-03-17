@@ -93,15 +93,14 @@ def find_opcode(node, tokens)
   mnemonic = []
   
   tokens.each do |token|
-    arg_size = 2 if token == 'address'
-    arg_size = 1 if token == 'byte'
-
     # possibly change case of token here
     if node.key?(token)
       # the node matches the token
       node = node[token]
       mnemonic << token
     elsif node.key?('address')
+      arg_size = 2
+
       # an address in def requires an expression list in tokens
       if token.class.to_s == 'Array'
         node = node['address']
@@ -111,6 +110,8 @@ def find_opcode(node, tokens)
         exit
       end
     elsif node.key?('byte')
+      arg_size = 1
+
       # a byte in def requires an expression list in tokens
       if token.class.to_s == 'Array'
         node = node['byte']
@@ -130,7 +131,7 @@ def find_opcode(node, tokens)
     exit
   end
 
-  return node['op'], mnemonic, arg_tokens
+  return node['op'], mnemonic, arg_size, arg_tokens
 end
 
 def parse_directive_line(asm_text)
@@ -195,10 +196,10 @@ def parse_asm_line(asm_text, opcode_defs, known_literals)
   if tokens.size > 0
     # change expressions to array
     packed_tokens = pack_tokens(tokens, known_literals)
-    opcode, mnemonic, arg_tokens = find_opcode(opcode_defs, packed_tokens)
+    opcode, mnemonic, arg_size, arg_tokens = find_opcode(opcode_defs, packed_tokens)
   end
 
-  return label, opcode, mnemonic, arg_tokens
+  return label, opcode, mnemonic, arg_size, arg_tokens
 end
 
 def format_generated_bytes(opcode, arg_size, arg_value)
@@ -426,12 +427,11 @@ while line = gets
       end
     else
       # process code
-      label, opcode, mnemonic, arg_tokens = parse_asm_line(asm_text, opcodes_defs, known_literals)
+      label, opcode, mnemonic, arg_size, arg_tokens = parse_asm_line(asm_text, opcodes_defs, known_literals)
 
       symbols[label] = AbsRelValue.new(offset, true) unless label.nil?
 
       arg_value = 0
-      arg_size = arg_tokens.count
 
       if opcode.nil?
         list_line = format_nongen_output(label, comment, offset)
