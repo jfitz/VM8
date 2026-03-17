@@ -1,6 +1,6 @@
- # CPM kernel
+                        # CPM kernel
 
- # call handler for function in C
+                        # call handler for function in C
  000000:                # DISPATCH
  000000: 0171           #         MOV   A,C
  000001: 0376  000      #         CPI   TABLE_CT
@@ -13,35 +13,35 @@
  000013:                # CMD_ERR
  000013: 0311           #         RET
 
- # program exit
+                        # program exit
  000014:                # C_EXIT
  000014: 0311           #         RET
 
- # console input char
+                        # console input char
  000015:                # CON_C_IN
  000015: 0311           #         RET
 
- # console output char
+                        # console output char
  000016:                # CON_C_OUT
  000016: 0323  001      #         OUT   1
  000020: 0311           #         RET
 
- # console output line
+                        # console output line
  000021:                # CON_S_OUT
  000021: 0323  011      #         OUT   9
  000023: 0311           #         RET
 
  000024:                # TABLE
- 000024:  014  000 	# .word  C_EXIT # 0x00
- 000026:  015  000 	# .word  CON_C_IN # 0x01
- 000030:  016  000 	# .word  CON_C_OUT # 0x02
- 000032:  000  000 	# .word  0 # 0x03
- 000034:  000  000 	# .word  0 # 0x04
- 000036:  000  000 	# .word  0 # 0x05
- 000040:  000  000 	# .word  0 # 0x06
- 000042:  000  000 	# .word  0 # 0x07
- 000044:  000  000 	# .word  0 # 0x08
- 000046:  021  000 	# .word  CON_S_OUT # 0x09
+ 000024:  014  000 	# .word  C_EXIT               # 0x00
+ 000026:  015  000 	# .word  CON_C_IN             # 0x01
+ 000030:  016  000 	# .word  CON_C_OUT            # 0x02
+ 000032:  000  000 	# .word  0                    # 0x03
+ 000034:  000  000 	# .word  0                    # 0x04
+ 000036:  000  000 	# .word  0                    # 0x05
+ 000040:  000  000 	# .word  0                    # 0x06
+ 000042:  000  000 	# .word  0                    # 0x07
+ 000044:  000  000 	# .word  0                    # 0x08
+ 000046:  021  000 	# .word  CON_S_OUT            # 0x09
 
           000024	# .equate  TABLE_SZ  .offset TABLE -
           000012	# .equate  TABLE_CT  TABLE_SZ 2 /

@@ -278,13 +278,15 @@ def format_nongen_output(label, comment, offset)
   if label.nil?
     # no label means no offset, just spaces (and only then if a comment)
     if comment.size > 0
-      s += '         '
-      s += '               #'
+      s += ' ' * 9
+      s += ' ' * 15
+      s += '#'
     end
   else
     # print offset and label
     s += format_octal_word(offset) + ': '
-    s += '               # ' + label
+    s += ' ' * 15
+    s += '# ' + label
   end
   
   s
@@ -474,7 +476,14 @@ while line = gets
   end
 
   # print comment (if any)
-  list_line += ' #' + comment if comment.size > 0
+  if list_line.size == 0
+    spaces = ' ' * 24
+    list_line += spaces + '#' + comment if comment.size > 0
+  else
+    space_count = [50 - list_line.size, 5].max
+    spaces = ' ' * space_count
+    list_line += spaces + '#' + comment if comment.size > 0
+  end
 
   list_lines << list_line
 end
