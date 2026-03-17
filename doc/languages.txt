@@ -1,0 +1,19 @@
+Possible languages
+
+Assembly language
+- 8080
+
+C
+- K&R version
+- ANSI version (perhaps not complete ANSI)
+
+Dibol (different name?)
+
+AWK
+
+FOCAL
+
+SQL (different name)
+
+Improved (?) / Simplified C (different name)
+

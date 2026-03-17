@@ -100,19 +100,3 @@ USER (not implemented)
 TIME (?)
 VER
 
-UTILITIES
-
-HDOS
-
-ASM
-BASIC
-PIP
-EDIT
-
-CP/M
-
-ASM
-PIP
-(no DDT)
-ED
-

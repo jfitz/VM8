@@ -19,79 +19,118 @@ class AbsRelValue
   end
 end
 
-def make_opcodes_table(filename)
-  opcodes = {}
+def make_opcodes_defs(filename)
+  opcode_defs = {}
 
   File.foreach(filename) do |line|
     # split on #
     parts = line.split('#')
     next if parts[0].size == 0
 
-    text = parts[0].chomp
+    text = parts[0].chomp.strip
     next if text.empty?
 
     words = text.split("\t")
 
-    # must have 2 or 3
-    if words.count > 3
+    # must have 2
+    if words.count != 2
       puts 'Bad opcode spec: ' + text
       exit
     end
 
-    mnemonic = words[0]
-    # [0] must start with alpha
-    char = mnemonic[0]
-    unless char.match?(/[A-Za-z]/)
-      puts 'Bad mnemonic: ' + mnemonic
-      exit
-    end
-    
-    # check no duplicate
-    if opcodes.key?(mnemonic)
-      puts 'Duplicate mnemonic: ' + mnemonic
-      exit
-    end
-
-    opcode_text = words[1]
+    # opcode is first on line
+    opcode_text = words[0]
 
     # [1] must be numeric (octal, hex, dec)
     opcode = opcode_text.to_i(0)
 
-    # [2] if exists must be numeric
-    argcount = words[2].to_i || 0
+    tokens_1 = words[1].chomp.split(/([\s,])/)
+    tokens_2 = tokens_1.map(&:strip)
+    tokens = tokens_2.reject(&:empty?)
 
     # store
-    opcodes[mnemonic] = { 'op' => opcode, 'sz' => argcount }
+    curr_node = opcode_defs
+
+    tokens.each do |token|
+      if curr_node.class.to_s != 'Hash'
+        puts 'Collision'
+        exit
+      end
+
+      unless curr_node.key?(token)
+        curr_node[token] = {}
+      end
+
+      curr_node = curr_node[token]
+    end
+
+    curr_node['op'] = opcode
   end
   
-  opcodes
+  opcode_defs
 end
 
-def split_mnemonic(tokens, opcodes)
-  return nil, '' if tokens.nil?
-  return nil, '' if tokens.empty?
+def extract_literals(node, literals)
+  node.each do |text, subtree|
+    # only the text items; omit comma and numbers
+    literals[text] = 0 if text.match(/^[A-Z]+$/)
 
-  # look for an entry in table that has all tokens that match beginning of line
-  opcodes.each do |big_mnemonic|
-    mnem_tokens = big_mnemonic.split(/[\s\,]/).reject(&:empty?)
-    mnem_size = mnem_tokens.size
+    extract_literals(subtree, literals) if subtree.class.to_s == 'Hash'
+  end
+end
 
-    lim_text_tokens = tokens[0..mnem_size-1]
+def make_known_literals(opcode_defs)
+  known_literals = {}
 
-#    puts 'BIG_M: ' + big_mnemonic + ' mnem_tokens: ' + mnem_tokens.to_s + ' mnem_size: ' + mnem_size.to_s
-#    puts 'tokens: ' + tokens.to_s + ' lim_text_tokens: ' + lim_text_tokens.to_s
+  extract_literals(opcode_defs, known_literals)
+  
+  known_literals.keys
+end
 
-    if lim_text_tokens == mnem_tokens
-      arg_tokens = tokens[mnem_size..-1]
+def find_opcode(node, tokens)
+  arg_size = 0
+  arg_tokens = []
+  mnemonic = []
+  
+  tokens.each do |token|
+    arg_size = 2 if token == 'address'
+    arg_size = 1 if token == 'byte'
 
-      return big_mnemonic, arg_tokens
+    # possibly change case of token here
+    if node.key?(token)
+      # the node matches the token
+      node = node[token]
+      mnemonic << token
+    elsif node.key?('address')
+      # an address in def requires an expression list in tokens
+      if token.class.to_s == 'Array'
+        node = node['address']
+        arg_tokens = token
+      else
+        STDERR.puts 'cannot find ' + '[' + tokens.join(' ') + ']'
+        exit
+      end
+    elsif node.key?('byte')
+      # a byte in def requires an expression list in tokens
+      if token.class.to_s == 'Array'
+        node = node['byte']
+        arg_tokens = token
+      else
+        STDERR.puts 'cannot find ' + '[' + tokens.join(' ') + ']'
+        exit
+      end
+    else
+      STDERR.puts 'cannot find ' + '[' + tokens.join(' ') + ']'
+      exit
     end
   end
 
-  # did not find opcode
-  puts 'did not match ' + tokens.to_s
+  unless node.key?('op')
+    puts 'cannot find opcode'
+    exit
+  end
 
-  return nil, ''
+  return node['op'], mnemonic, arg_tokens
 end
 
 def parse_directive_line(asm_text)
@@ -103,19 +142,63 @@ def parse_directive_line(asm_text)
   return directive, parts
 end
 
-def parse_asm_line(asm_text, opcodes)
+def pack_tokens(tokens, known_literals)
+  packed_tokens = []
+
+  expression = []
+
+  tokens.each do |token|
+    if known_literals.include?(token)
+      if expression.size > 0
+        packed_tokens << expression
+        expression = []
+      end
+      
+      packed_tokens << token
+    elsif token == ','
+      if expression.size > 0
+        packed_tokens << expression
+        expression = []
+      end
+      
+      packed_tokens << token
+    else
+      expression << token
+    end
+  end
+
+  packed_tokens << expression if expression.size > 0
+  
+  packed_tokens
+end
+
+# find opcode def that matches the input line
+def parse_asm_line(asm_text, opcode_defs, known_literals)
   # force a first item for the split
   asm_text = ':' + asm_text if asm_text.match(/^\s/) 
   tokens = asm_text.split(/[\s\,]/).reject(&:empty?)
+  tokens_1 = asm_text.chomp.split(/([\s,])/)
+  tokens_2 = tokens_1.map(&:strip)
+  tokens = tokens_2.reject(&:empty?)
   
   # drop the forced item to make 'label' empty string
   label = nil
   label = tokens[0] if tokens.size > 0 && tokens[0] != ':'
 
   tokens.shift   # remove label
-  mnemonic, arg_tokens = split_mnemonic(tokens, opcodes)
 
-  return label, mnemonic, arg_tokens
+  opcode = nil
+  mnemonic = []
+  arg_size = 0
+  arg_tokens = []
+
+  if tokens.size > 0
+    # change expressions to array
+    packed_tokens = pack_tokens(tokens, known_literals)
+    opcode, mnemonic, arg_tokens = find_opcode(opcode_defs, packed_tokens)
+  end
+
+  return label, opcode, mnemonic, arg_tokens
 end
 
 def format_generated_bytes(opcode, arg_size, arg_value)
@@ -151,15 +234,24 @@ def format_asm_line(label, mnemonic, arg_tokens)
     s += label.ljust(8)
   end
 
-  s += ' ' + mnemonic.sub(' ', "\t")
+  # first item, tab, other items
+  if mnemonic.size > 0
+    printed_mnemonic = mnemonic.shift
+
+    if mnemonic.size > 0 || arg_tokens.size > 0
+      space_count = 6 - printed_mnemonic.size
+      spaces = ' ' * space_count
+      printed_mnemonic += spaces
+    end
+    
+    if mnemonic.size > 0
+      printed_mnemonic += mnemonic.join
+    end
+  end
+
+  s += printed_mnemonic
 
   unless arg_tokens.empty?
-    if mnemonic.include?(' ')
-      s += ','
-    else
-      s += "\t"
-    end
-
     s += arg_tokens.join(' ')
   end
   
@@ -235,14 +327,16 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-opcodes_table_filename = options[:opcodes_name]
+opcodes_filename = options[:opcodes_name]
 
-if opcodes_table_filename.nil?
-  puts "opcodes table required"
+if opcodes_filename.nil?
+  puts "opcodes file required"
   exit
 end
 
-opcodes_table = make_opcodes_table(opcodes_table_filename)
+opcodes_defs = make_opcodes_defs(opcodes_filename)
+
+known_literals = make_known_literals(opcodes_defs)
 
 list_output_filename = options[:list_name]
 
@@ -330,29 +424,22 @@ while line = gets
       end
     else
       # process code
-      label, mnemonic, arg_tokens = parse_asm_line(asm_text, opcodes_table.keys)
+      label, opcode, mnemonic, arg_tokens = parse_asm_line(asm_text, opcodes_defs, known_literals)
 
       symbols[label] = AbsRelValue.new(offset, true) unless label.nil?
 
       arg_value = 0
+      arg_size = arg_tokens.count
 
-      if mnemonic.nil?
+      if opcode.nil?
         list_line = format_nongen_output(label, comment, offset)
       else
         # offset to this instruction
         instr_offs << offset
 
-        opcode_spec = opcodes_table[mnemonic]
-
-        if opcode_spec.nil?
-          puts 'unknown mnemonic: ' + mnemonic
-          exit
-        end
-
         # store the opcode
-        opcode = opcode_spec['op']
         bytes << opcode
-        arg_size = opcode_spec['sz'] || 0
+
         arg_value = 0
 
         # evaluate argument

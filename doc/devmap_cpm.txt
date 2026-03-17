@@ -1,6 +1,0 @@
-# log	phys	readfile	writefile
-CON:	TT0:	stdin		stdout
-LST:	TT1:	/dev/nul	list.txt
-RDR:	TT2:	reader.txt	/dev/nul
-PUN:	TT2:	/dev/nul	punch.txt
-

@@ -1,0 +1,41 @@
+Device map
+
+# log	phys	readfile	writefile
+CN:	TT0:	stdin		stdout
+LP:	TT1:	/dev/nul	printer.txt
+
+Share server
+
+A separate box connected via serial ports and cable
+
+Assignments
+
+IOCTL program
+
+IOCTL MOUNT
+IOCTL MOUNT DK1:
+IOCTL DISMOUNT DK2:
+IOCTL MOUNT SH0: SHR:/dska
+IOCTL ASSIGN
+IOCTL ASSIGN LP: SHR:/lpt1
+IOCTL UNASSIGN LP:
+
+Redirection
+
+Handled inside kernel
+Requires 2 FCBs and 2 buffers of 128 bytes each
+
+Calls to CONIN, CONOUT, and CONOUT_S first check for redirection, write to buffer.
+
+Requires system calls for START, EXIT. START specifies file names for stdin and stdout. EXIT closes the FCBs.
+
+Requires shell that can parse '<' and '>' for redirection, and invoke START.
+
+Utilities
+
+ASM
+BASIC
+PIP
+EDIT
+
+
