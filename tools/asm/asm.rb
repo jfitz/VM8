@@ -19,10 +19,10 @@ class AbsRelValue
   end
 end
 
-def make_opcodes_defs(filename)
+def make_opcodes_defs(opcode_lines)
   opcode_defs = {}
 
-  File.foreach(filename) do |line|
+  opcode_lines.each do |line|
     # split on #
     parts = line.split('#')
     next if parts[0].size == 0
@@ -337,7 +337,26 @@ if opcodes_filename.nil?
   exit
 end
 
-opcodes_defs = make_opcodes_defs(opcodes_filename)
+file_lines = File.readlines(opcodes_filename, chomp: true)
+sections = split_into_sections(file_lines)
+
+processor = nil
+
+if sections.key?('.environment')
+  env_lines = sections['.environment']
+  
+  environment = make_dictionary(env_lines)
+  
+  processor = environment['processor']
+end
+
+if !sections.key?('.opcodes')
+  puts "no opcodes section"
+  exit
+end
+
+opcodes_lines = sections['.opcodes']
+opcodes_defs = make_opcodes_defs(opcodes_lines)
 
 known_literals = make_known_literals(opcodes_defs)
 
@@ -498,7 +517,12 @@ unless list_output_filename.nil?
 end
 
 # write relocatable module
-puts '.relocatable'
+puts '.identification'
+puts 'relocatable'
+
+puts '.environment'
+
+puts "processor\t" + processor unless processor.nil?
 
 puts '.code'
 bytes.each do |byte|

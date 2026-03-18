@@ -1,4 +1,7 @@
-.relocatable
+.identification
+relocatable
+.environment
+processor	8080
 .code
 0171
 0376

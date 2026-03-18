@@ -1,3 +1,8 @@
+.identification
+opcodes
+.environment
+processor	8080
+.opcodes
 # code	mnemonic
 0	NOP
 1	LXI B,address

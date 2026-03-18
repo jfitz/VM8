@@ -1,5 +1,37 @@
 class ToolsError < RuntimeError; end
 
+def split_into_sections(lines)
+  sections = {}
+  
+  section_name = ''
+  section = []
+  lines.each do |line|
+    if line.start_with?('.')
+      sections[section_name] = section if section.size > 0
+      section = []
+      section_name = line
+    else
+      section << line
+    end
+  end
+  
+  sections[section_name] = section if section.size > 0
+  
+  sections
+end
+
+def make_dictionary(lines)
+  dictionary = {}
+  
+  lines.each do |line|
+    parts = line.split(/\s/, 2)
+    
+    dictionary[parts[0]] = parts[1]
+  end
+  
+  dictionary
+end
+
 def format_octal_byte(n)
   s = ''
   
