@@ -5,6 +5,7 @@ cpm
 cpu_tests/sunhillow
 TODO.md
 tools/asm/testbed
+tools/dasm/testbed
 tools/linker/testbed
 tools/macro/testbed
 tools/include/testbed

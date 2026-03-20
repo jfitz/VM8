@@ -32,6 +32,20 @@ def make_dictionary(lines)
   dictionary
 end
 
+def make_references_map(lines)
+  dictionary = {}
+  
+  lines.each do |line|
+    line.strip!
+    parts = line.split(/\s/)
+    word = parts[0].to_i(0)
+    
+    dictionary[word] = parts[1]
+  end
+  
+  dictionary
+end
+
 def format_octal_byte(n)
   s = ''
   

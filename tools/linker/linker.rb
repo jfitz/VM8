@@ -48,9 +48,9 @@ end
 
 options = {}
 OptionParser.new do |opts|
-  opts.banner = "Usage: ruby loader.rb [options]"
+  opts.banner = "Usage: ruby linker.rb [options]"
 
-  opts.on("-b", "--base BASE", "Base address for this module") do |v|
+  opts.on("-b", "--base BASE", "Base address for output module") do |v|
     options[:base_address] = v
   end
 
@@ -70,7 +70,7 @@ puts "base-address: #{base_address}"
 sections = read_and_split_lines
 
 # verify .relocatable
-unless sections.key?('.relocatable')
+unless sections.key?('.identification')
   STDERR.puts 'No header'
   exit
 end

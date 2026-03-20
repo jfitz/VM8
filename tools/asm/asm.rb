@@ -410,7 +410,7 @@ while line = gets
         # store value in equates table (check for inconsistency)
         symbols[label] = value
       when '.word'
-        instr_offs << offset
+        # instr_offs << offset
 
         # parse expression
         # evaluate parts as RPN
