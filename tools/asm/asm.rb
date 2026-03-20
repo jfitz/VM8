@@ -98,12 +98,12 @@ def find_opcode(node, tokens)
       # the node matches the token
       node = node[token]
       mnemonic << token
-    elsif node.key?('address')
+    elsif node.key?('word')
       arg_size = 2
 
-      # an address in def requires an expression list in tokens
+      # a word in def requires an expression list in tokens
       if token.class.to_s == 'Array'
-        node = node['address']
+        node = node['word']
         arg_tokens = token
       else
         STDERR.puts 'cannot find ' + '[' + tokens.join(' ') + ']'

@@ -5,7 +5,7 @@ processor	8080
 .opcodes
 # code	mnemonic
 0	NOP
-1	LXI B,address
+1	LXI B,word
 2	STAX B
 3	INX B
 4	INR B
@@ -23,7 +23,7 @@ processor	8080
 017	RRC
 	
 #020	NOP	# undocumented
-021	LXI D,address
+021	LXI D,word
 022	STAX D
 023	INX D
 024	INR D
@@ -41,7 +41,7 @@ processor	8080
 037	RAR
 	
 #040	NOP	# undocumented
-041	LXI H,address
+041	LXI H,word
 042	SHLD
 043	INX H
 044	INR H
@@ -59,7 +59,7 @@ processor	8080
 057	CMA
 	
 #060	NOP	# undocumented
-061	LXI SP,address
+061	LXI SP,word
 062	STA
 063	INX SP
 064	INR M
@@ -222,73 +222,73 @@ processor	8080
 	
 0300	RNZ
 0301	POP B
-0302	JNZ address
-0303	JMP address
-0304	CNZ address
+0302	JNZ word
+0303	JMP word
+0304	CNZ word
 0305	PUSH B
 0306	ADI byte
 0307	RST 0
 	
 0310	RZ
 0311	RET
-0312	JZ address
-#0313	JMP address	# undocumented
-0314	CZ address
-0315	CALL address
+0312	JZ word
+#0313	JMP word	# undocumented
+0314	CZ word
+0315	CALL word
 0316	ACI byte
 0317	RST 1
 	
 0320	RNC
 0321	POP D
-0322	JNC address
+0322	JNC word
 0323	OUT byte
-0324	CNC address
+0324	CNC word
 0325	PUSH D
 0326	SUI byte
 0327	RST 2
 	
 0330	RC
 #0331	RET	# undocumented
-0332	JC address
+0332	JC word
 0333	IN byte
-0334	CC address
-#0335	CALL address	# undocumented
+0334	CC word
+#0335	CALL word	# undocumented
 0336	SBI byte
 0337	RST 3
 	
 0340	RPO
 0341	POP H
-0342	JPO address
+0342	JPO word
 0343	XTHL
-0344	CPO address
+0344	CPO word
 0345	PUSH H
 0346	ANI byte
 0347	RST 4
 	
 0350	RPE
 0351	PCHL
-0352	JPE address
+0352	JPE word
 0353	XCHG
-0354	CPE address
-#0355	CALL address	# undocumented
+0354	CPE word
+#0355	CALL word	# undocumented
 0356	XRI byte
 0357	RST 5
 	
 0360	RP
 0361	POP PSW
-0362	JP address
+0362	JP word
 0363	DI
-0364	CP address
+0364	CP word
 0365	PUSH PSW
 0366	ORI byte
 0367	RST 6
 	
 0370	RM
 0371	SPHL
-0372	JM address
+0372	JM word
 0373	EI
-0374	CM address
-#0375	CALL address	# undocumented
+0374	CM word
+#0375	CALL word	# undocumented
 0376	CPI byte
 0377	RST 7
 	
