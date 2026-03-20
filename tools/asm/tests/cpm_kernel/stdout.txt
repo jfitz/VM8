@@ -45,7 +45,7 @@ processor	8080
  000
  023
  000
-.instructions
+.instruction-offsets
  000000
  000001
  000003

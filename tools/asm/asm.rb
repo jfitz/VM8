@@ -531,7 +531,7 @@ bytes.each do |byte|
   puts byte_s
 end
 
-puts '.instructions'
+puts '.instruction-offsets'
 instr_offs.each do |offset|
   offset_s = format_octal_word(offset)
 
