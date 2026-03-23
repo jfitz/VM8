@@ -19,39 +19,14 @@ class SymbolDef
   end
 end
 
-def read_and_split_lines
-  sections = {}
-
-  section = []
-  name = ''
-
-  $stdin.each_line do |line|
-    line.chomp!
-    line.strip!
-    if line.start_with?('.')
-      # a dot-line starts a new section
-      sections[name] = section if name.size > 0
-      section = []
-      name = line
-    else
-      # other lines get added to section
-      section << line
-    end
-  end
-
-  sections[name] = section if section.size > 0
-
-  sections
-end
-
 # option for base
 
 options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: ruby linker.rb [options]"
 
-  opts.on("-b", "--base BASE", "Base address for output module") do |v|
-    options[:base_address] = v
+  opts.on("-b", "--start ADDRESS", "Start address for executable segment") do |v|
+    options[:start_address] = v
   end
 
   opts.on("-h", "--help", "Prints this help") do
@@ -61,13 +36,14 @@ OptionParser.new do |opts|
 end.parse!
 
 base_address = 0
-base_address_s = options[:base_address]
+base_address_s = options[:start_address]
 base_address = base_address_s.to_i(0) unless base_address_s.nil?
 
 puts "base-address: #{base_address}"
 
 # split input to sections based on dot lines
-sections = read_and_split_lines
+file_lines = STDIN.readlines(chomp: true)
+sections = split_into_sections(file_lines)
 
 # verify .relocatable
 unless sections.key?('.identification')
