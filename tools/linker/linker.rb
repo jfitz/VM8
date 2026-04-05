@@ -51,15 +51,15 @@ unless sections.key?('.identification')
   exit
 end
 
-# verify .code
-unless sections.key?('.code')
-  STDERR.puts 'No code section'
+# verify .executable
+unless sections.key?('.executable')
+  STDERR.puts 'No executable section'
   exit
 end
 
 bytes = []
 
-sections['.code'].each do |line|
+sections['.executable'].each do |line|
   parts = line.split
 
   parts.each do |byte|

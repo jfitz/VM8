@@ -2,7 +2,7 @@
 relocatable
 .environment
 processor	8080
-.code
+.executable
  041
  000
  000

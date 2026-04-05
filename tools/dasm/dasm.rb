@@ -116,7 +116,6 @@ end
 bytes = []
 
 code_lines = sections['.executable']
-code_lines = sections['.code'] if code_lines.nil?
 
 if code_lines.nil?
   STDERR.puts 'No executable or code section'

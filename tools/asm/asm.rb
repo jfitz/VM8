@@ -524,7 +524,7 @@ puts '.environment'
 
 puts "processor\t" + processor unless processor.nil?
 
-puts '.code'
+puts '.executable'
 bytes.each do |byte|
   byte_s = format_octal_byte(byte)
 
