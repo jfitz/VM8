@@ -29,17 +29,15 @@ OptionParser.new do |opts|
     options[:start_address] = v
   end
 
+  opts.on("-e", "--end ADDRESS", "End address for output") do |v|
+    options[:end_address] = v
+  end
+
   opts.on("-h", "--help", "Prints this help") do
     puts opts
     exit
   end
 end.parse!
-
-base_address = 0
-base_address_s = options[:start_address]
-base_address = base_address_s.to_i(0) unless base_address_s.nil?
-
-puts "base-address: #{base_address}"
 
 # split input to sections based on dot lines
 file_lines = STDIN.readlines(chomp: true)
@@ -111,6 +109,29 @@ sections['.references'].each do |line|
   num_bytes = parts[2].to_i(0)
   references[offset] = ReferenceDef.new(name, num_bytes)
 end
+
+base_address = nil
+base_address_s = options[:start_address]
+base_address = base_address_s.to_i(0) unless base_address_s.nil?
+
+end_address = nil
+end_address_s = options[:end_address]
+end_address = end_address_s.to_i(0) unless end_address_s.nil?
+
+base_address = 0 if base_address.nil? && end_address.nil?
+
+# start specified, no end specified
+if !base_address.nil? && end_address.nil?
+  end_address = base_address + bytes.count
+end
+
+# no start specified, end specified
+if base_address.nil? && !end_address.nil?
+  base_address = end_address - bytes.count
+end
+
+puts 'base-address: ' + base_address.to_s(16)
+puts 'end-address: ' + end_address.to_s(16)
 
 # adjust symbols by base
 symbols.each do |_, symbol_def|
