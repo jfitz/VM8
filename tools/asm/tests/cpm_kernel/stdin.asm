@@ -1,4 +1,24 @@
 # CPM kernel
+INIT
+    # 0x0000 JMP C_EXIT
+    LXI H,0
+    MVI E,0303    # JMP instruction
+    MOV M,E
+    INX H
+    LXI D,C_EXIT
+    MOV M,E
+    INX H
+    MOV M,D
+
+    # 0x0005 JMP DISPATCH
+    LXI H,5
+    MVI E,0303    # JMP instruction
+    MOV M,E
+    INX H
+    LXI D,DISPATCH
+    MOV M,E
+    INX H
+    MOV M,D
 
 # call handler for function in C
 DISPATCH
