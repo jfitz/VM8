@@ -516,9 +516,9 @@ unless list_output_filename.nil?
   end
 end
 
-# write relocatable module
+# write object module
 puts '.identification'
-puts 'relocatable'
+puts 'object'
 
 puts '.environment'
 

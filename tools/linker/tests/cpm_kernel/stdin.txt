@@ -1,5 +1,5 @@
 .identification
-relocatable
+object
 .environment
 processor	8080
 .executable

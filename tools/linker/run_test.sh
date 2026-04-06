@@ -11,10 +11,10 @@ mkdir testbed/$TEST
 echo running 'linker'
 
 # copy files
-cp tests/$TEST/stdin.rel testbed/$TEST
+cp tests/$TEST/stdin.txt testbed/$TEST
 
 # run test, generate output
-ruby linker.rb <testbed/$TEST/stdin.rel --end 0xffff >testbed/$TEST/stdout.txt
+ruby linker.rb <testbed/$TEST/stdin.txt --end 0xffff >testbed/$TEST/stdout.txt
 
 echo comparing output
 

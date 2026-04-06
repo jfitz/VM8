@@ -1,11 +1,33 @@
+File formats
+source: text
+object: dot notation with executable, readonly?, writable?, symbols, references, instruction-offsets
+lib: object+
+relocatable: dot notation with executable, readonly?, writable?
+fixed: dot notation with executable, readonly?, writable?
+EXE: binary with metadata
+COM: binary, no metadata
+ABS: binary, no metadata
+
+Tools
+
+asm: source -> object, list
+dasm: object -> source
+linker: object+ lib* -> relocatable
+loader: relocatable -> fixed
+fixed_to_exe: fixed -> EXE (for CP/M or HDOS)
+fixed_to_com: fixed -> COM (for CP/M)
+fixed_to_abs: fixed -> ABS (for HDOS)
+
 Possible languages
 
 Assembly language
 - 8080
 
 C
-- K&R version
-- ANSI version (perhaps not complete ANSI)
+- krc: K&R version
+- ansic: ANSI version (perhaps not complete ANSI)
+- cswf: C with classes (structs with functions) no inheritance, no templates
+- simpc: simplified
 
 Dibol (different name?)
 
@@ -14,6 +36,4 @@ AWK
 FOCAL
 
 SQL (different name)
-
-Improved (?) / Simplified C (different name)
 
