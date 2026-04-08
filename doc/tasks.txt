@@ -1,0 +1,64 @@
+resources:
+  http://www.gaby.de/cpm/manuals/archive/cpm22htm/index.htm
+  https://jefftranter.blogspot.com/
+  https://cpm8680.com/cpmc64/index.htm
+  https://en.wikipedia.org/wiki/Intel_HEX
+
+asm:
+ options:
+   hex or octal (--hex, --octal, default octal, cannot have both)
+ output:
+   multiple bytes on one line (8 for octal, 16 for hex)
+ test
+   for octal output
+   for hex output
+ 
+linker:
+ options:
+   hex or octal (--hex, --octal, default octal, cannot have both)
+ input:
+   read multiple bytes on line
+   check format of input line
+ output:
+   in hex or octal (--hex, --octal, default octal, cannot have both)
+   multiple bytes on one line (8 for octal, 16 for hex)
+ test
+   for octal output
+   for hex output
+
+dasm:
+ options:
+   hex or octal (--hex, --octal, default octal, cannot have both)
+ input:
+   read multiple bytes on line
+   check format of input line
+ output:
+   in hex or octal (--hex, --octal, default octal, cannot have both)
+   multiple bytes on one line (8 for octal, 16 for hex)
+ test
+   for octal output
+   for hex output
+
+loader:
+ options:
+   hex or octal (--hex, --octal, default octal, cannot have both)
+ input:
+   read multiple bytes on line
+   check format of input line
+ output:
+   in hex or octal (--hex, --octal, default octal, cannot have both)
+   multiple bytes on one line (8 for octal, 16 for hex)
+ test
+   for octal output
+   for hex output
+
+binner:
+ purpose:
+   convert 'positioned' output to binary
+ input:
+   read multiple bytes on line
+   check format of input line
+ output:
+   multiple bytes on one line (8 for octal, 16 for hex)
+ test requires post-processing to convert binary to text, for comparison
+

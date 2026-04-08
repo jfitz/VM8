@@ -1,0 +1,68 @@
+                        # CPM kernel
+ 000000:                # INIT
+                        #                         # 0x0000 JMP C_EXIT
+ 000000:  041  000  000 #         LXI   H,0
+ 000003:  036 0303      #         MVI   E,0303     # JMP instruction
+ 000005: 0163           #         MOV   M,E
+ 000006:  043           #         INX   H
+ 000007:  021  000  000 #         LXI   D,C_EXIT
+ 000012: 0163           #         MOV   M,E
+ 000013:  043           #         INX   H
+ 000014: 0162           #         MOV   M,D
+
+                        #                         # 0x0005 JMP DISPATCH
+ 000015:  041  005  000 #         LXI   H,5
+ 000020:  036 0303      #         MVI   E,0303     # JMP instruction
+ 000022: 0163           #         MOV   M,E
+ 000023:  043           #         INX   H
+ 000024:  021  000  000 #         LXI   D,DISPATCH
+ 000027: 0163           #         MOV   M,E
+ 000030:  043           #         INX   H
+ 000031: 0162           #         MOV   M,D
+
+                        # call handler for function in C
+ 000032:                # DISPATCH
+ 000032: 0171           #         MOV   A,C
+ 000033: 0376  000      #         CPI   TABLE_CT
+ 000035: 0362  000  000 #         JP    CMD_ERR
+ 000040:  006  000      #         MVI   B,0
+ 000042:  041  000  000 #         LXI   H,TABLE
+ 000045:  011           #         DAD   B
+ 000046: 0351           #         PCHL
+
+ 000047:                # CMD_ERR
+ 000047: 0311           #         RET
+
+                        # program exit
+ 000050:                # C_EXIT
+ 000050: 0311           #         RET
+
+                        # console input char
+ 000051:                # CON_C_IN
+ 000051: 0311           #         RET
+
+                        # console output char
+ 000052:                # CON_C_OUT
+ 000052: 0323  001      #         OUT   1
+ 000054: 0311           #         RET
+
+                        # console output line
+ 000055:                # CON_S_OUT
+ 000055: 0323  011      #         OUT   9
+ 000057: 0311           #         RET
+
+ 000060:                # TABLE
+ 000060:  050  000 	# .word  C_EXIT               # 0x00
+ 000062:  051  000 	# .word  CON_C_IN             # 0x01
+ 000064:  052  000 	# .word  CON_C_OUT            # 0x02
+ 000066:  000  000 	# .word  0                    # 0x03
+ 000070:  000  000 	# .word  0                    # 0x04
+ 000072:  000  000 	# .word  0                    # 0x05
+ 000074:  000  000 	# .word  0                    # 0x06
+ 000076:  000  000 	# .word  0                    # 0x07
+ 000100:  000  000 	# .word  0                    # 0x08
+ 000102:  055  000 	# .word  CON_S_OUT            # 0x09
+
+          000024	# .equate  TABLE_SZ  .offset TABLE -
+          000012	# .equate  TABLE_CT  TABLE_SZ 2 /
+
