@@ -25,14 +25,6 @@ options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: ruby linker.rb [options]"
 
-  opts.on("-b", "--start ADDRESS", "Start address for executable segment") do |v|
-    options[:start_address] = v
-  end
-
-  opts.on("-e", "--end ADDRESS", "End address for output") do |v|
-    options[:end_address] = v
-  end
-
   opts.on("-h", "--help", "Prints this help") do
     puts opts
     exit
@@ -49,19 +41,31 @@ unless sections.key?('.identification')
   exit
 end
 
+processor = nil
+
+if sections.key?('.environment')
+  env_lines = sections['.environment']
+  
+  environment = make_dictionary(env_lines)
+  
+  processor = environment['processor']
+end
+
 # verify .executable
 unless sections.key?('.executable')
   STDERR.puts 'No executable section'
   exit
 end
 
-bytes = []
+executable_bytes = []
+readonly_bytes = []
+writable_bytes = []
 
 sections['.executable'].each do |line|
   parts = line.split
 
   parts.each do |byte|
-    bytes << byte.to_i(0)
+    executable_bytes << byte.to_i(0)
   end
 end
 
@@ -110,33 +114,22 @@ sections['.references'].each do |line|
   references[offset] = ReferenceDef.new(name, num_bytes)
 end
 
-base_address = nil
-base_address_s = options[:start_address]
-base_address = base_address_s.to_i(0) unless base_address_s.nil?
+# for each segment, adjust symbols by base of segment
+base_address = 0
 
-end_address = nil
-end_address_s = options[:end_address]
-end_address = end_address_s.to_i(0) unless end_address_s.nil?
-
-base_address = 0 if base_address.nil? && end_address.nil?
-
-# start specified, no end specified
-if !base_address.nil? && end_address.nil?
-  end_address = base_address + bytes.count
-end
-
-# no start specified, end specified
-if base_address.nil? && !end_address.nil?
-  base_address = end_address - bytes.count
-end
-
-puts 'base-address: ' + base_address.to_s(16)
-puts 'end-address: ' + end_address.to_s(16)
-
-# adjust symbols by base
 symbols.each do |_, symbol_def|
   symbol_def.adjust(base_address) if symbol_def.is_rel
 end
+
+base_address = executable_bytes.count
+
+# adjust readonly segment
+
+base_address = executable_bytes.count + readonly_bytes.count
+
+# adjust writable segment
+
+executable_relocation_offsets = []
 
 # adjust references in code
 references.each do |offset, reference_def|
@@ -149,19 +142,43 @@ references.each do |offset, reference_def|
     exit
   end
 
+  # add to table
+  executable_relocation_offsets << offset if symbol_def.is_rel
+
+  # adjust bytes in segment
   target = symbol_def.offset
-  bytes[offset] = target % 256 if num_bytes > 0
-  bytes[offset + 1] = target / 256 if num_bytes > 1
+
+  executable_bytes[offset] = target % 256 if num_bytes > 0
+  executable_bytes[offset + 1] = target / 256 if num_bytes > 1
 end
 
-# write header
+# write relocatable module
+puts '.identification'
+puts 'relocatable'
+
+puts '.environment'
+
+puts "processor\t" + processor unless processor.nil?
+
+# write executable segment
 puts '.executable'
 
-# write bytes
-bytes.each do |byte|
+executable_bytes.each do |byte|
   byte_s = format_octal_byte(byte)
 
   puts byte_s
+end
+
+# write readonly segment
+
+# write writable segment
+
+# write executable-relocation-offsets section
+
+puts ".relocation-offsets"
+
+executable_relocation_offsets.each do |offset|
+  puts format_octal_word(offset)
 end
 
 # write end

@@ -8,13 +8,13 @@ mkdir testbed/$TEST
 
 # copy files
 
-echo running 'linker'
+echo running 'loader'
 
 # copy files
 cp tests/$TEST/stdin.txt testbed/$TEST
 
 # run test, generate output
-ruby linker.rb <testbed/$TEST/stdin.txt >testbed/$TEST/stdout.txt
+ruby loader.rb <testbed/$TEST/stdin.txt --end 0xffff >testbed/$TEST/stdout.txt
 
 echo comparing output
 
