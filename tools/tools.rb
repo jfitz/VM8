@@ -56,6 +56,30 @@ def format_octal_byte(n)
   s.rjust(4)
 end
 
+def format_byte(n, base)
+  s = ''
+  
+  if base == :hex
+    s = format_hex_byte(n)
+  else
+    s = format_octal_byte(n)
+  end
+  
+  s
+end
+
+def format_word(n, base)
+  s = ''
+  
+  if base == :hex
+    s = format_hex_word(n)
+  else
+    s = format_octal_word(n)
+  end
+  
+  s
+end
+
 def format_octal_word(n)
   s = ''
   
@@ -64,6 +88,26 @@ def format_octal_word(n)
   end
   
   s.rjust(7)
+end
+
+def format_hex_byte(n)
+  s = '  '
+  
+  unless n.nil?
+    s = ("%02x" % n)
+  end
+  
+  s
+end
+
+def format_hex_word(n)
+  s = '    '
+  
+  unless n.nil?
+    s = ("%04x" % n)
+  end
+  
+  s
 end
 
 class ReferenceDef

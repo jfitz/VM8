@@ -1,20 +1,19 @@
-TEST=cpm_kernel
+TEST=$1
 
 echo test $TEST
 
 # make test dir
-mkdir testbed
 mkdir testbed/$TEST
 
 # copy files
 
-echo running 'asm' test $TEST
+echo running 'asm'
 
 # copy files
 cp tests/$TEST/stdin.asm testbed/$TEST
 
 # run test, generate output
-ruby asm.rb -o opcodes_8080.t -l testbed/$TEST/list.txt <testbed/$TEST/stdin.asm >testbed/$TEST/stdout.txt
+ruby asm.rb -o opcodes_8080.t -l testbed/$TEST/list.txt --octal <testbed/$TEST/stdin.asm >testbed/$TEST/stdout.txt
 
 echo comparing output
 
@@ -28,3 +27,4 @@ echo
 echo list
 diff testbed/$TEST/list.txt tests/$TEST/list.txt
 cp testbed/$TEST/list.txt tests/$TEST/list.txt
+

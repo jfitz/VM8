@@ -6,12 +6,16 @@ resources:
 
 asm:
  options:
-   hex or octal (--hex, --octal, default octal, cannot have both)
+ directives:
+   .byte
+   .string
+   .stringz
+   .nstring
+   .mnstring
+   .mstringz
  output:
    multiple bytes on one line (8 for octal, 16 for hex)
- test
-   for octal output
-   for hex output
+ tests:
  
 linker:
  options:

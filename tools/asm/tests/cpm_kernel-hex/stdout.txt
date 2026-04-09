@@ -1,0 +1,126 @@
+.identification
+object
+.environment
+processor	8080
+.executable
+21
+00
+00
+1e
+c3
+73
+23
+11
+00
+00
+73
+23
+72
+21
+05
+00
+1e
+c3
+73
+23
+11
+00
+00
+73
+23
+72
+79
+fe
+00
+f2
+00
+00
+06
+00
+21
+00
+00
+09
+e9
+c9
+c9
+c9
+d3
+01
+c9
+d3
+09
+c9
+28
+00
+29
+00
+2a
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+2d
+00
+.instruction-offsets
+0000
+0003
+0005
+0006
+0007
+000a
+000b
+000c
+000d
+0010
+0012
+0013
+0014
+0017
+0018
+0019
+001a
+001b
+001d
+0020
+0022
+0025
+0026
+0027
+0028
+0029
+002a
+002c
+002d
+002f
+.symbols
+INIT	0000	rel
+DISPATCH	001a	rel
+CMD_ERR	0027	rel
+C_EXIT	0028	rel
+CON_C_IN	0029	rel
+CON_C_OUT	002a	rel
+CON_S_OUT	002d	rel
+TABLE	0030	rel
+TABLE_SZ	0014	abs
+TABLE_CT	000a	abs
+.references
+0008	C_EXIT	2
+0015	DISPATCH	2
+001c	TABLE_CT	1
+001e	CMD_ERR	2
+0023	TABLE	2
+0030	C_EXIT	2
+0032	CON_C_IN	2
+0034	CON_C_OUT	2
+0042	CON_S_OUT	2
+.end
