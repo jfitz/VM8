@@ -1,68 +1,68 @@
                # CPM kernel
-0000:          # INIT
-               #                                  # 0x0000 JMP C_EXIT
-0000: 21 00 00 #         LXI   H,0
-0003: 1e c3    #         MVI   E,0303             # JMP instruction
-0005: 73       #         MOV   M,E
-0006: 23       #         INX   H
-0007: 11 00 00 #         LXI   D,C_EXIT
-000a: 73       #         MOV   M,E
-000b: 23       #         INX   H
-000c: 72       #         MOV   M,D
+0x0000:                # INIT
+                       #                          # 0x0000 JMP C_EXIT
+0x0000: 0x21 0x00 0x00 #         LXI   H,0
+0x0003: 0x1e 0xc3      #         MVI   E,0303     # JMP instruction
+0x0005: 0x73           #         MOV   M,E
+0x0006: 0x23           #         INX   H
+0x0007: 0x11 0x00 0x00 #         LXI   D,C_EXIT
+0x000a: 0x73           #         MOV   M,E
+0x000b: 0x23           #         INX   H
+0x000c: 0x72           #         MOV   M,D
 
-               #                                  # 0x0005 JMP DISPATCH
-000d: 21 05 00 #         LXI   H,5
-0010: 1e c3    #         MVI   E,0303             # JMP instruction
-0012: 73       #         MOV   M,E
-0013: 23       #         INX   H
-0014: 11 00 00 #         LXI   D,DISPATCH
-0017: 73       #         MOV   M,E
-0018: 23       #         INX   H
-0019: 72       #         MOV   M,D
+                       #                          # 0x0005 JMP DISPATCH
+0x000d: 0x21 0x05 0x00 #         LXI   H,5
+0x0010: 0x1e 0xc3      #         MVI   E,0303     # JMP instruction
+0x0012: 0x73           #         MOV   M,E
+0x0013: 0x23           #         INX   H
+0x0014: 0x11 0x00 0x00 #         LXI   D,DISPATCH
+0x0017: 0x73           #         MOV   M,E
+0x0018: 0x23           #         INX   H
+0x0019: 0x72           #         MOV   M,D
 
                # call handler for function in C
-001a:          # DISPATCH
-001a: 79       #         MOV   A,C
-001b: fe 00    #         CPI   TABLE_CT
-001d: f2 00 00 #         JP    CMD_ERR
-0020: 06 00    #         MVI   B,0
-0022: 21 00 00 #         LXI   H,TABLE
-0025: 09       #         DAD   B
-0026: e9       #         PCHL
+0x001a:                # DISPATCH
+0x001a: 0x79           #         MOV   A,C
+0x001b: 0xfe 0x00      #         CPI   TABLE_CT
+0x001d: 0xf2 0x00 0x00 #         JP    CMD_ERR
+0x0020: 0x06 0x00      #         MVI   B,0
+0x0022: 0x21 0x00 0x00 #         LXI   H,TABLE
+0x0025: 0x09           #         DAD   B
+0x0026: 0xe9           #         PCHL
 
-0027:          # CMD_ERR
-0027: c9       #         RET
+0x0027:                # CMD_ERR
+0x0027: 0xc9           #         RET
 
                # program exit
-0028:          # C_EXIT
-0028: c9       #         RET
+0x0028:                # C_EXIT
+0x0028: 0xc9           #         RET
 
                # console input char
-0029:          # CON_C_IN
-0029: c9       #         RET
+0x0029:                # CON_C_IN
+0x0029: 0xc9           #         RET
 
                # console output char
-002a:          # CON_C_OUT
-002a: d3 01    #         OUT   1
-002c: c9       #         RET
+0x002a:                # CON_C_OUT
+0x002a: 0xd3 0x01      #         OUT   1
+0x002c: 0xc9           #         RET
 
                # console output line
-002d:          # CON_S_OUT
-002d: d3 09    #         OUT   9
-002f: c9       #         RET
+0x002d:                # CON_S_OUT
+0x002d: 0xd3 0x09      #         OUT   9
+0x002f: 0xc9           #         RET
 
-0030:          # TABLE
-0030: 28 00 	# .word  C_EXIT                      # 0x00
-0032: 29 00 	# .word  CON_C_IN                    # 0x01
-0034: 2a 00 	# .word  CON_C_OUT                   # 0x02
-0036: 00 00 	# .word  0                           # 0x03
-0038: 00 00 	# .word  0                           # 0x04
-003a: 00 00 	# .word  0                           # 0x05
-003c: 00 00 	# .word  0                           # 0x06
-003e: 00 00 	# .word  0                           # 0x07
-0040: 00 00 	# .word  0                           # 0x08
-0042: 2d 00 	# .word  CON_S_OUT                   # 0x09
+0x0030:                # TABLE
+0x0030: 0x28 0x00 	# .word  C_EXIT                # 0x00
+0x0032: 0x29 0x00 	# .word  CON_C_IN              # 0x01
+0x0034: 0x2a 0x00 	# .word  CON_C_OUT             # 0x02
+0x0036: 0x00 0x00 	# .word  0                     # 0x03
+0x0038: 0x00 0x00 	# .word  0                     # 0x04
+0x003a: 0x00 0x00 	# .word  0                     # 0x05
+0x003c: 0x00 0x00 	# .word  0                     # 0x06
+0x003e: 0x00 0x00 	# .word  0                     # 0x07
+0x0040: 0x00 0x00 	# .word  0                     # 0x08
+0x0042: 0x2d 0x00 	# .word  CON_S_OUT             # 0x09
 
-      0014	# .equate  TABLE_SZ  .offset TABLE -
-      000a	# .equate  TABLE_CT  TABLE_SZ 2 /
+        0x0014	# .equate  TABLE_SZ  .offset TABLE -
+        0x000a	# .equate  TABLE_CT  TABLE_SZ 2 /
 

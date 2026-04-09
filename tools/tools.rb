@@ -91,21 +91,25 @@ def format_octal_word(n)
 end
 
 def format_hex_byte(n)
-  s = '  '
+  s = '    '
   
   unless n.nil?
-    s = ("%02x" % n)
+    s = ("%#04x" % n)
   end
+  
+  s = '0x00' if s == '0000'
   
   s
 end
 
 def format_hex_word(n)
-  s = '    '
+  s = '      '
   
   unless n.nil?
-    s = ("%04x" % n)
+    s = ("%#06x" % n)
   end
+  
+  s = '0x0000' if s == '000000'
   
   s
 end
