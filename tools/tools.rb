@@ -1,5 +1,17 @@
 class ToolsError < RuntimeError; end
 
+def is_number(s)
+  is_hex(s) || is_octal(s)
+end
+
+def is_hex(s)
+  s.match(/\A0[xX][0-9a-fA-F]+\Z/)
+end
+
+def is_octal(s)
+  s.match(/\A0[0-7]+\Z/)
+end
+
 def split_into_sections(lines)
   sections = {}
   

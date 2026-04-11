@@ -133,6 +133,15 @@ if code_lines.nil?
   exit
 end
 
+code_lines.each do |code_line|
+  line = code_line.strip
+  
+  if !is_number(line)
+    STDERR.puts 'invalid code value ' + line
+    exit
+  end
+end
+
 instruction_offsets = sections['.instruction-offsets']
 references_lines = sections['.references']
 references = make_references_map(references_lines)

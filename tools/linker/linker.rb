@@ -68,6 +68,15 @@ unless sections.key?('.executable')
   exit
 end
 
+sections['.executable'].each do |code_line|
+  line = code_line.strip
+  
+  if !is_number(line)
+    STDERR.puts 'invalid code value ' + line
+    exit
+  end
+end
+
 executable_bytes = []
 readonly_bytes = []
 writable_bytes = []

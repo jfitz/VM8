@@ -6,6 +6,8 @@ resources:
 
 asm:
  options:
+ processing:
+   parse lines and allow for string literals (single quotes)
  directives:
    .byte
    .string
@@ -19,12 +21,9 @@ asm:
  
 linker:
  options:
-   hex or octal (--hex, --octal, default octal, cannot have both)
  input:
    read multiple bytes on line
-   check format of input line
  output:
-   in hex or octal (--hex, --octal, default octal, cannot have both)
    multiple bytes on one line (8 for octal, 16 for hex)
  test
    for octal output
@@ -32,10 +31,8 @@ linker:
 
 dasm:
  options:
-   hex or octal (--hex, --octal, default octal, cannot have both)
  input:
    read multiple bytes on line
-   check format of input line
  output:
    in hex or octal (--hex, --octal, default octal, cannot have both)
    multiple bytes on one line (8 for octal, 16 for hex)
@@ -45,12 +42,9 @@ dasm:
 
 loader:
  options:
-   hex or octal (--hex, --octal, default octal, cannot have both)
  input:
    read multiple bytes on line
-   check format of input line
  output:
-   in hex or octal (--hex, --octal, default octal, cannot have both)
    multiple bytes on one line (8 for octal, 16 for hex)
  test
    for octal output
@@ -60,9 +54,13 @@ binner:
  purpose:
    convert 'positioned' output to binary
  input:
-   read multiple bytes on line
    check format of input line
+   read multiple bytes on line
+ processing:
+   convert executable section
+   convert readonly section
+   convert writable section
  output:
-   multiple bytes on one line (8 for octal, 16 for hex)
- test requires post-processing to convert binary to text, for comparison
+ tests:
+   requires post-processing to convert binary to text, for comparison
 
