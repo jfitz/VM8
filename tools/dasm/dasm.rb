@@ -27,7 +27,7 @@ def make_opcode_descs(file_lines)
   descriptions
 end
 
-def disassemble(offset_i, opcode_desc, code_lines, references)
+def disassemble(offset_i, opcode_desc, code_lines, references, output_base)
   parts = opcode_desc.split
   mnemonic = parts.shift
   mnemonic = mnemonic.ljust(4)
@@ -48,7 +48,7 @@ def disassemble(offset_i, opcode_desc, code_lines, references)
     arg_value_h_s = code_lines[offset_i + 2]
     arg_value_h = arg_value_h_s.to_i(0)
     arg_value = arg_value_h * 256 + arg_value_l
-    arg_value_s = format_octal_word(arg_value)
+    arg_value_s = format_word(arg_value, output_base)
 
     unless references.nil?
       # if address is in references, replace with symbol
@@ -69,6 +69,14 @@ OptionParser.new do |opts|
     options[:opcodes_name] = v
   end
 
+  opts.on("--octal", "Octal output") do |v|
+    options[:octal] = v
+  end
+
+  opts.on("--hex", "Hexadecimal output") do |v|
+    options[:hex] = v
+  end
+
   opts.on("-h", "--help", "Prints this help") do
     puts opts
     exit
@@ -81,6 +89,9 @@ if opcodes_filename.nil?
   puts "opcodes file required"
   exit
 end
+
+output_base = :octal
+output_base = :hex if options[:hex]
 
 file_lines = File.readlines(opcodes_filename, chomp: true)
 sections = split_into_sections(file_lines)
@@ -136,13 +147,13 @@ instruction_offsets.each do |offset|
   if opcode_desc.nil?
     opcode_desc = "No opcode for #{op_s} / #{op}"
   else
-    opcode_text = disassemble(offset_i, opcode_desc, code_lines, references)
+    opcode_text = disassemble(offset_i, opcode_desc, code_lines, references, output_base)
   end
   
   s = ''
-  s += format_octal_word(offset)
+  s += format_word(offset, output_base)
   s += ": "
-  s += format_octal_byte(op)
+  s += format_byte(op, output_base)
   # space
   # byte or 4 spaces
   # space
