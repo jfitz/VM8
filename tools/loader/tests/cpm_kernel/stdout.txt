@@ -1,5 +1,5 @@
-base-address: ffbb
-end-address: ffff
+base-address 0177673
+end-address 0177777
 .identification
 positioned
 .environment

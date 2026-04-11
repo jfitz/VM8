@@ -13,8 +13,8 @@ class SymbolDef
     @offset += adjustment
   end
 
-  def to_s
-    offset_s = format_octal_word(@offset)
+  def to_s(output_base)
+    offset_s = format_word(@offset, output_base)
     "#{offset_s}, #{@is_rel}"
   end
 end
@@ -31,6 +31,14 @@ OptionParser.new do |opts|
 
   opts.on("-e", "--end ADDRESS", "End address") do |v|
     options[:end_address] = v
+  end
+
+  opts.on("--octal", "Octal output") do |v|
+    options[:octal] = v
+  end
+
+  opts.on("--hex", "Hexadecimal output") do |v|
+    options[:hex] = v
   end
 
   opts.on("-h", "--help", "Prints this help") do
@@ -54,6 +62,9 @@ end_address = nil
 end_address = end_address_s.to_i(0) unless end_address_s.nil?
 
 base_address = 0 if base_address.nil? && end_address.nil?
+
+output_base = :octal
+output_base = :hex if options[:hex]
 
 # split input to sections based on dot lines
 file_lines = STDIN.readlines(chomp: true)
@@ -107,8 +118,8 @@ if base_address.nil? && !end_address.nil?
   base_address = end_address - bytes.count
 end
 
-puts 'base-address: ' + base_address.to_s(16)
-puts 'end-address: ' + end_address.to_s(16)
+puts 'base-address ' + format_word(base_address, output_base)
+puts 'end-address ' + format_word(end_address, output_base)
 
 offsets = []
 
@@ -146,7 +157,7 @@ puts '.executable'
 
 # write bytes
 bytes.each do |byte|
-  byte_s = format_octal_byte(byte)
+  byte_s = format_byte(byte, output_base)
 
   puts byte_s
 end
