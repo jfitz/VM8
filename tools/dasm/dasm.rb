@@ -136,9 +136,13 @@ end
 code_lines.each do |code_line|
   line = code_line.strip
   
-  if !is_number(line)
-    STDERR.puts 'invalid code value ' + line
-    exit
+  parts = line.split
+
+  parts.each do |byte|
+    if !is_number(byte)
+      STDERR.puts 'invalid code value ' + line
+      exit
+    end
   end
 end
 
