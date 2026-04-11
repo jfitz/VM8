@@ -13,8 +13,8 @@ class SymbolDef
     @offset += adjustment
   end
 
-  def to_s
-    offset_s = format_octal_word(@offset)
+  def to_s(output_base)
+    offset_s = format_word(@offset, output_base)
     "#{offset_s}, #{@is_rel}"
   end
 end
@@ -25,11 +25,22 @@ options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: ruby linker.rb [options]"
 
+  opts.on("--octal", "Octal output") do |v|
+    options[:octal] = v
+  end
+
+  opts.on("--hex", "Hexadecimal output") do |v|
+    options[:hex] = v
+  end
+
   opts.on("-h", "--help", "Prints this help") do
     puts opts
     exit
   end
 end.parse!
+
+output_base = :octal
+output_base = :hex if options[:hex]
 
 # split input to sections based on dot lines
 file_lines = STDIN.readlines(chomp: true)
@@ -164,7 +175,7 @@ puts "processor\t" + processor unless processor.nil?
 puts '.executable'
 
 executable_bytes.each do |byte|
-  byte_s = format_octal_byte(byte)
+  byte_s = format_byte(byte, output_base)
 
   puts byte_s
 end
@@ -178,7 +189,7 @@ end
 puts ".relocation-offsets"
 
 executable_relocation_offsets.each do |offset|
-  puts format_octal_word(offset)
+  puts format_word(offset, output_base)
 end
 
 # write end
