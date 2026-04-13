@@ -27,14 +27,14 @@ def make_opcode_descs(file_lines)
   descriptions
 end
 
-def disassemble(offset_i, opcode_desc, code_lines, references, output_base)
+def disassemble(offset_i, opcode_desc, code_bytes, references, output_base)
   parts = opcode_desc.split
   mnemonic = parts.shift
   mnemonic = mnemonic.ljust(4)
   opcode_text = mnemonic + '   ' + parts.join
 
   if opcode_desc.end_with?('byte')
-    arg_value_s = code_lines[offset_i + 1]
+    arg_value_s = code_bytes[offset_i + 1]
 
     # if address is in references, replace with symbol
     arg_value_s = references[offset_i + 1] if references.key?(offset_i + 1)
@@ -43,9 +43,9 @@ def disassemble(offset_i, opcode_desc, code_lines, references, output_base)
   end
 
   if opcode_text.end_with?('word')
-    arg_value_l_s = code_lines[offset_i + 1]
+    arg_value_l_s = code_bytes[offset_i + 1]
     arg_value_l = arg_value_l_s.to_i(0)
-    arg_value_h_s = code_lines[offset_i + 2]
+    arg_value_h_s = code_bytes[offset_i + 2]
     arg_value_h = arg_value_h_s.to_i(0)
     arg_value = arg_value_h * 256 + arg_value_l
     arg_value_s = format_word(arg_value, output_base)
@@ -146,6 +146,18 @@ code_lines.each do |code_line|
   end
 end
 
+code_bytes = []
+
+code_lines.each do |code_line|
+  line = code_line.strip
+  
+  parts = line.split
+
+  parts.each do |byte|
+    code_bytes << byte
+  end
+end
+
 instruction_offsets = sections['.instruction-offsets']
 references_lines = sections['.references']
 references = make_references_map(references_lines)
@@ -153,14 +165,14 @@ references = make_references_map(references_lines)
 # for each instruction offset
 instruction_offsets.each do |offset|
   offset_i = offset.to_i(0)
-  op_s = code_lines[offset_i]
+  op_s = code_bytes[offset_i]
   op = op_s.to_i(0)
   opcode_desc = opcode_descriptions[op]
 
   if opcode_desc.nil?
     opcode_desc = "No opcode for #{op_s} / #{op}"
   else
-    opcode_text = disassemble(offset_i, opcode_desc, code_lines, references, output_base)
+    opcode_text = disassemble(offset_i, opcode_desc, code_bytes, references, output_base)
   end
   
   s = ''

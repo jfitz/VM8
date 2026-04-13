@@ -542,24 +542,48 @@ end
 puts '.identification'
 puts 'object'
 
+puts
 puts '.environment'
 
 puts "processor\t" + processor unless processor.nil?
 
+puts
 puts '.executable'
+
+line_bytes = []
+
 bytes.each do |byte|
   byte_s = format_byte(byte, output_base)
 
-  puts byte_s
+  line_bytes << byte_s
+  
+  if line_bytes.size == 8
+    puts line_bytes.join(' ')
+    line_bytes = []
+  end
 end
 
+puts line_bytes.join(' ') if line_bytes.size > 0
+
+puts
 puts '.instruction-offsets'
+
+line_offsets = []
+
 instr_offs.each do |offset|
   offset_s = format_word(offset, output_base)
 
-  puts offset_s
+  line_offsets << offset_s
+
+  if line_offsets.size == 8
+    puts line_offsets.join(' ')
+    line_offsets = []
+  end
 end
 
+puts line_offsets.join(' ') if line_offsets.size > 0
+
+puts
 puts '.symbols'
 
 symbols.each do |symbol, abs_rel_value|
@@ -570,6 +594,7 @@ symbols.each do |symbol, abs_rel_value|
   puts symbol + "\t" + value_s + "\t" + abs_or_rel
 end
 
+puts
 puts '.references'
 
 references.each do |offset, reference_def|
