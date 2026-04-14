@@ -49,10 +49,10 @@ def make_references_map(lines)
   
   lines.each do |line|
     line.strip!
-    parts = line.split(/\s/)
-    word = parts[0].to_i(0)
+    parts = line.split
+    offset = parts[0].to_i(0)
     
-    dictionary[word] = parts[1]
+    dictionary[offset] = parts[1]
   end
   
   dictionary

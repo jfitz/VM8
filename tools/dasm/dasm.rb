@@ -27,35 +27,34 @@ def make_opcode_descs(file_lines)
   descriptions
 end
 
-def disassemble(offset_i, opcode_desc, code_bytes, references, output_base)
+def disassemble(offset, opcode_desc, code_bytes, references, output_base)
   parts = opcode_desc.split
   mnemonic = parts.shift
   mnemonic = mnemonic.ljust(4)
   opcode_text = mnemonic + '   ' + parts.join
 
+  ref_offset = offset + 1
+
   if opcode_desc.end_with?('byte')
-    arg_value_s = code_bytes[offset_i + 1]
+    arg_value_s = format_byte(code_bytes[ref_offset], output_base)
 
     # if address is in references, replace with symbol
-    arg_value_s = references[offset_i + 1] if references.key?(offset_i + 1)
+    arg_value_s = references[ref_offset] if references.key?(ref_offset)
 
     opcode_text.sub!('byte', arg_value_s)
   end
 
   if opcode_text.end_with?('word')
-    arg_value_l_s = code_bytes[offset_i + 1]
-    arg_value_l = arg_value_l_s.to_i(0)
-    arg_value_h_s = code_bytes[offset_i + 2]
-    arg_value_h = arg_value_h_s.to_i(0)
+    arg_value_l = code_bytes[ref_offset]
+    arg_value_h = code_bytes[ref_offset + 1]
+
     arg_value = arg_value_h * 256 + arg_value_l
     arg_value_s = format_word(arg_value, output_base)
 
-    unless references.nil?
-      # if address is in references, replace with symbol
-      arg_value_s = references[offset_i + 1] if references.key?(offset_i + 1)
+    # if address is in references, replace with symbol
+    arg_value_s = references[ref_offset] if references.key?(ref_offset)
 
-      opcode_text.sub!('word', arg_value_s)
-    end
+    opcode_text.sub!('word', arg_value_s)
   end
 
   opcode_text
@@ -126,53 +125,61 @@ end
 
 bytes = []
 
-code_lines = sections['.executable']
+lines = sections['.executable']
 
-if code_lines.nil?
+if lines.nil?
   STDERR.puts 'No executable or code section'
   exit
 end
 
-code_lines.each do |code_line|
-  line = code_line.strip
+code_bytes = []
+
+lines.each do |line|
+  line = line.strip
   
   parts = line.split
 
   parts.each do |byte|
     if !is_number(byte)
-      STDERR.puts 'invalid code value ' + line
+      STDERR.puts 'invalid code value ' + byte
       exit
     end
+
+    code_bytes << byte.to_i(0)
   end
 end
 
-code_bytes = []
+lines = sections['.instruction-offsets']
 
-code_lines.each do |code_line|
-  line = code_line.strip
+instruction_offsets = []
+
+lines.each do |line|
+  line = line.strip
   
   parts = line.split
 
-  parts.each do |byte|
-    code_bytes << byte
+  parts.each do |offset|
+    if !is_number(offset)
+      STDERR.puts 'invalid offset value ' + offset
+      exit
+    end
+
+    instruction_offsets << offset.to_i(0)
   end
 end
 
-instruction_offsets = sections['.instruction-offsets']
 references_lines = sections['.references']
 references = make_references_map(references_lines)
 
 # for each instruction offset
 instruction_offsets.each do |offset|
-  offset_i = offset.to_i(0)
-  op_s = code_bytes[offset_i]
-  op = op_s.to_i(0)
+  op = code_bytes[offset]
   opcode_desc = opcode_descriptions[op]
 
   if opcode_desc.nil?
     opcode_desc = "No opcode for #{op_s} / #{op}"
   else
-    opcode_text = disassemble(offset_i, opcode_desc, code_bytes, references, output_base)
+    opcode_text = disassemble(offset, opcode_desc, code_bytes, references, output_base)
   end
   
   s = ''
