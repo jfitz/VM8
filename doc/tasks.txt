@@ -3,6 +3,8 @@ resources:
   https://jefftranter.blogspot.com/
   https://cpm8680.com/cpmc64/index.htm
   https://en.wikipedia.org/wiki/Intel_HEX
+  https://techtinkering.com/articles/the-mouse-programming-language-on-cpm/
+  http://cpmarchives.classiccmp.org//cpm/Software/WalnutCD/
 
 asm:
  options:
