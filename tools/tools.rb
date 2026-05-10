@@ -17,7 +17,11 @@ def split_into_sections(lines)
   
   section_name = ''
   section = []
+
   lines.each do |line|
+    line.strip!
+    next if line.empty?
+
     if line.start_with?('.')
       sections[section_name] = section if section.size > 0
       section = []

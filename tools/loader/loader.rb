@@ -87,65 +87,53 @@ if sections.key?('.environment')
 end
 
 # verify .executable
-unless sections.key?('.executable')
+lines = sections['.executable']
+
+if lines.nil?
   STDERR.puts 'No executable section'
   exit
 end
 
-sections['.executable'].each do |code_line|
-  line = code_line.strip
-  
-  parts = line.split
-
-  parts.each do |byte|
-    if !is_number(byte)
-      STDERR.puts 'invalid code value ' + line
-      exit
-    end
-  end
+begin
+  executable_bytes = parse_bytes(lines)
+rescue RuntimeError => e
+  STDERR.puts e
 end
 
-bytes = []
-
-sections['.executable'].each do |line|
-  parts = line.split
-
-  parts.each do |byte|
-    bytes << byte.to_i(0)
-  end
-end
+readonly_bytes = []
+writable_bytes = []
 
 # verify .relocation-offsets
-unless sections.key?('.relocation-offsets')
+lines = sections['.relocation-offsets']
+
+if lines.nil?
   STDERR.puts 'No relocation offsets section'
   exit
 end
 
+begin
+  offsets = parse_words(lines)
+rescue RuntimeError => e
+  STDERR.puts e
+end
+
 # start specified, no end specified
 if !base_address.nil? && end_address.nil?
-  end_address = base_address + bytes.count
+  end_address = base_address + executable_bytes.count
 end
 
 # no start specified, end specified
 if base_address.nil? && !end_address.nil?
-  base_address = end_address - bytes.count
+  base_address = end_address - executable_bytes.count
 end
 
 puts 'base-address ' + format_word(base_address, output_base)
 puts 'end-address ' + format_word(end_address, output_base)
 
-offsets = []
-
-sections['.relocation-offsets'].each do |line|
-  offset = line.to_i(0)
-
-  offsets << offset
-end
-
 # adjust references in code
 offsets.each do |offset|
-  lsb = bytes[offset]
-  msb = bytes[offset + 1]
+  lsb = executable_bytes[offset]
+  msb = executable_bytes[offset + 1]
   address = msb * 256 + lsb
   
   address += base_address
@@ -153,8 +141,8 @@ offsets.each do |offset|
   msb = address / 256
   lsb = address % 256
   
-  bytes[offset] = lsb
-  bytes[offset + 1] = msb
+  executable_bytes[offset] = lsb
+  executable_bytes[offset + 1] = msb
 end
 
 # write positioned module
@@ -169,7 +157,7 @@ puts "processor\t" + processor unless processor.nil?
 puts '.executable'
 
 # write bytes
-bytes.each do |byte|
+executable_bytes.each do |byte|
   byte_s = format_byte(byte, output_base)
 
   puts byte_s

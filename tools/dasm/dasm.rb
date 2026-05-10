@@ -27,7 +27,7 @@ def make_opcode_descs(file_lines)
   descriptions
 end
 
-def disassemble(offset, opcode_desc, code_bytes, references, output_base)
+def disassemble(offset, opcode_desc, executable_bytes, references, output_base)
   parts = opcode_desc.split
   mnemonic = parts.shift
   mnemonic = mnemonic.ljust(4)
@@ -36,7 +36,7 @@ def disassemble(offset, opcode_desc, code_bytes, references, output_base)
   ref_offset = offset + 1
 
   if opcode_desc.end_with?('byte')
-    arg_value_s = format_byte(code_bytes[ref_offset], output_base)
+    arg_value_s = format_byte(executable_bytes[ref_offset], output_base)
 
     # if address is in references, replace with symbol
     arg_value_s = references[ref_offset] if references.key?(ref_offset)
@@ -45,8 +45,8 @@ def disassemble(offset, opcode_desc, code_bytes, references, output_base)
   end
 
   if opcode_text.end_with?('word')
-    arg_value_l = code_bytes[ref_offset]
-    arg_value_h = code_bytes[ref_offset + 1]
+    arg_value_l = executable_bytes[ref_offset]
+    arg_value_h = executable_bytes[ref_offset + 1]
 
     arg_value = arg_value_h * 256 + arg_value_l
     arg_value_s = format_word(arg_value, output_base)
@@ -123,17 +123,15 @@ unless sections.key?('.identification')
   exit
 end
 
-bytes = []
-
 lines = sections['.executable']
 
 if lines.nil?
-  STDERR.puts 'No executable or code section'
+  STDERR.puts 'No executable section'
   exit
 end
 
 begin
-  code_bytes = parse_bytes(lines)
+  executable_bytes = parse_bytes(lines)
 rescue RuntimeError => e
   STDERR.puts e
 end
@@ -152,7 +150,7 @@ references = make_references_map(references_lines)
 # for each instruction offset
 instruction_offsets.each do |offset|
   # get the opcode
-  op = code_bytes[offset]
+  op = executable_bytes[offset]
   
   # get the description of the opcode
   opcode_desc = opcode_descriptions[op]
@@ -161,7 +159,7 @@ instruction_offsets.each do |offset|
   if opcode_desc.nil?
     opcode_text = "No opcode for #{op_s} / #{op}"
   else
-    opcode_text = disassemble(offset, opcode_desc, code_bytes, references, output_base)
+    opcode_text = disassemble(offset, opcode_desc, executable_bytes, references, output_base)
   end
 
   # print the disassembled code  

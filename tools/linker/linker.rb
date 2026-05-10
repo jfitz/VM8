@@ -63,35 +63,21 @@ if sections.key?('.environment')
 end
 
 # verify .executable
-unless sections.key?('.executable')
+lines = sections['.executable']
+
+if lines.nil?
   STDERR.puts 'No executable section'
   exit
 end
 
-sections['.executable'].each do |code_line|
-  line = code_line.strip
-  
-  parts = line.split
-
-  parts.each do |byte|
-    if !is_number(byte)
-      STDERR.puts 'invalid code value ' + line
-      exit
-    end
-  end
+begin
+  executable_bytes = parse_bytes(lines)
+rescue RuntimeError => e
+  STDERR.puts e
 end
 
-executable_bytes = []
 readonly_bytes = []
 writable_bytes = []
-
-sections['.executable'].each do |line|
-  parts = line.split
-
-  parts.each do |byte|
-    executable_bytes << byte.to_i(0)
-  end
-end
 
 # skip over instruction offsets
 
@@ -103,7 +89,9 @@ end
 
 symbols = {}
 
-sections['.symbols'].each do |line|
+lines = sections['.symbols']
+
+lines.each do |line|
   parts = line.split
 
   unless parts.size == 3
