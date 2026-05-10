@@ -132,40 +132,18 @@ if lines.nil?
   exit
 end
 
-code_bytes = []
-
-lines.each do |line|
-  line = line.strip
-  
-  parts = line.split
-
-  parts.each do |byte|
-    if !is_number(byte)
-      STDERR.puts 'invalid code value ' + byte
-      exit
-    end
-
-    code_bytes << byte.to_i(0)
-  end
+begin
+  code_bytes = parse_bytes(lines)
+rescue RuntimeError => e
+  STDERR.puts e
 end
 
 lines = sections['.instruction-offsets']
 
-instruction_offsets = []
-
-lines.each do |line|
-  line = line.strip
-  
-  parts = line.split
-
-  parts.each do |offset|
-    if !is_number(offset)
-      STDERR.puts 'invalid offset value ' + offset
-      exit
-    end
-
-    instruction_offsets << offset.to_i(0)
-  end
+begin
+  instruction_offsets = parse_words(lines)
+rescue RuntimeError => e
+  STDERR.puts e
 end
 
 references_lines = sections['.references']
@@ -173,15 +151,20 @@ references = make_references_map(references_lines)
 
 # for each instruction offset
 instruction_offsets.each do |offset|
+  # get the opcode
   op = code_bytes[offset]
+  
+  # get the description of the opcode
   opcode_desc = opcode_descriptions[op]
 
+  # build the text description
   if opcode_desc.nil?
-    opcode_desc = "No opcode for #{op_s} / #{op}"
+    opcode_text = "No opcode for #{op_s} / #{op}"
   else
     opcode_text = disassemble(offset, opcode_desc, code_bytes, references, output_base)
   end
-  
+
+  # print the disassembled code  
   s = ''
   s += format_word(offset, output_base)
   s += ": "
@@ -198,3 +181,4 @@ end
 
 # write end
 puts '.end'
+

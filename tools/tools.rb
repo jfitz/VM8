@@ -32,6 +32,42 @@ def split_into_sections(lines)
   sections
 end
 
+def parse_bytes(lines)
+  bytes = []
+
+  lines.each do |line|
+    line = line.strip
+  
+    parts = line.split
+
+    parts.each do |byte|
+      raise 'invalid code value ' + byte unless is_number(byte)
+
+      bytes << byte.to_i(0)
+    end
+  end
+  
+  bytes
+end
+
+def parse_words(lines)
+  words = []
+
+  lines.each do |line|
+    line = line.strip
+  
+    parts = line.split
+
+    parts.each do |word|
+      raise 'invalid code value ' + word unless is_number(word)
+
+      words << word.to_i(0)
+    end
+  end
+  
+  words
+end
+
 def make_dictionary(lines)
   dictionary = {}
   
