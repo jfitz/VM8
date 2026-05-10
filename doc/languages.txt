@@ -20,20 +20,44 @@ fixed_to_abs: fixed -> ABS (for HDOS)
 
 Possible languages
 
+libraries
+- written in C
+- lib16m: 16-bit math
+- lib24m: 24-bit math
+- lib32m: 32-bit math
+
 Assembly language
 - 8080
 
-C
+C (.c)
+- use math libs
 - krc: K&R version
 - ansic: ANSI version (perhaps not complete ANSI)
-- cswf: C with classes (structs with functions) no inheritance, no templates
-- simpc: simplified
+- cwc: C with classes (structs with functions) no inheritance, no templates
+- sc: simplified C
 
-Dibol (different name?)
+Dibol (.d)
+- use math libs
+- decbol:
 
-AWK
+AWK (.awk)
+- use math libs
 
-FOCAL
+FOCAL (.fcl)
+- use math libs
 
-SQL (different name)
+SQL (.sql)
 
+LISP (.lis)
+
+Forth (.fth)
+- use math libs
+
+BASIC (.bas)
+- use math libs
+
+<to be named> reduced BASIC
+- use math libs
+- expressions only in LET statements
+- RPN for expressions
+- No IF or WHILE, use modifiers
