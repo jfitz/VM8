@@ -1,17 +1,29 @@
 class ToolsError < RuntimeError; end
 
+# ========================================
+#
+# ----------------------------------------
 def is_number(s)
   is_hex(s) || is_octal(s)
 end
 
+# ========================================
+#
+# ----------------------------------------
 def is_hex(s)
   s.match(/\A0[xX][0-9a-fA-F]+\Z/)
 end
 
+# ========================================
+#
+# ----------------------------------------
 def is_octal(s)
   s.match(/\A0[0-7]+\Z/)
 end
 
+# ========================================
+#
+# ----------------------------------------
 def split_into_sections(lines)
   sections = {}
   
@@ -36,6 +48,9 @@ def split_into_sections(lines)
   sections
 end
 
+# ========================================
+#
+# ----------------------------------------
 def parse_bytes(lines)
   bytes = []
 
@@ -54,6 +69,9 @@ def parse_bytes(lines)
   bytes
 end
 
+# ========================================
+#
+# ----------------------------------------
 def parse_words(lines)
   words = []
 
@@ -72,6 +90,9 @@ def parse_words(lines)
   words
 end
 
+# ========================================
+#
+# ----------------------------------------
 def make_dictionary(lines)
   dictionary = {}
   
@@ -84,6 +105,9 @@ def make_dictionary(lines)
   dictionary
 end
 
+# ========================================
+#
+# ----------------------------------------
 def make_references_map(lines)
   dictionary = {}
   
@@ -98,6 +122,9 @@ def make_references_map(lines)
   dictionary
 end
 
+# ========================================
+#
+# ----------------------------------------
 def format_octal_byte(n)
   s = ''
   
@@ -108,6 +135,9 @@ def format_octal_byte(n)
   s.rjust(4)
 end
 
+# ========================================
+#
+# ----------------------------------------
 def format_byte(n, base)
   s = ''
   
@@ -120,6 +150,9 @@ def format_byte(n, base)
   s
 end
 
+# ========================================
+#
+# ----------------------------------------
 def format_word(n, base)
   s = ''
   
@@ -132,6 +165,9 @@ def format_word(n, base)
   s
 end
 
+# ========================================
+#
+# ----------------------------------------
 def format_octal_word(n)
   s = ''
   
@@ -142,6 +178,9 @@ def format_octal_word(n)
   s.rjust(7)
 end
 
+# ========================================
+#
+# ----------------------------------------
 def format_hex_byte(n)
   s = '    '
   
@@ -154,6 +193,9 @@ def format_hex_byte(n)
   s
 end
 
+# ========================================
+#
+# ----------------------------------------
 def format_hex_word(n)
   s = '      '
   
@@ -166,6 +208,49 @@ def format_hex_word(n)
   s
 end
 
+# ========================================
+#
+# ----------------------------------------
+def write_bytes(bytes, output_base)
+  line_bytes = []
+
+  bytes.each do |byte|
+    byte_s = format_byte(byte, output_base)
+
+    line_bytes << byte_s
+  
+    if line_bytes.size == 8
+      puts line_bytes.join(' ')
+      line_bytes = []
+    end
+  end
+
+  puts line_bytes.join(' ') if line_bytes.size > 0
+end
+
+# ========================================
+#
+# ----------------------------------------
+def write_words(words, output_base)
+  line_words = []
+
+  words.each do |word|
+    word_s = format_word(word, output_base)
+
+    line_words << word_s
+  
+    if line_words.size == 8
+      puts line_words.join(' ')
+      line_words = []
+    end
+  end
+
+  puts line_words.join(' ') if line_words.size > 0
+end
+
+# ========================================
+#
+# ----------------------------------------
 class ReferenceDef
   attr_reader :symbol, :num_bytes
 
@@ -179,6 +264,9 @@ class ReferenceDef
   end
 end
 
+# ========================================
+#
+# ----------------------------------------
 class RpnExpression
   def initialize(tokens)
     @tokens = tokens
@@ -310,3 +398,4 @@ class RpnExpression
     values
   end
 end
+

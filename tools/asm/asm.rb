@@ -370,7 +370,7 @@ known_literals = make_known_literals(opcodes_defs)
 
 list_output_filename = options[:list_name]
 
-bytes = []
+executable_bytes = []
 symbols = {}
 references = {}
 instr_offs = []
@@ -436,8 +436,8 @@ while line = gets
         byte_values = value.two_bytes
  
         # add bytes to executable section
-        bytes << byte_values[0]
-        bytes << byte_values[1]
+        executable_bytes << byte_values[0]
+        executable_bytes << byte_values[1]
         
         # generate line for list file
         bytes_s = format_bytes_output(offset, byte_values, output_base)
@@ -480,7 +480,7 @@ while line = gets
         instr_offs << offset
 
         # store the opcode
-        bytes << opcode
+        executable_bytes << opcode
 
         arg_value = 0
 
@@ -492,8 +492,8 @@ while line = gets
           arg_value = arg_value0.value
 
           # store argument byte or bytes
-          bytes << arg_value % 256 if arg_size > 0
-          bytes << arg_value / 256 if arg_size > 1
+          executable_bytes << arg_value % 256 if arg_size > 0
+          executable_bytes << arg_value / 256 if arg_size > 1
 
           arg_text = arg_tokens.join
           
@@ -549,39 +549,11 @@ puts "processor\t" + processor unless processor.nil?
 
 puts
 puts '.executable'
-
-line_bytes = []
-
-bytes.each do |byte|
-  byte_s = format_byte(byte, output_base)
-
-  line_bytes << byte_s
-  
-  if line_bytes.size == 8
-    puts line_bytes.join(' ')
-    line_bytes = []
-  end
-end
-
-puts line_bytes.join(' ') if line_bytes.size > 0
+write_bytes(executable_bytes, output_base)
 
 puts
 puts '.instruction-offsets'
-
-line_offsets = []
-
-instr_offs.each do |offset|
-  offset_s = format_word(offset, output_base)
-
-  line_offsets << offset_s
-
-  if line_offsets.size == 8
-    puts line_offsets.join(' ')
-    line_offsets = []
-  end
-end
-
-puts line_offsets.join(' ') if line_offsets.size > 0
+write_words(instr_offs, output_base)
 
 puts
 puts '.symbols'

@@ -174,12 +174,7 @@ puts "processor\t" + processor unless processor.nil?
 
 # write executable segment
 puts '.executable'
-
-executable_bytes.each do |byte|
-  byte_s = format_byte(byte, output_base)
-
-  puts byte_s
-end
+write_bytes(executable_bytes, output_base)
 
 # write readonly segment
 
@@ -188,10 +183,7 @@ end
 # write executable-relocation-offsets section
 
 puts ".relocation-offsets"
-
-executable_relocation_offsets.each do |offset|
-  puts format_word(offset, output_base)
-end
+write_words(executable_relocation_offsets, output_base)
 
 # write end
 puts '.end'

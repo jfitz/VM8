@@ -155,13 +155,7 @@ puts "processor\t" + processor unless processor.nil?
 
 # write executable segment
 puts '.executable'
-
-# write bytes
-executable_bytes.each do |byte|
-  byte_s = format_byte(byte, output_base)
-
-  puts byte_s
-end
+write_bytes(executable_bytes, output_base)
 
 # write end
 puts '.end'
