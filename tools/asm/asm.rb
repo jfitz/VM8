@@ -143,6 +143,76 @@ def parse_directive_line(asm_text)
   return directive, parts
 end
 
+def process_directive_line(directive, parts, symbols, references, executable_bytes, offset, output_base, word_count)
+  case directive
+  when '.equate'
+    # parse label, expression (tokens separated by whitespace)
+    label = parts.shift
+
+    # evaluate expression in RPN
+    expression = RpnExpression.new(parts)
+    values = expression.evaluate(offset, symbols)
+    raise AsmError('invalid expression ' + parts.join(' ')) if values.nil?
+
+    # get 2 bytes (low byte first)
+    value = values[0]
+    byte_values = value.two_bytes
+
+    # store value in symbols table (check for inconsistency)
+    symbols[label] = value
+
+    # generate line for list file
+    spaces = format_word(nil, output_base)
+    bytes_s = format_word(byte_values, output_base)
+    list_line = spaces + '  ' + bytes_s + "\t# " + directive + '  ' + label + '  ' + parts.join(' ')
+  when '.word'
+    # instr_offs << offset
+
+    # parse expression
+    # evaluate parts as RPN
+    expression = RpnExpression.new(parts)
+    values = expression.evaluate(offset, symbols)
+    raise AsmError('invalid expression ' + parts.join(' ')) if values.nil?
+
+    # get 2 bytes (low byte first)
+    value = values[0]
+    byte_values = value.two_bytes
+    
+    # add bytes to executable section
+    # TODO: change this to readonly or writable section
+    executable_bytes << byte_values[0]
+    executable_bytes << byte_values[1]
+    
+    # store symbol and reference
+    if value.is_rel
+      if parts.size == 1
+        label = parts[0]
+      else
+        label = 'word_' + word_count.to_s
+      end
+
+      symbols[label] = value
+      reference_def = ReferenceDef.new(label, 2)
+      references[offset] = reference_def
+    end
+
+    # generate line for list file
+    bytes_s = format_bytes_output(offset, byte_values, output_base)
+    list_line = bytes_s + "\t# " + directive + '  ' + parts.join(' ')
+
+    # bump counter for .word directives
+    word_count += 1
+
+    # move to the next memory byte
+    offset += values.size * 2
+  else
+    raise AsmError('unknown directive: ' + directive)
+    exit
+  end
+
+  [list_line, offset, word_count]
+end
+
 def pack_tokens(tokens, known_literals)
   packed_tokens = []
 
@@ -401,70 +471,7 @@ while line = gets
       # process directive
       directive, parts = parse_directive_line(asm_text)
       
-      case directive
-      when '.equate'
-        # parse label, expression (tokens separated by whitespace)
-        label = parts.shift
-
-        # evaluate expression in RPN
-        expression = RpnExpression.new(parts)
-        values = expression.evaluate(offset, symbols)
-        raise AsmError('invalid expression ' + parts.join(' ')) if values.nil?
-
-        # get 2 bytes (low byte first)
-        value = values[0]
-        byte_values = value.two_bytes
-
-        # generate line for list file
-        spaces = format_word(nil, output_base)
-        bytes_s = format_word(byte_values, output_base)
-        list_line = spaces + '  ' + bytes_s + "\t# " + directive + '  ' + label + '  ' + parts.join(' ')
-
-        # store value in symbols table (check for inconsistency)
-        symbols[label] = value
-      when '.word'
-        # instr_offs << offset
-
-        # parse expression
-        # evaluate parts as RPN
-        expression = RpnExpression.new(parts)
-        values = expression.evaluate(offset, symbols)
-        raise AsmError('invalid expression ' + parts.join(' ')) if values.nil?
-
-        # get 2 bytes (low byte first)
-        value = values[0]
-        byte_values = value.two_bytes
- 
-        # add bytes to executable section
-        executable_bytes << byte_values[0]
-        executable_bytes << byte_values[1]
-        
-        # generate line for list file
-        bytes_s = format_bytes_output(offset, byte_values, output_base)
-        list_line = bytes_s + "\t# " + directive + '  ' + parts.join(' ')
-
-        # store symbol and reference
-        if value.is_rel
-          if parts.size == 1
-            label = parts[0]
-          else
-            label = 'word_' + word_count.to_s
-          end
-
-          symbols[label] = value
-          reference_def = ReferenceDef.new(label, 2)
-          references[offset] = reference_def
-        end
-
-        # bump counter for .word directives
-        word_count += 1
-
-        # move to the next memory byte
-        offset += values.size * 2
-      else
-        puts 'unknown directive: ' + directive
-        exit
-      end
+      list_line, offset, word_count = process_directive_line(directive, parts, symbols, references, executable_bytes, offset, output_base, word_count)
     else
       # process code
       label, opcode, mnemonic, arg_size, arg_tokens = parse_asm_line(asm_text, opcodes_defs, known_literals)
