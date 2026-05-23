@@ -206,7 +206,7 @@ def process_directive_word(directive, parts, executable_bytes, symbols, referenc
   [list_line, offset]
 end
 
-def process_directive_line(directive, parts, symbols, references, executable_bytes, offset, output_base, word_count)
+def process_directive_line(directive, parts, executable_bytes, symbols, references, offset, output_base, word_count)
   case directive
   when '.equate'
     list_line = process_directive_equate(directive, parts, symbols, offset, output_base)
@@ -479,7 +479,7 @@ while line = gets
       # process directive
       directive, parts = parse_directive_line(asm_text)
       
-      list_line, offset, word_count = process_directive_line(directive, parts, symbols, references, executable_bytes, offset, output_base, word_count)
+      list_line, offset, word_count = process_directive_line(directive, parts, executable_bytes, symbols, references, offset, output_base, word_count)
     else
       # process code
       label, opcode, mnemonic, arg_size, arg_tokens = parse_asm_line(asm_text, opcodes_defs, known_literals)
