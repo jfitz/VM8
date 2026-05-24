@@ -19,6 +19,59 @@ class AbsRelValue
   end
 end
 
+def tokenize(line)
+  tokens = []
+
+  token = ''
+  
+  line.each_char do |char|
+    if char.match(/\s/)
+      # space chars
+      if token.size > 0
+        tokens << token
+        token = ''
+      end
+    else
+      # nonwhitespace chars
+      token = token + char
+    end
+  end
+
+  tokens << token if token.size > 0
+  
+  tokens
+end
+
+def tokenize_comma(line)
+  tokens = []
+
+  token = ''
+  
+  line.each_char do |char|
+    if char.match(/\s/)
+      # space chars
+      if token.size > 0
+        tokens << token
+        token = ''
+      end
+    elsif char == ','
+      # comma forces a new token
+      if token.size > 0
+        tokens << token
+        token = ''
+      end
+      tokens << char
+    else
+      # nonwhitespace chars
+      token = token + char
+    end
+  end
+
+  tokens << token if token.size > 0
+  
+  tokens
+end
+
 def make_opcodes_defs(opcode_lines)
   opcode_defs = {}
 
@@ -44,9 +97,7 @@ def make_opcodes_defs(opcode_lines)
     # [1] must be numeric (octal, hex, dec)
     opcode = opcode_text.to_i(0)
 
-    tokens_1 = words[1].chomp.split(/([\s,])/)
-    tokens_2 = tokens_1.map(&:strip)
-    tokens = tokens_2.reject(&:empty?)
+    tokens = tokenize_comma(words[1])
 
     # store
     curr_node = opcode_defs
@@ -136,7 +187,7 @@ end
 
 def parse_directive_line(asm_text)
   # does not allow for quoted space chars or strings
-  parts = asm_text.split
+  parts = tokenize(asm_text)
   
   directive = parts.shift
   
@@ -255,10 +306,7 @@ end
 def parse_asm_line(asm_text, opcode_defs, known_literals)
   # force a first item for the split
   asm_text = ':' + asm_text if asm_text.match(/^\s/) 
-  tokens = asm_text.split(/[\s\,]/).reject(&:empty?)
-  tokens_1 = asm_text.chomp.split(/([\s,])/)
-  tokens_2 = tokens_1.map(&:strip)
-  tokens = tokens_2.reject(&:empty?)
+  tokens = tokenize_comma(asm_text)
   
   # drop the forced item to make 'label' empty string
   label = nil
