@@ -13,10 +13,10 @@ class Intel8080 {
 
   void* userdata_; // user custom pointer
 
-  unsigned long cyc_; // cycle count
-
-  // program counter, stack pointer
  private:
+  // cycle count
+  unsigned long num_cycles_;
+
   // callback to supervisor to read from port
   uint8_t (*supervisor_request_port_in_)(void*, uint8_t);
   // callback to supervisor for writing to port
@@ -24,6 +24,7 @@ class Intel8080 {
   // callback to supervisor to halt
   void (*supervisor_request_halt_)();
 
+  // program counter, stack pointer
   uint16_t pc_;
   uint16_t sp_;
 
@@ -49,7 +50,19 @@ class Intel8080 {
   // mutators
   void init();
   
+  void set_zsp_flags(uint8_t val);
+  
   // properties
+  unsigned long num_cycles() const;
+
+  // change state of 8080
+  void set_pc(uint16_t pc);
+  void set_sp(uint16_t sp);
+  void set_bc(uint16_t bc);
+  void set_de(uint16_t de);
+  void set_hl(uint16_t de);
+
+  // report state of 8080
   uint8_t r_c() const;
   uint8_t r_e() const;
   
@@ -59,19 +72,11 @@ class Intel8080 {
   uint16_t rp_de() const;
   uint16_t rp_hl() const;
 
-  void set_pc(uint16_t pc);
-  void set_sp(uint16_t sp);
-  void set_bc(uint16_t bc);
-  void set_de(uint16_t de);
-  void set_hl(uint16_t de);
-
   uint8_t rb(uint16_t addr);
   void wb(uint16_t addr, uint8_t val);
   uint16_t rw(uint16_t addr);
   void ww(uint16_t addr, uint16_t val);
 
-  void set_zsp_flags(uint8_t val);
-  
   uint8_t pc_next_byte();
   uint16_t pc_next_word();
 

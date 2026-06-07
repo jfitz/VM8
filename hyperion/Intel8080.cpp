@@ -84,7 +84,7 @@ Intel8080::Intel8080(
 // initializes the emulator with default values
 // ----------------------------------------
 void Intel8080::init() {
-  cyc_ = 0;
+  num_cycles_ = 0;
 
   pc_ = 0;
   sp_ = 0;
@@ -117,6 +117,51 @@ void Intel8080::set_zsp_flags(uint8_t val)
   f_z_ = (val) == 0;
   f_s_ = (val) >> 7;
   f_p_ = parity(val);
+}
+
+// ========================================
+//
+// ----------------------------------------
+unsigned long Intel8080::num_cycles() const {
+  return num_cycles_;
+}
+
+// ========================================
+//
+// ----------------------------------------
+void Intel8080::set_pc(uint16_t pc) {
+  pc_ = pc;
+}
+
+// ========================================
+//
+// ----------------------------------------
+void Intel8080::set_sp(uint16_t sp) {
+  sp_ = sp;
+}
+
+// ========================================
+//
+// ----------------------------------------
+void Intel8080::set_bc(uint16_t val) {
+  r_b_ = val >> 8;
+  r_c_ = val & 0xFF;
+}
+
+// ========================================
+//
+// ----------------------------------------
+void Intel8080::set_de(uint16_t val) {
+  r_d_ = val >> 8;
+  r_e_ = val & 0xFF;
+}
+
+// ========================================
+//
+// ----------------------------------------
+void Intel8080::set_hl(uint16_t val) {
+  r_h_ = val >> 8;
+  r_l_ = val & 0xFF;
 }
 
 // ========================================
@@ -166,44 +211,6 @@ uint16_t Intel8080::rp_de() const {
 // ----------------------------------------
 uint16_t Intel8080::rp_hl() const {
   return (r_h_ << 8) | r_l_;
-}
-
-// ========================================
-//
-// ----------------------------------------
-void Intel8080::set_pc(uint16_t pc) {
-  pc_ = pc;
-}
-
-// ========================================
-//
-// ----------------------------------------
-void Intel8080::set_sp(uint16_t sp) {
-  sp_ = sp;
-}
-
-// ========================================
-//
-// ----------------------------------------
-void Intel8080::set_bc(uint16_t val) {
-  r_b_ = val >> 8;
-  r_c_ = val & 0xFF;
-}
-
-// ========================================
-//
-// ----------------------------------------
-void Intel8080::set_de(uint16_t val) {
-  r_d_ = val >> 8;
-  r_e_ = val & 0xFF;
-}
-
-// ========================================
-//
-// ----------------------------------------
-void Intel8080::set_hl(uint16_t val) {
-  r_h_ = val >> 8;
-  r_l_ = val & 0xFF;
 }
 
 // memory helpers (the only four to use `read_byte` and `write_byte` function
@@ -441,7 +448,7 @@ void Intel8080::cond_call(bool condition) {
 
   if (condition) {
     call(addr);
-    cyc_ += 6;
+    num_cycles_ += 6;
   }
 }
 
@@ -458,7 +465,7 @@ void Intel8080::op_ret() {
 void Intel8080::cond_ret(bool condition) {
   if (condition) {
     op_ret();
-    cyc_ += 6;
+    num_cycles_ += 6;
   }
 }
 
@@ -575,7 +582,7 @@ void Intel8080::op_xthl() {
 // executes one opcode
 // ----------------------------------------
 void Intel8080::execute(uint8_t opcode) {
-  cyc_ += OPCODES_CYCLES[opcode];
+  num_cycles_ += OPCODES_CYCLES[opcode];
 
   // when DI is executed, interrupts won't be serviced
   // until the end of next instruction:
@@ -953,7 +960,7 @@ void Intel8080::debug_output(bool print_disassembly) {
   f |= f_c_ << 0;
 
   printf("PC: %04X, AF: %04X, BC: %04X, DE: %04X, HL: %04X, SP: %04X, CYC: %lu",
-	 rp_pc(), r_a_ << 8 | f, rp_bc(), rp_de(), rp_hl(), rp_sp(), cyc_);
+	 rp_pc(), r_a_ << 8 | f, rp_bc(), rp_de(), rp_hl(), rp_sp(), num_cycles_);
 
   uint16_t my_pc = rp_pc();
 

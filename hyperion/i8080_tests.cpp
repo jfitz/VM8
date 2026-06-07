@@ -126,12 +126,12 @@ static inline void run_test(
   memory__[0x0006] = 0x01;
   memory__[0x0007] = 0xC9;  // RET
 
-  long nb_instructions = 0;
+  long num_instructions = 0;
 
   test_finished__ = 0;
 
   while (!test_finished__) {
-    nb_instructions += 1;
+    num_instructions += 1;
 
     // uncomment following line to have a debug output of machine state
     // warning: will output multiple GB of data for the whole test suite
@@ -140,10 +140,11 @@ static inline void run_test(
     c->exec_step();
   }
 
-  long long diff = cyc_expected - c->cyc_;
+  unsigned long cyc_actual = c->num_cycles();
+  long long diff = cyc_expected - cyc_actual;
   printf("\n*** %lu instructions executed on %lu cycles"
          " (expected=%lu, diff=%lld)\n\n",
-      nb_instructions, c->cyc_, cyc_expected, diff);
+      num_instructions, cyc_actual, cyc_expected, diff);
 }
 
 // ========================================
