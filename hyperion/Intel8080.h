@@ -16,6 +16,7 @@ class Intel8080 {
  private:
   // cycle count
   unsigned long num_cycles_;
+  unsigned long t_count_;
 
   // callback to supervisor to read from port
   uint8_t (*supervisor_request_port_in_)(void*, uint8_t);
@@ -85,13 +86,16 @@ class Intel8080 {
 
   static bool parity(uint8_t val);
   static bool carry(int bit_no, uint8_t a, uint8_t b, int16_t result16);
-  
+
+  // operations
   void add(uint8_t* const reg, uint8_t val, bool cy);
   void sub(uint8_t* const reg, uint8_t val, bool cy);
 
   void op_dad(uint16_t val);
-  uint8_t inr(uint8_t val);
-  uint8_t dcr(uint8_t val);
+  uint8_t op_inr(uint8_t val);
+  void op_inm();
+  uint8_t op_dcr(uint8_t val);
+  void op_dcm();
 
   void op_ana(uint8_t val);
   void op_xra(uint8_t val);

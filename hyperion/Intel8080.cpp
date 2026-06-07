@@ -346,7 +346,7 @@ void Intel8080::op_dad(uint16_t val) {
 // ========================================
 // increments a byte
 // ----------------------------------------
-uint8_t Intel8080::inr(uint8_t val) {
+uint8_t Intel8080::op_inr(uint8_t val) {
   uint8_t result = val + 1;
   f_h_ = (result & 0xF) == 0;
   set_zsp_flags(result);
@@ -355,14 +355,36 @@ uint8_t Intel8080::inr(uint8_t val) {
 }
 
 // ========================================
+// increments a byte in memory
+// ----------------------------------------
+void Intel8080::op_inm() {
+  uint8_t val = rb(rp_hl());
+  uint8_t result = val + 1;
+  f_h_ = (result & 0xF) == 0;
+  set_zsp_flags(result);
+  wb(rp_hl(), result);
+}
+
+// ========================================
 // decrements a byte
 // ----------------------------------------
-uint8_t Intel8080::dcr(uint8_t val) {
+uint8_t Intel8080::op_dcr(uint8_t val) {
   uint8_t result = val - 1;
   f_h_ = !((result & 0xF) == 0xF);
   set_zsp_flags(result);
 
   return result;
+}
+
+// ========================================
+// decrements a byte in memory
+// ----------------------------------------
+void Intel8080::op_dcm() {
+  uint8_t val = rb(rp_hl());
+  uint8_t result = val - 1;
+  f_h_ = !((result & 0xF) == 0xF);
+  set_zsp_flags(result);
+  wb(rp_hl(), result);
 }
 
 // ========================================
@@ -755,23 +777,23 @@ void Intel8080::execute(uint8_t opcode) {
     }
     break;
 
-  case 0x3C: r_a_ = inr(r_a_); break; // INR A
-  case 0x04: r_b_ = inr(r_b_); break; // INR B
-  case 0x0C: r_c_ = inr(r_c_); break; // INR C
-  case 0x14: r_d_ = inr(r_d_); break; // INR D
-  case 0x1C: r_e_ = inr(r_e_); break; // INR E
-  case 0x24: r_h_ = inr(r_h_); break; // INR H
-  case 0x2C: r_l_ = inr(r_l_); break; // INR L
-  case 0x34: wb(rp_hl(), inr(rb(rp_hl()))); break; // INR M
+  case 0x3C: r_a_ = op_inr(r_a_); break; // INR A
+  case 0x04: r_b_ = op_inr(r_b_); break; // INR B
+  case 0x0C: r_c_ = op_inr(r_c_); break; // INR C
+  case 0x14: r_d_ = op_inr(r_d_); break; // INR D
+  case 0x1C: r_e_ = op_inr(r_e_); break; // INR E
+  case 0x24: r_h_ = op_inr(r_h_); break; // INR H
+  case 0x2C: r_l_ = op_inr(r_l_); break; // INR L
+  case 0x34: op_inm();            break; // INR M
 
-  case 0x3D: r_a_ = dcr(r_a_); break; // DCR A
-  case 0x05: r_b_ = dcr(r_b_); break; // DCR B
-  case 0x0D: r_c_ = dcr(r_c_); break; // DCR C
-  case 0x15: r_d_ = dcr(r_d_); break; // DCR D
-  case 0x1D: r_e_ = dcr(r_e_); break; // DCR E
-  case 0x25: r_h_ = dcr(r_h_); break; // DCR H
-  case 0x2D: r_l_ = dcr(r_l_); break; // DCR L
-  case 0x35: wb(rp_hl(), dcr(rb(rp_hl()))); break; // DCR M
+  case 0x3D: r_a_ = op_dcr(r_a_); break; // DCR A
+  case 0x05: r_b_ = op_dcr(r_b_); break; // DCR B
+  case 0x0D: r_c_ = op_dcr(r_c_); break; // DCR C
+  case 0x15: r_d_ = op_dcr(r_d_); break; // DCR D
+  case 0x1D: r_e_ = op_dcr(r_e_); break; // DCR E
+  case 0x25: r_h_ = op_dcr(r_h_); break; // DCR H
+  case 0x2D: r_l_ = op_dcr(r_l_); break; // DCR L
+  case 0x35: op_dcm();            break; // DCR M
 
   case 0x03: set_bc(rp_bc() + 1); break; // INX B
   case 0x13: set_de(rp_de() + 1); break; // INX D
