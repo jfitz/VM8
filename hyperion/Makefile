@@ -1,14 +1,16 @@
 TARGET = i8080_tests
 
 C_FLAGS = -g -Wall -Wextra -O2 -std=c99 -pedantic
-CPP_FLAGS = -g -Wall
+CPP_FLAGS = -g -Wall -MMD -MP
 LDFLAGS =
 
-CPP_SOURCES = $(wildcard *.cpp)
-CPP_OBJECTS = $(CPP_SOURCES:.cpp=.o)
+CPP_SOURCES := $(wildcard *.cpp)
+CPP_OBJECTS := $(CPP_SOURCES:.cpp=.o)
 
-C_SOURCES = $(wildcard *.c)
-C_OBJECTS = $(C_SOURCES:.c=.o)
+C_SOURCES := $(wildcard *.c)
+C_OBJECTS := $(C_SOURCES:.c=.o)
+
+DEPS := $(CPP_SOURCES:.cpp=.d)
 
 .PHONY: all clean
 
@@ -23,5 +25,7 @@ $(TARGET): $(CPP_OBJECTS) $(C_OBJECTS)
 %.o: %.cpp
 	$(CXX) $(CPP_FLAGS) -c "$<" -o "$@"
 
+-include $(DEPS)
+
 clean:
-	rm $(TARGET) $(C_OBJECTS) $(CPP_OBJECTS)
+	rm $(TARGET) $(C_OBJECTS) $(CPP_OBJECTS) $(DEPS)
