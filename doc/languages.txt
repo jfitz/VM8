@@ -29,6 +29,18 @@ libraries
 Assembly language
 - 8080
 
+BB (.bb)
+- similar to C
+- ints and pointers to int, possibly refs to int
+- no user-defined functions
+- no arrays
+- no preprocessor
+- functions must be defined before use (like Pascal)
+- no files
+- no structs
+- expressions only in assignment
+- expressions in RPN
+
 C (.c)
 - use math libs
 - krc: K&R version
