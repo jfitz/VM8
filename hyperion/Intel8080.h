@@ -1,5 +1,4 @@
-#ifndef I8080_I8080_H_
-#define I8080_I8080_H_
+#pragma once
 
 #include <stdio.h>
 #include <stdint.h>
@@ -128,5 +127,3 @@ class Intel8080 {
   void execute(uint8_t opcode);
 };
 
-
-#endif // I8080_I8080_H_
