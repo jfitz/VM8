@@ -1,7 +1,7 @@
 TARGET = i8080_tests
 
 C_FLAGS = -g -Wall -Wextra -O2 -std=c99 -pedantic
-CPP_FLAGS = -g -Wall -MMD -MP
+CPP_FLAGS = -g -Wall -std=c++20  -MMD -MP
 LDFLAGS =
 
 CPP_SOURCES := $(wildcard *.cpp)
