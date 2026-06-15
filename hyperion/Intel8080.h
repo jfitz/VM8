@@ -7,10 +7,8 @@
 class Intel8080 {
  public:
   // memory + io interface
-  uint8_t (*read_byte)(void*, uint16_t); // user function to read from memory
-  void (*write_byte)(void*, uint16_t, uint8_t); // same for writing to memory
-
-  void* userdata_; // user custom pointer
+  uint8_t (*read_byte)(uint16_t); // user function to read from memory
+  void (*write_byte)(uint16_t, uint8_t); // same for writing to memory
 
  private:
   // cycle count
@@ -18,9 +16,9 @@ class Intel8080 {
   unsigned long t_count_;
 
   // callback to supervisor to read from port
-  uint8_t (*supervisor_request_port_in_)(void*, uint8_t);
+  uint8_t (*supervisor_request_port_in_)(uint8_t);
   // callback to supervisor for writing to port
-  void (*supervisor_request_port_out_)(void*, uint8_t, uint8_t);
+  void (*supervisor_request_port_out_)(uint8_t, uint8_t, const Intel8080* cpu);
   // callback to supervisor to halt
   void (*supervisor_request_halt_)();
 
@@ -42,8 +40,8 @@ class Intel8080 {
  public:
   // constructors
   Intel8080(
-    uint8_t (*port_in)(void*, uint8_t),
-    void (*port_out)(void*, uint8_t, uint8_t),
+    uint8_t (*port_in)(uint8_t),
+    void (*port_out)(uint8_t, uint8_t, const Intel8080* cpu),
     void (*set_halted)()
   );
 

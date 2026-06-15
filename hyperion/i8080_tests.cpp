@@ -17,14 +17,14 @@ static bool running__ = false;
 // ========================================
 //
 // ----------------------------------------
-static uint8_t rb(void* userdata, uint16_t addr) {
+static uint8_t rb(uint16_t addr) {
   return memory__[addr];
 }
 
 // ========================================
 //
 // ----------------------------------------
-static void wb(void* userdata, uint16_t addr, uint8_t val) {
+static void wb(uint16_t addr, uint8_t val) {
   memory__[addr] = val;
 }
 
@@ -39,27 +39,25 @@ static void set_halted() {
 // ========================================
 //
 // ----------------------------------------
-static uint8_t port_in(void* userdata, uint8_t port) {
+static uint8_t port_in(uint8_t port) {
   return 0x00;
 }
 
 // ========================================
 //
 // ----------------------------------------
-static void port_out(void* userdata, uint8_t port, uint8_t value) {
-  Intel8080* const c = (Intel8080*) userdata;
-
+static void port_out(uint8_t port, uint8_t value, const Intel8080* cpu) {
   if (port == 1) {
-    uint8_t operation = c->r_c();
+    uint8_t operation = cpu->r_c();
 
     if (operation == 2) { // print a character stored in E
-      printf("%c", c->r_e());
+      printf("%c", cpu->r_e());
     } else if (operation == 9) { // print from memory at (DE) until '$' char
-      uint16_t addr = c->rp_de();
+      uint16_t addr = cpu->rp_de();
 
       do {
-        printf("%c", rb(c, addr++));
-      } while (rb(c, addr) != '$');
+        printf("%c", rb(addr++));
+      } while (rb(addr) != '$');
     }
   }
 }
@@ -103,11 +101,10 @@ static inline int load_file(const char* filename, uint16_t addr) {
 //
 // ----------------------------------------
 static inline void run_test(
-    Intel8080* const c, const char* filename, unsigned long cyc_expected) {
-  c->init();
-  c->userdata_ = c;
-  c->read_byte = rb;
-  c->write_byte = wb;
+    Intel8080* const cpu, const char* filename, unsigned long cyc_expected) {
+  cpu->init();
+  cpu->read_byte = rb;
+  cpu->write_byte = wb;
   memset(memory__, 0, MEMORY_SIZE);
 
   if (load_file(filename, 0x100) != 0) {
@@ -115,7 +112,7 @@ static inline void run_test(
   }
   printf("*** TEST: %s\n", filename);
 
-  c->set_pc(0x100);
+  cpu->set_pc(0x100);
 
   // inject "out 0,a" at 0x0000 (signal to stop the test)
   memory__[0x0000] = 0x76;  // HLT
@@ -135,12 +132,12 @@ static inline void run_test(
 
     // uncomment following line to have a debug output of machine state
     // warning: will output multiple GB of data for the whole test suite
-    // c->debug_output(false);
+    // cpu->debug_output(false);
 
-    c->exec_step();
+    cpu->exec_step();
   }
 
-  unsigned long cyc_actual = c->num_cycles();
+  unsigned long cyc_actual = cpu->num_cycles();
   long long diff = cyc_expected - cyc_actual;
   printf("\n*** %lu instructions executed on %lu cycles"
          " (expected=%lu, diff=%lld)\n\n",
