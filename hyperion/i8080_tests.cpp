@@ -1,11 +1,14 @@
 // This file uses the 8080 emulator to run the test suite (roms in cpu_tests
 // directory). It uses a simple array as memory.
 
+// C
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
+// project
+#include "Buss.h"
 #include "Intel8080.h"
 
 // memory callbacks
@@ -103,8 +106,6 @@ static inline int load_file(const char* filename, uint16_t addr) {
 static inline void run_test(
     Intel8080* const cpu, const char* filename, unsigned long cyc_expected) {
   cpu->init();
-  cpu->read_byte = rb;
-  cpu->write_byte = wb;
   memset(memory__, 0, MEMORY_SIZE);
 
   if (load_file(filename, 0x100) != 0) {
@@ -155,7 +156,12 @@ int main(void) {
     return 1;
   }
 
-  Intel8080 cpu(port_in, port_out, set_halted);
+  Buss buss;
+  
+  Intel8080 cpu(&buss, port_in, port_out, set_halted);
+
+  cpu.read_byte = rb;
+  cpu.write_byte = wb;
 
   run_test(&cpu, "cpu_tests/TST8080.COM", 4921LU);
   run_test(&cpu, "cpu_tests/CPUTEST.COM", 255653380LU);

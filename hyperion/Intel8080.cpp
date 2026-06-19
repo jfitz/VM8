@@ -67,10 +67,13 @@ static const unsigned int undef_ops[] =
 //
 // ----------------------------------------
 Intel8080::Intel8080(
+  I_Buss* buss,
   uint8_t (*port_in)(uint8_t),
   void (*port_out)(uint8_t, uint8_t, const Intel8080* cpu),
   void (*set_halted)()
 )
+  :
+  buss_(buss)
 {
   read_byte = NULL;
   write_byte = NULL;

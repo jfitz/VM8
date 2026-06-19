@@ -1,8 +1,12 @@
 #pragma once
 
+// C
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+
+// project
+#include "I_Buss.h"
 
 class Intel8080 {
  public:
@@ -15,6 +19,7 @@ class Intel8080 {
   unsigned long num_cycles_;
   unsigned long t_count_;
 
+  I_Buss* buss_;
   // callback to supervisor to read from port
   uint8_t (*supervisor_request_port_in_)(uint8_t);
   // callback to supervisor for writing to port
@@ -40,6 +45,7 @@ class Intel8080 {
  public:
   // constructors
   Intel8080(
+    I_Buss* buss,
     uint8_t (*port_in)(uint8_t),
     void (*port_out)(uint8_t, uint8_t, const Intel8080* cpu),
     void (*set_halted)()
