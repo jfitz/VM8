@@ -23,7 +23,7 @@ class Intel8080 {
   // callback to supervisor to read from port
   uint8_t (*supervisor_request_port_in_)(uint8_t);
   // callback to supervisor for writing to port
-  void (*supervisor_request_port_out_)(uint8_t, uint8_t, const Intel8080* cpu);
+  void (*supervisor_request_port_out_)(uint8_t, uint8_t, const Intel8080* cpu, const I_Buss* buss);
   // callback to supervisor to halt
   void (*supervisor_request_halt_)();
 
@@ -47,7 +47,7 @@ class Intel8080 {
   Intel8080(
     I_Buss* buss,
     uint8_t (*port_in)(uint8_t),
-    void (*port_out)(uint8_t, uint8_t, const Intel8080* cpu),
+    void (*port_out)(uint8_t, uint8_t, const Intel8080* cpu, const I_Buss* buss),
     void (*set_halted)()
   );
 

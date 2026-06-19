@@ -10,26 +10,10 @@
 // project
 #include "Buss.h"
 #include "Intel8080.h"
+#include "Memory.h"
 
-// memory callbacks
-#define MEMORY_SIZE 0x10000
-static uint8_t* memory__ = NULL;
 static bool test_finished__ = 0;
 static bool running__ = false;
-
-// ========================================
-//
-// ----------------------------------------
-static uint8_t rb(uint16_t addr) {
-  return memory__[addr];
-}
-
-// ========================================
-//
-// ----------------------------------------
-static void wb(uint16_t addr, uint8_t val) {
-  memory__[addr] = val;
-}
 
 // ========================================
 //
@@ -49,18 +33,25 @@ static uint8_t port_in(uint8_t port) {
 // ========================================
 //
 // ----------------------------------------
-static void port_out(uint8_t port, uint8_t value, const Intel8080* cpu) {
-  if (port == 1) {
+static void port_out(uint8_t port, uint8_t value, const Intel8080* cpu, const I_Buss* buss) {
+  if (port == 1)
+  {
     uint8_t operation = cpu->r_c();
 
-    if (operation == 2) { // print a character stored in E
+    if (operation == 2)
+    {
+      // print a character stored in E
       printf("%c", cpu->r_e());
-    } else if (operation == 9) { // print from memory at (DE) until '$' char
+    }
+    else if (operation == 9)
+    {
+      // print from memory at (DE) until '$' char
       uint16_t addr = cpu->rp_de();
 
-      do {
-        printf("%c", rb(addr++));
-      } while (rb(addr) != '$');
+      do
+      {
+        printf("%c", buss->mem_read(addr++));
+      } while (buss->mem_read(addr) != '$');
     }
   }
 }
@@ -68,34 +59,48 @@ static void port_out(uint8_t port, uint8_t value, const Intel8080* cpu) {
 // ========================================
 //
 // ----------------------------------------
-static inline int load_file(const char* filename, uint16_t addr) {
+static inline int load_file(const char* filename, uint16_t addr, I_Buss* buss)
+{
+  puts("Loading file...");
+
   FILE* f = fopen(filename, "rb");
+
   if (f == NULL) {
     fprintf(stderr, "error: can't open file '%s'.\n", filename);
 
     return 1;
   }
 
-  // file size check:
+  // file size
   fseek(f, 0, SEEK_END);
   size_t file_size = ftell(f);
   rewind(f);
 
-  if (file_size + addr >= MEMORY_SIZE) {
-    fprintf(stderr, "error: file %s can't fit in memory.\n", filename);
+  uint8_t* buffer = (uint8_t*)malloc(file_size);
+
+  if (buffer == NULL)
+  {
+    puts("Cannot allocate buffer");
+
+    fclose(f);
 
     return 1;
   }
 
-  // copying the bytes in memory:
-  size_t result = fread(&memory__[addr], sizeof(uint8_t), file_size, f);
-  if (result != file_size) {
+  size_t num_bytes_read = fread(buffer, sizeof(uint8_t), file_size, f);
+
+  fclose(f);
+
+  if (num_bytes_read != file_size)
+  {
     fprintf(stderr, "error: while reading file '%s'\n", filename);
 
     return 1;
   }
 
-  fclose(f);
+  buss->mem_write_block(addr, buffer, file_size);
+
+  free(buffer);
 
   return 0;
 }
@@ -104,25 +109,29 @@ static inline int load_file(const char* filename, uint16_t addr) {
 //
 // ----------------------------------------
 static inline void run_test(
-    Intel8080* const cpu, const char* filename, unsigned long cyc_expected) {
-  cpu->init();
-  memset(memory__, 0, MEMORY_SIZE);
+  Intel8080* const cpu, I_Buss* buss, const char* filename, unsigned long cyc_expected)
+{
+  puts("Running test...");
 
-  if (load_file(filename, 0x100) != 0) {
+  cpu->init();
+
+  if (load_file(filename, 0x100, buss) != 0)
+  {
     return;
   }
+
   printf("*** TEST: %s\n", filename);
 
   cpu->set_pc(0x100);
 
   // inject "out 0,a" at 0x0000 (signal to stop the test)
-  memory__[0x0000] = 0x76;  // HLT
-  memory__[0x0001] = 0x00;
+  buss->mem_write(0x0000, 0x76);  // HLT
+  buss->mem_write(0x0001, 0x00);
 
   // inject "out 1,a" at 0x0005 (signal to output some characters)
-  memory__[0x0005] = 0xD3;  // OUT
-  memory__[0x0006] = 0x01;
-  memory__[0x0007] = 0xC9;  // RET
+  buss->mem_write(0x0005, 0xD3);  // OUT
+  buss->mem_write(0x0006, 0x01);
+  buss->mem_write(0x0007, 0xC9);  // RET
 
   long num_instructions = 0;
 
@@ -149,26 +158,21 @@ static inline void run_test(
 //
 // ----------------------------------------
 int main(void) {
-  memory__ = (uint8_t*)malloc(MEMORY_SIZE);
-  if (memory__ == NULL) {
-    puts("cannot allocate memory");
+  puts("i8080_tests");
 
-    return 1;
-  }
+  puts("Creating Memory...");
+  Memory memory;
+  puts("Creating Buss...");
+  Buss buss(&memory);
 
-  Buss buss;
-  
+  puts("Creating Intel8080...");
   Intel8080 cpu(&buss, port_in, port_out, set_halted);
 
-  cpu.read_byte = rb;
-  cpu.write_byte = wb;
-
-  run_test(&cpu, "cpu_tests/TST8080.COM", 4921LU);
-  run_test(&cpu, "cpu_tests/CPUTEST.COM", 255653380LU);
-  run_test(&cpu, "cpu_tests/8080PRE.COM", 7814LU);
-  run_test(&cpu, "cpu_tests/8080EXM.COM", 23803381168LU);
-
-  free(memory__);
+  puts("Running tests...");
+  run_test(&cpu, &buss, "cpu_tests/TST8080.COM", 4921LU);
+  run_test(&cpu, &buss, "cpu_tests/CPUTEST.COM", 255653380LU);
+  run_test(&cpu, &buss, "cpu_tests/8080PRE.COM", 7814LU);
+  run_test(&cpu, &buss, "cpu_tests/8080EXM.COM", 23803381168LU);
 
   return 0;
 }

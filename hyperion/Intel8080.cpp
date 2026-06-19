@@ -69,7 +69,7 @@ static const unsigned int undef_ops[] =
 Intel8080::Intel8080(
   I_Buss* buss,
   uint8_t (*port_in)(uint8_t),
-  void (*port_out)(uint8_t, uint8_t, const Intel8080* cpu),
+  void (*port_out)(uint8_t, uint8_t, const Intel8080* cpu, const I_Buss* buss),
   void (*set_halted)()
 )
   :
@@ -224,30 +224,30 @@ uint16_t Intel8080::rp_hl() const {
 // reads a byte from memory
 // ----------------------------------------
 uint8_t Intel8080::rb(uint16_t addr) {
-  return read_byte(addr);
+  return buss_->mem_read(addr);
 }
 
 // ========================================
 // writes a byte to memory
 // ----------------------------------------
 void Intel8080::wb(uint16_t addr, uint8_t val) {
-  write_byte(addr, val);
+  buss_->mem_write(addr, val);
 }
 
 // ========================================
 // reads a word from memory
 // ----------------------------------------
 uint16_t Intel8080::rw(uint16_t addr) {
-  return read_byte(addr + 1) << 8 |
-         read_byte(addr);
+  return buss_->mem_read(addr + 1) << 8 |
+         buss_->mem_read(addr);
 }
 
 // ========================================
 // writes a word to memory
 // ----------------------------------------
 void Intel8080::ww(uint16_t addr, uint16_t val) {
-  write_byte(addr, val & 0xFF);
-  write_byte(addr + 1, val >> 8);
+  buss_->mem_write(addr, val & 0xFF);
+  buss_->mem_write(addr + 1, val >> 8);
 }
 
 // ========================================
@@ -916,7 +916,7 @@ void Intel8080::execute(uint8_t opcode) {
     r_a_ = supervisor_request_port_in_(pc_next_byte());
     break;
   case 0xD3: // OUT
-    supervisor_request_port_out_(pc_next_byte(), r_a_, this);
+    supervisor_request_port_out_(pc_next_byte(), r_a_, this, buss_);
     break;
 
   // undocumented NOPs

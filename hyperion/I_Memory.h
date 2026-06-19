@@ -3,11 +3,10 @@
 // C
 #include <cstdint>
 
-class I_Buss {
+class I_Memory {
  public:
   // mutators
   virtual void mem_write(uint16_t, uint8_t) = 0;
-  virtual void mem_write_block(uint16_t, uint8_t*, uint16_t) = 0;
 
   // derived values
   virtual uint8_t mem_read(uint16_t) const = 0;

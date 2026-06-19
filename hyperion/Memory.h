@@ -1,23 +1,17 @@
 #pragma once
 
-// project
 #include "I_Memory.h"
 
-// this file
-#include "I_Buss.h"
-
-class Buss : public I_Buss
+class Memory : public I_Memory
 {
 private:
-  I_Memory* memory_;
-
+  uint8_t* bytes_;
 public:
   // constructors
-  Buss(I_Memory* memory);
+  Memory();
 
   // mutators
   void mem_write(uint16_t, uint8_t);
-  void mem_write_block(uint16_t, uint8_t*, uint16_t);
 
   // derived values
   uint8_t mem_read(uint16_t) const;
