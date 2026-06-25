@@ -162,8 +162,10 @@ int main(void) {
 
   puts("Creating Memory...");
   Memory memory;
+
   puts("Creating Buss...");
-  Buss buss(&memory);
+  Buss buss;
+  buss.add(&memory);
 
   puts("Creating Intel8080...");
   Intel8080 cpu(&buss, port_in, port_out, set_halted);

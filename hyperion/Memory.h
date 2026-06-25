@@ -21,4 +21,8 @@ public:
   // derived values
   uint8_t mem_read(uint16_t address) const;
   uint8_t io_read(uint8_t port) const;
+
+  // tests
+  bool mem_responds_to(uint16_t address) const;
+  bool io_responds_to(uint8_t port) const;
 };
