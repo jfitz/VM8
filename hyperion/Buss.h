@@ -1,5 +1,8 @@
 #pragma once
 
+// STL
+#include <vector>
+
 // project
 #include "I_Card.h"
 
@@ -9,7 +12,7 @@
 class Buss : public I_Buss
 {
 private:
-  I_Card* memory_;
+  std::vector<I_Card*> cards_;
 
 public:
   // constructors
@@ -26,4 +29,8 @@ public:
   // derived values
   uint8_t mem_read(uint16_t address) const;
   uint8_t io_read(uint8_t port) const;
+
+private:
+  I_Card* find_memory_card(uint16_t address) const;
+  I_Card* find_io_card(uint8_t port) const;
 };
