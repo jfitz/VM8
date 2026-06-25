@@ -19,7 +19,7 @@ public:
   Buss();
 
   // mutators
-  void add(I_Card* memory);
+  void add(I_Card* card);
   
   void mem_write(uint16_t address, uint8_t value);
   void mem_write_block(uint16_t dest_address, uint8_t* source_address, uint16_t count);

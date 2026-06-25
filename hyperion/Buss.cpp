@@ -10,9 +10,9 @@ Buss::Buss()
 // ========================================
 //
 // ----------------------------------------
-void Buss::add(I_Card* memory)
+void Buss::add(I_Card* card)
 {
-  cards_.push_back(memory);
+  cards_.push_back(card);
 }
 
 // ========================================

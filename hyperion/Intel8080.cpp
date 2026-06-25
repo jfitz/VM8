@@ -68,7 +68,6 @@ static const unsigned int undef_ops[] =
 // ----------------------------------------
 Intel8080::Intel8080(
   I_Buss* buss,
-  uint8_t (*port_in)(uint8_t),
   void (*port_out)(uint8_t, uint8_t, const Intel8080* cpu, const I_Buss* buss),
   void (*set_halted)()
 )
@@ -77,7 +76,6 @@ Intel8080::Intel8080(
 {
   read_byte = NULL;
   write_byte = NULL;
-  supervisor_request_port_in_ = port_in;
   supervisor_request_port_out_ = port_out;
   supervisor_request_halt_ = set_halted;
 
@@ -913,7 +911,7 @@ void Intel8080::execute(uint8_t opcode) {
   case 0xF1: op_pop_psw();          break; // POP PSW
 
   case 0xDB: // IN
-    r_a_ = supervisor_request_port_in_(pc_next_byte());
+    r_a_ = buss_->io_read(pc_next_byte());
     break;
   case 0xD3: // OUT
     supervisor_request_port_out_(pc_next_byte(), r_a_, this, buss_);

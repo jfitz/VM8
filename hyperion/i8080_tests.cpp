@@ -26,13 +26,6 @@ static void set_halted() {
 // ========================================
 //
 // ----------------------------------------
-static uint8_t port_in(uint8_t port) {
-  return 0x00;
-}
-
-// ========================================
-//
-// ----------------------------------------
 static void port_out(uint8_t port, uint8_t value, const Intel8080* cpu, const I_Buss* buss) {
   if (port == 1)
   {
@@ -160,15 +153,15 @@ static inline void run_test(
 int main(void) {
   puts("i8080_tests");
 
-  puts("Creating Memory...");
-  Memory memory;
+  puts("Creating memory cards...");
+  Memory memory_card;
 
   puts("Creating Buss...");
   Buss buss;
-  buss.add(&memory);
+  buss.add(&memory_card);
 
   puts("Creating Intel8080...");
-  Intel8080 cpu(&buss, port_in, port_out, set_halted);
+  Intel8080 cpu(&buss, port_out, set_halted);
 
   puts("Running tests...");
   run_test(&cpu, &buss, "cpu_tests/TST8080.COM", 4921LU);
