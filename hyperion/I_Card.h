@@ -3,12 +3,10 @@
 // C
 #include <cstdint>
 
-class I_Buss {
+class I_Card {
  public:
   // mutators
   virtual void mem_write(uint16_t address, uint8_t value) = 0;
-  virtual void mem_write_block(uint16_t dest_address, uint8_t* source_address, uint16_t count) = 0;
-
   virtual void io_write(uint8_t port, uint8_t value) = 0;
 
   // derived values

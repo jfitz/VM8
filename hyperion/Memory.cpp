@@ -12,35 +12,66 @@
 // this file
 #include "Memory.h"
 
-#define MEMORY_SIZE 0x10000
 
 // ========================================
 //
 // ----------------------------------------
 Memory::Memory()
+  :
+  start_address_(0),
+  end_address_(0xffff)
 {
-  bytes_ = (uint8_t*)malloc(MEMORY_SIZE);
+  size_t size = end_address_ - start_address_ + 1;
+  bytes_ = (uint8_t*)malloc(size);
 
   if (bytes_ == NULL)
   {
     throw std::runtime_error("cannot allocate memory");
   }
-  
-  memset(bytes_, 0, MEMORY_SIZE);
+
+  memset(bytes_, 0, size);
 }
 
 // ========================================
 //
 // ----------------------------------------
-void Memory::mem_write(uint16_t addr, uint8_t val)
+Memory::~Memory()
 {
-  bytes_[addr] = val;
+  free(bytes_);
 }
 
 // ========================================
 //
 // ----------------------------------------
-uint8_t Memory::mem_read(uint16_t addr) const
+void Memory::mem_write(uint16_t address, uint8_t value)
 {
-  return bytes_[addr];
+  // check address is in range [start_address, size_)
+
+  bytes_[address] = value;
+}
+
+// ========================================
+//
+// ----------------------------------------
+void Memory::io_write(uint8_t port, uint8_t value)
+{
+  // do something here
+}
+
+// ========================================
+//
+// ----------------------------------------
+uint8_t Memory::mem_read(uint16_t address) const
+{
+  // check address is in range [start_address, size_)
+
+  return bytes_[address];
+}
+
+// ========================================
+//
+// ----------------------------------------
+uint8_t Memory::io_read(uint8_t port) const
+{
+  return 0;
 }
