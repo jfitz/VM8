@@ -45,11 +45,7 @@ Memory::~Memory()
 // ----------------------------------------
 void Memory::mem_write(uint16_t address, uint8_t value)
 {
-  // check address is in range [start_address, end_address_]
-  if (mem_responds_to(address))
-  {
-    bytes_[address] = value;
-  }
+  bytes_[address] = value;
 }
 
 // ========================================
@@ -68,13 +64,7 @@ void Memory::io_write(uint8_t port, uint8_t value)
 // ----------------------------------------
 uint8_t Memory::mem_read(uint16_t address) const
 {
-  // check address is in range [start_address, end_address_]
-  if (mem_responds_to(address))
-  {
-    return bytes_[address];
-  }
-
-  return 0;
+  return bytes_[address];
 }
 
 // ========================================
@@ -96,7 +86,7 @@ uint8_t Memory::io_read(uint8_t port) const
 // ----------------------------------------
 bool Memory::mem_responds_to(uint16_t address) const
 {
-  return (address >= start_address_ && address <= end_address_);
+    return true;
 }
 
 // ========================================

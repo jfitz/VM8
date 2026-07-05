@@ -10,9 +10,9 @@ Buss::Buss()
 // ========================================
 //
 // ----------------------------------------
-void Buss::add(I_Card* card)
+void Buss::set_memory(I_Card* card)
 {
-  cards_.push_back(card);
+  memory_card_ = card;
 }
 
 // ========================================
@@ -20,9 +20,7 @@ void Buss::add(I_Card* card)
 // ----------------------------------------
 void Buss::mem_write(uint16_t address, uint8_t value)
 {
-  I_Card* active_card = find_memory_card(address);
-  
-  active_card->mem_write(address, value);
+  memory_card_->mem_write(address, value);
 }
 
 // ========================================
@@ -30,13 +28,11 @@ void Buss::mem_write(uint16_t address, uint8_t value)
 // ----------------------------------------
 void Buss::mem_write_block(uint16_t dest_address, uint8_t* source_address, uint16_t count)
 {
-  I_Card* active_card = find_memory_card(dest_address);
-  
   unsigned int index = 0;
 
   while (index <= count)
   {
-    active_card->mem_write(dest_address, source_address[index]);
+    memory_card_->mem_write(dest_address, source_address[index]);
 
     dest_address += 1;
     index += 1;
@@ -49,7 +45,7 @@ void Buss::mem_write_block(uint16_t dest_address, uint8_t* source_address, uint1
 void Buss::io_write(uint8_t port, uint8_t value)
 {
   I_Card* active_card = find_io_card(port);
-  
+
   active_card->io_write(port, value);
 }
 
@@ -58,9 +54,7 @@ void Buss::io_write(uint8_t port, uint8_t value)
 // ----------------------------------------
 uint8_t Buss::mem_read(uint16_t address) const
 {
-  I_Card* active_card = find_memory_card(address);
-  
-  return active_card->mem_read(address);
+  return memory_card_->mem_read(address);
 }
 
 // ========================================
@@ -69,26 +63,8 @@ uint8_t Buss::mem_read(uint16_t address) const
 uint8_t Buss::io_read(uint8_t port) const
 {
   I_Card* active_card = find_io_card(port);
-  
+
   return active_card->io_read(port);
-}
-
-// ========================================
-//
-// ----------------------------------------
-I_Card* Buss::find_memory_card(uint16_t address) const
-{
-  I_Card* active_card = NULL;
-
-  for (I_Card* card : cards_)
-  {
-    if (card->mem_responds_to(address))
-    {
-      active_card = card;
-    }
-  }
-
-  return active_card;
 }
 
 // ========================================
@@ -96,15 +72,15 @@ I_Card* Buss::find_memory_card(uint16_t address) const
 // ----------------------------------------
 I_Card* Buss::find_io_card(uint8_t port) const
 {
-  I_Card* active_card = NULL;
+  I_Card* active_io_card = NULL;
 
-  for (I_Card* card : cards_)
+  for (I_Card* io_card : io_cards_)
   {
-    if (card->io_responds_to(port))
+    if (io_card->io_responds_to(port))
     {
-      active_card = card;
+      active_io_card = io_card;
     }
   }
 
-  return active_card;
+  return active_io_card;
 }

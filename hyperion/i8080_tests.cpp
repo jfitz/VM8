@@ -158,7 +158,7 @@ int main(void) {
 
   puts("Creating Buss...");
   Buss buss;
-  buss.add(&memory_card);
+  buss.set_memory(&memory_card);
 
   puts("Creating Intel8080...");
   Intel8080 cpu(&buss, port_out, set_halted);

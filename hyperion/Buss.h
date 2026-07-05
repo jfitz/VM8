@@ -12,15 +12,16 @@
 class Buss : public I_Buss
 {
 private:
-  std::vector<I_Card*> cards_;
+  I_Card* memory_card_;
+  std::vector<I_Card*> io_cards_;
 
 public:
   // constructors
   Buss();
 
   // mutators
-  void add(I_Card* card);
-  
+  void set_memory(I_Card* card);
+
   void mem_write(uint16_t address, uint8_t value);
   void mem_write_block(uint16_t dest_address, uint8_t* source_address, uint16_t count);
 
@@ -31,6 +32,5 @@ public:
   uint8_t io_read(uint8_t port) const;
 
 private:
-  I_Card* find_memory_card(uint16_t address) const;
   I_Card* find_io_card(uint8_t port) const;
 };
