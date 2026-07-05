@@ -10,7 +10,7 @@
 // project
 #include "Buss.h"
 #include "Intel8080.h"
-#include "Memory.h"
+#include "Memory64k.h"
 
 static bool test_finished__ = 0;
 static bool running__ = false;
@@ -163,7 +163,7 @@ int main(void) {
   puts("i8080_tests");
 
   puts("Creating memory cards...");
-  Memory memory_card;
+  Memory64k memory_card;
 
   puts("Creating Buss...");
   Buss buss;

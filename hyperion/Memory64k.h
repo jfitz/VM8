@@ -2,7 +2,7 @@
 
 #include "I_Card.h"
 
-class Memory : public I_Card
+class Memory64k : public I_Card
 {
 private:
   uint16_t start_address_;
@@ -11,8 +11,8 @@ private:
 
 public:
   // constructors
-  Memory();
-  ~Memory();
+  Memory64k();
+  ~Memory64k();
 
   // mutators
   void mem_write(uint16_t address, uint8_t value);

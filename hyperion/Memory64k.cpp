@@ -10,13 +10,13 @@
 // this project
 
 // this file
-#include "Memory.h"
+#include "Memory64k.h"
 
 
 // ========================================
 //
 // ----------------------------------------
-Memory::Memory()
+Memory64k::Memory64k()
   :
   start_address_(0),
   end_address_(0xffff)
@@ -35,7 +35,7 @@ Memory::Memory()
 // ========================================
 //
 // ----------------------------------------
-Memory::~Memory()
+Memory64k::~Memory64k()
 {
   free(bytes_);
 }
@@ -43,7 +43,7 @@ Memory::~Memory()
 // ========================================
 //
 // ----------------------------------------
-void Memory::mem_write(uint16_t address, uint8_t value)
+void Memory64k::mem_write(uint16_t address, uint8_t value)
 {
   bytes_[address] = value;
 }
@@ -51,7 +51,7 @@ void Memory::mem_write(uint16_t address, uint8_t value)
 // ========================================
 //
 // ----------------------------------------
-void Memory::io_write(uint8_t port, uint8_t value)
+void Memory64k::io_write(uint8_t port, uint8_t value)
 {
   if (io_responds_to(port))
   {
@@ -62,7 +62,7 @@ void Memory::io_write(uint8_t port, uint8_t value)
 // ========================================
 //
 // ----------------------------------------
-uint8_t Memory::mem_read(uint16_t address) const
+uint8_t Memory64k::mem_read(uint16_t address) const
 {
   return bytes_[address];
 }
@@ -70,7 +70,7 @@ uint8_t Memory::mem_read(uint16_t address) const
 // ========================================
 //
 // ----------------------------------------
-uint8_t Memory::io_read(uint8_t port) const
+uint8_t Memory64k::io_read(uint8_t port) const
 {
   if (io_responds_to(port))
   {
@@ -84,7 +84,7 @@ uint8_t Memory::io_read(uint8_t port) const
 // ========================================
 //
 // ----------------------------------------
-bool Memory::mem_responds_to(uint16_t address) const
+bool Memory64k::mem_responds_to(uint16_t address) const
 {
     return true;
 }
@@ -92,7 +92,7 @@ bool Memory::mem_responds_to(uint16_t address) const
 // ========================================
 //
 // ----------------------------------------
-bool Memory::io_responds_to(uint8_t port) const
+bool Memory64k::io_responds_to(uint8_t port) const
 {
   return false;
 }
