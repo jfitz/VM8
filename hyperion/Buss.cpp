@@ -26,22 +26,6 @@ void Buss::mem_write(uint16_t address, uint8_t value)
 // ========================================
 //
 // ----------------------------------------
-void Buss::mem_write_block(uint16_t dest_address, uint8_t* source_address, uint16_t count)
-{
-  unsigned int index = 0;
-
-  while (index <= count)
-  {
-    memory_card_->mem_write(dest_address, source_address[index]);
-
-    dest_address += 1;
-    index += 1;
-  }
-}
-
-// ========================================
-//
-// ----------------------------------------
 void Buss::io_write(uint8_t port, uint8_t value)
 {
   I_Card* active_card = find_io_card(port);

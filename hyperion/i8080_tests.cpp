@@ -91,7 +91,16 @@ static inline int load_file(const char* filename, uint16_t addr, I_Buss* buss)
     return 1;
   }
 
-  buss->mem_write_block(addr, buffer, file_size);
+  // write buffer to memory
+  unsigned int index = 0;
+
+  while (index <= file_size)
+  {
+    buss->mem_write(addr, buffer[index]);
+
+    addr += 1;
+    index += 1;
+  }
 
   free(buffer);
 
