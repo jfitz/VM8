@@ -116,7 +116,7 @@ def make_references_map(lines)
     parts = line.split
     offset = parts[0].to_i(0)
     
-    dictionary[offset] = parts[1]
+    dictionary[offset] = parts[2]
   end
   
   dictionary
@@ -260,7 +260,7 @@ class ReferenceDef
   end
 
   def to_s
-    "#{@symbol}\t#{@num_bytes}"
+    "#{@num_bytes}\t#{@symbol}"
   end
 end
 

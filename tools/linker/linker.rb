@@ -121,8 +121,8 @@ sections['.references'].each do |line|
   end
 
   offset = parts[0].to_i(0)
-  name = parts[1]
-  num_bytes = parts[2].to_i(0)
+  num_bytes = parts[1].to_i(0)
+  name = parts[2]
   references[offset] = ReferenceDef.new(name, num_bytes)
 end
 
