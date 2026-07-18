@@ -29,7 +29,7 @@ libraries
 Assembly language
 - 8080
 
-BB (.bb)
+BB simplified C (.bb)
 - similar to C
 - ints and pointers to int, possibly refs to int
 - no user-defined functions
@@ -68,8 +68,23 @@ Forth (.fth)
 BASIC (.bas)
 - use math libs
 
+Compiled BASIC (.cba)
+- accept regular BASIC
+- also accept compiler-friendly BASIC
+- OPTIONS section, no line numbers
+- DIM section, no line numbers (allows for better memory layout and faster access)
+- no OPTIONS and DIM in line number section
+- no implicit creation of arrays or matrices (targets must be predefined)
+- arrays and matrices defined with maximum size, may be smaller
+
 <to be named> reduced BASIC
 - use math libs
 - expressions only in LET statements
 - RPN for expressions
 - No IF or WHILE, use modifiers
+
+simplified dbase (?)
+- text file may contain program and forms
+- discrete files for data and indexes (.DBF, .NDX)
+- combined files for one table and its indexes (.DAT)
+- single file for all tables, views, and indexes (.DBF) ?
