@@ -547,6 +547,10 @@ while line = gets
 
         arg_value = 0
 
+        # replace symbol tokens with values
+        # if no symbols remaining in expression, evaluate and write value
+        # else write modifed expression to output
+
         # evaluate argument
         if arg_tokens.size > 0
           expression = RpnExpression.new(arg_tokens)

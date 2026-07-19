@@ -29,6 +29,20 @@ libraries
 Assembly language
 - 8080
 
+Calling conventions:
+- Fortran:
+   values left-to-right
+   last value is number of params
+   then return address
+   callee cleans stack
+   no recursion
+- C:
+   values right-to-left
+   last value is number of params
+   then return address
+   caller cleans stack
+   recursion allowed
+
 BB (.bb)
 - similar to C
 - ints and pointers to int, possibly refs to int
@@ -48,7 +62,7 @@ C (.c)
 - cwc: C with classes (structs with functions) no inheritance, no templates
 - sc: simplified C
 
-Dibol (.d)
+Dibol (.dbl)
 - use math libs
 - decbol:
 
@@ -60,7 +74,10 @@ FOCAL (.fcl)
 
 SQL (.sql)
 
-LISP (.lis)
+LISP (.lsp)
+
+Mouse (.mse)
+- simplified Lisp
 
 Forth (.fth)
 - use math libs
@@ -72,4 +89,8 @@ BASIC (.bas)
 - use math libs
 - expressions only in LET statements
 - RPN for expressions
-- No IF or WHILE, use modifiers
+- No IF or ELSE statements, use modifiers
+- No WHILE statements, use modifiers
+- No FOR or NEXT statements, use modifiers
+
+BLISS (.bls) or something like it
